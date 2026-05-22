@@ -576,54 +576,119 @@ def run_nightly_audit(force_test=False):
 
 # ==================== WINDOWS TASK SCHEDULER CLI ====================
 
+def run_warning_check():
+    """Runs a 9:00 PM warning check. If any tasks are incomplete, fires a high-priority loud alarm to the phone."""
+    config = load_config()
+    tracked_tasks = config.get("tracked_tasks", DEFAULT_TASKS)
+    github_user = config.get("github_username", "")
+    ntfy_topic = config.get("ntfy_topic", "")
+    
+    data = load_data()
+    today = datetime.now().strftime("%Y-%m-%d")
+    data = initialize_today(data, today, tracked_tasks)
+    
+    # Check GitHub Commit
+    print(f"{CYAN}⏰ Running 9:00 PM Warning Check for username '{github_user}'...{RESET}")
+    github_ok = check_github_commit_today(github_user)
+    
+    # Check missed tasks
+    missed_tasks = [task for task in tracked_tasks if not data[today].get(task, False)]
+    if not github_ok:
+        missed_tasks.append("github-commit")
+        
+    if missed_tasks:
+        stats = calculate_stats()
+        alert_title = "⏰ GUARDIAN WARNING: GOALS PENDING!"
+        alert_msg = (
+            f"You still have incomplete goals for today:\n" +
+            "\n".join([f"• {task.upper()}" for task in missed_tasks]) +
+            f"\n\n🔥 Save your {stats['current_streak']} day streak!"
+            "\nYou have 3 hours left until midnight!"
+        )
+        # Using priority "max" triggers a loud ringtone alarm sound on ntfy mobile apps
+        send_alert(ntfy_topic, alert_title, alert_msg, priority="max", tags="rotating_light,alarm_clock,muscle")
+        print(f"{YELLOW}🚨 Warning Alarm Dispatched! Loud alarm notification sent via ntfy.sh.{RESET}")
+        print(f"Pending tasks: {missed_tasks}")
+    else:
+        print(f"{GREEN}🏆 Outstanding! All habits and commits already perfect. No warning alarm needed!{RESET}")
+
+def run_test_warning():
+    """Fires a test warning alarm check immediately with priority max to verify the phone plays sound/alert."""
+    config = load_config()
+    ntfy_topic = config.get("ntfy_topic", "")
+    
+    print(f"{CYAN}📢 Dispatching high-priority TEST WARNING ALARM to topic '{ntfy_topic}'...{RESET}")
+    alert_title = "🔊 GUARDIAN: TEST ALARM ACTIVE"
+    alert_msg = (
+        "This is an urgent test of your Guardian sound alarm!\n"
+        "If you can hear a loud ringtone, your phone notification sound is configured correctly! 🛡️\n\n"
+        "Keep up the great work today!"
+    )
+    send_alert(ntfy_topic, alert_title, alert_msg, priority="max", tags="rotating_light,alarm_clock,loud_sound")
+    print(f"{GREEN}✅ Test Alarm Dispatched! Check your phone now for a loud alarm sound.{RESET}")
+
 def register_windows_task():
-    """Registers the daily audit run with the native Windows Task Scheduler."""
+    """Registers both the 9:00 PM warning alarm and the nightly audit with the native Windows Task Scheduler."""
     if os.name != "nt":
         print(f"{RED}❌ Windows Task Scheduler is only supported on Windows OS.{RESET}")
         return
 
     config = load_config()
     audit_time = config.get("audit_time", "23:45")
+    warning_time = config.get("warning_time", "21:00")
     
     # Create precise paths to the script and python executable
     python_exe = sys.executable
     script_path = os.path.abspath(__file__)
     
-    # Build task commands
-    task_name = "GuardianDailyAudit"
-    # Escape quotes inside /tr command line so schtasks handles paths with spaces
-    action_command = f'\\"{python_exe}\\" \\"{script_path}\\" audit'
+    # 1. Register the 9:00 PM Warning Alarm task
+    warn_task = "GuardianDailyWarning"
+    warn_action = f'\\"{python_exe}\\" \\"{script_path}\\" warning'
     
-    print(f"{CYAN}Registering daily task '{task_name}' to run at {audit_time}...{RESET}")
+    print(f"{CYAN}Registering daily warning alarm task '{warn_task}' at {warning_time}...{RESET}")
+    os.system(f'schtasks /delete /tn "{warn_task}" /f >nul 2>&1')
+    warn_cmd = f'schtasks /create /tn "{warn_task}" /tr "{warn_action}" /sc daily /st {warning_time} /f'
+    warn_res = os.system(warn_cmd)
     
-    # Delete existing task first if it exists to overwrite
-    os.system(f'schtasks /delete /tn "{task_name}" /f >nul 2>&1')
+    # 2. Register the Nightly Audit task
+    audit_task = "GuardianDailyAudit"
+    audit_action = f'\\"{python_exe}\\" \\"{script_path}\\" audit'
     
-    # Create new task
-    create_cmd = f'schtasks /create /tn "{task_name}" /tr "{action_command}" /sc daily /st {audit_time} /f'
-    result = os.system(create_cmd)
+    print(f"{CYAN}Registering final daily audit task '{audit_task}' at {audit_time}...{RESET}")
+    os.system(f'schtasks /delete /tn "{audit_task}" /f >nul 2>&1')
+    audit_cmd = f'schtasks /create /tn "{audit_task}" /tr "{audit_action}" /sc daily /st {audit_time} /f'
+    audit_res = os.system(audit_cmd)
     
-    if result == 0:
-        print(f"{GREEN}✅ Success! '{task_name}' is scheduled daily at {audit_time} via Windows Task Scheduler.{RESET}")
-        print(f"To query this task: {YELLOW}schtasks /query /tn {task_name}{RESET}")
+    if warn_res == 0 and audit_res == 0:
+        # Apply robust settings (run on battery, start when available, wake to run)
+        power_cmd_warn = f'powershell -Command "Set-ScheduledTask -TaskName \\"{warn_task}\\" -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -WakeToRun)" >nul 2>&1'
+        power_cmd_audit = f'powershell -Command "Set-ScheduledTask -TaskName \\"{audit_task}\\" -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -WakeToRun)" >nul 2>&1'
+        os.system(power_cmd_warn)
+        os.system(power_cmd_audit)
+        
+        print(f"\n{GREEN}✅ Success! Both Guardian tasks successfully scheduled in Windows Task Scheduler:{RESET}")
+        print(f"  🔔 {BOLD}Warning Alarm:{RESET} Every day at {warning_time} (Rings loudly if tasks are pending)")
+        print(f"  🏆 {BOLD}Nightly Audit:{RESET} Every day at {audit_time} (Finalizes daily records)")
     else:
-        print(f"{RED}❌ Failed to create scheduled task.{RESET}")
-        print(f"Verify you have permissions or run this command as Administrator.")
+        print(f"{RED}❌ Failed to create one or both scheduled tasks. Run as Administrator if needed.{RESET}")
 
 def unregister_windows_task():
-    """Removes the daily task from the Windows Task Scheduler."""
+    """Removes both Guardian tasks from the Windows Task Scheduler."""
     if os.name != "nt":
         print(f"{RED}❌ Task Scheduler is only supported on Windows OS.{RESET}")
         return
         
-    task_name = "GuardianDailyAudit"
-    print(f"{CYAN}Removing scheduled task '{task_name}'...{RESET}")
-    result = os.system(f'schtasks /delete /tn "{task_name}" /f')
+    warn_task = "GuardianDailyWarning"
+    audit_task = "GuardianDailyAudit"
     
-    if result == 0:
-        print(f"{GREEN}✅ Success! '{task_name}' has been successfully removed from Windows.{RESET}")
+    print(f"{CYAN}Removing scheduled tasks from Windows...{RESET}")
+    res1 = os.system(f'schtasks /delete /tn "{warn_task}" /f >nul 2>&1')
+    res2 = os.system(f'schtasks /delete /tn "{audit_task}" /f >nul 2>&1')
+    
+    if res1 == 0 or res2 == 0:
+        print(f"{GREEN}✅ Success! Guardian tasks successfully removed from Windows.{RESET}")
     else:
-        print(f"{RED}❌ Failed or task '{task_name}' does not exist.{RESET}")
+        print(f"{RED}❌ Failed to remove tasks or they were not registered.{RESET}")
 
 # ==================== MAIN ROUTER CONTROLLER ====================
 
@@ -646,6 +711,10 @@ if __name__ == "__main__":
             mark_task_complete(sys.argv[2])
     elif command == "audit":
         run_nightly_audit()
+    elif command == "warning" or command == "warn":
+        run_warning_check()
+    elif command == "test-warn" or command == "test-warning":
+        run_test_warning()
     elif command == "setup":
         run_setup_wizard()
     elif command == "schedule":
@@ -660,9 +729,11 @@ if __name__ == "__main__":
         print("  python guardian.py dashboard      - Launch interactive visual dashboard (default)")
         print("  python guardian.py status         - Display clean status board + live GitHub check")
         print("  python guardian.py done [task]    - Mark a specific manual task as complete")
+        print("  python guardian.py warning        - Trigger a 9:00 PM pending warning alarm check")
+        print("  python guardian.py test-warn      - Trigger a manual high-priority test warning alarm")
         print("  python guardian.py audit          - Trigger the nightly verification run & alerts")
         print("  python guardian.py setup          - Start persistent configuration wizard")
-        print("  python guardian.py schedule       - Register automated nightly audit with Windows")
-        print("  python guardian.py unschedule     - Unregister audit from Windows Task Scheduler")
+        print("  python guardian.py schedule       - Register warning alarm & audit with Windows")
+        print("  python guardian.py unschedule     - Unregister all tasks from Windows")
         print("  python guardian.py stats          - View historical statistics & recent logs")
         sys.exit(1)

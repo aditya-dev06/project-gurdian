@@ -340,6 +340,22 @@ class GuardianWidget:
         )
         settings_btn.pack(side="left", fill="x", expand=True, padx=4)
         
+        # Test Warn Button
+        warn_btn = tk.Button(
+            footer_frame,
+            text="🔔 TEST WARN",
+            bg=BG_CARD,
+            fg=ACCENT_ORANGE,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            pady=6,
+            font=(FONT_FAMILY, 8, "bold"),
+            command=self.trigger_manual_warning_test,
+            cursor="hand2"
+        )
+        warn_btn.pack(side="left", fill="x", expand=True, padx=4)
+        
         # Audit Test Button
         audit_btn = tk.Button(
             footer_frame,
@@ -354,7 +370,7 @@ class GuardianWidget:
             command=self.trigger_manual_audit_test,
             cursor="hand2"
         )
-        audit_btn.pack(side="right", fill="x", expand=True, padx=4)
+        audit_btn.pack(side="left", fill="x", expand=True, padx=4)
 
     # ==================== CONTROLLER FUNCTIONS ====================
 
@@ -424,6 +440,19 @@ class GuardianWidget:
         self.reload_and_sync_data()
         self.update_stats_header()
         self.render_all_cards()
+
+    def trigger_manual_warning_test(self):
+        """Simulates warning and triggers high-priority alarm alert to phone."""
+        # Quick non-blocking alert trigger
+        threading.Thread(
+            target=lambda: guardian.run_test_warning(),
+            daemon=True
+        ).start()
+        messagebox.showinfo(
+            "Warning Alarm Test Sent", 
+            "Max-priority sound alarm test dispatched!\nCheck your phone now for a loud alarm sound.",
+            parent=self.root
+        )
 
     # ==================== SETTINGS EDITOR DIALOG ====================
 
