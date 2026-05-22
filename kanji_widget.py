@@ -113,6 +113,8 @@ class KanjiWidget:
         self.api_in_progress = False
         self.cached_next_card = None
         self.prefetch_in_progress = False
+        self.viewed_cards = []
+        self.current_view_idx = -1
         
         # Quiz loop variables
         self.quiz_enabled = tk.BooleanVar(value=True)
@@ -326,7 +328,23 @@ class KanjiWidget:
         audio_ctrl = tk.Frame(self.card_frame, bg=BG_INNER)
         audio_ctrl.pack(fill="x", side="bottom", pady=(4, 0))
         
-        # Next Card Button
+        # Navigation Buttons: Prev and Next side-by-side
+        self.prev_btn = tk.Button(
+            card_ctrl,
+            text="⬅️ PREV",
+            bg=BG_CARD,
+            fg=FG_LIGHT,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            font=(FONT_FAMILY, 8, "bold"),
+            pady=5,
+            cursor="hand2",
+            command=self.show_previous_card
+        )
+        self.prev_btn.pack(side="left", fill="x", expand=True, padx=(0, 2), pady=(2, 0))
+        self.bind_button_hover(self.prev_btn, BG_CARD, HOVER_COLOR)
+        
         self.next_btn = tk.Button(
             card_ctrl,
             text="🧠 NEW CARD",
@@ -340,7 +358,7 @@ class KanjiWidget:
             cursor="hand2",
             command=self.fetch_new_card
         )
-        self.next_btn.pack(fill="x", expand=True, pady=(2, 0))
+        self.next_btn.pack(side="right", fill="x", expand=True, padx=(2, 0), pady=(2, 0))
         self.bind_button_hover(self.next_btn, ACCENT_PURPLE, "#9d6ef7")
         
         # Audio controls inside row
@@ -474,9 +492,10 @@ class KanjiWidget:
         """Loads the first Kanji card on startup from history or fallback pool."""
         vocab = self.kanji_db.get("vocab", {})
         if vocab:
-            # Load the most recently added Kanji character
-            sorted_vocab = sorted(vocab.values(), key=lambda x: x.get("next_review", ""), reverse=True)
-            self.render_card(sorted_vocab[0])
+            # Load all previously studied cards in insertion order
+            self.viewed_cards = list(vocab.values())
+            self.current_view_idx = len(self.viewed_cards) - 1
+            self.render_card(self.viewed_cards[self.current_view_idx])
         else:
             # Start with an enriched fallback card
             fallback_first = {
@@ -492,6 +511,8 @@ class KanjiWidget:
                 "example_yomi": "にほん に いきたい です。",
                 "example_romaji": "nihon ni ikitai desu."
             }
+            self.viewed_cards = [fallback_first]
+            self.current_view_idx = 0
             self.render_card(fallback_first)
             
             # Save it to studied list
@@ -517,9 +538,18 @@ class KanjiWidget:
         
         # Reset card glowing highlight on loaded card
         self.card_frame.config(highlightbackground=ACCENT_PURPLE)
+        
+        # Update navigation buttons
+        self.update_navigation_buttons()
 
     def fetch_new_card(self):
         """Swaps in the cached card instantly, or triggers a thread-based fetch if the cache is empty."""
+        # If we are currently navigating previous cards in history, clicking next simply moves forward in history
+        if self.current_view_idx < len(self.viewed_cards) - 1:
+            self.current_view_idx += 1
+            self.render_card(self.viewed_cards[self.current_view_idx])
+            return
+
         if self.cached_next_card:
             new_card = self.cached_next_card
             self.cached_next_card = None
@@ -550,6 +580,11 @@ class KanjiWidget:
         self.api_in_progress = False
         self.next_btn.config(text="🧠 NEW CARD", state="normal")
         
+        # Append new card to viewed_cards list if not already present
+        if new_card not in self.viewed_cards:
+            self.viewed_cards.append(new_card)
+        self.current_view_idx = len(self.viewed_cards) - 1
+        
         self.render_card(new_card)
         self.save_studied_card(new_card)
         self.update_status_display()
@@ -559,6 +594,28 @@ class KanjiWidget:
         
         # Pre-fetch the next card in the background immediately
         self.trigger_background_prefetch()
+
+    def show_previous_card(self):
+        """Displays the previously viewed card in this session."""
+        if self.current_view_idx > 0:
+            self.current_view_idx -= 1
+            self.render_card(self.viewed_cards[self.current_view_idx])
+
+    def update_navigation_buttons(self):
+        """Updates the state and text of previous/next navigation buttons based on current navigation history."""
+        # Enable previous button if we are not at the first card
+        if self.current_view_idx > 0:
+            self.prev_btn.config(state="normal", bg=BG_CARD)
+        else:
+            self.prev_btn.config(state="disabled", bg=BG_DARK)
+            
+        # Toggle next button between forward navigation and fetching a new card
+        if self.current_view_idx < len(self.viewed_cards) - 1:
+            self.next_btn.config(text="➡️ NEXT", bg=BG_CARD)
+            self.bind_button_hover(self.next_btn, BG_CARD, HOVER_COLOR)
+        else:
+            self.next_btn.config(text="🧠 NEW CARD", bg=ACCENT_PURPLE)
+            self.bind_button_hover(self.next_btn, ACCENT_PURPLE, "#9d6ef7")
 
     def trigger_background_prefetch(self):
         """Asynchronously pre-fetches the next Kanji card in the background to avoid user-perceived delays."""
