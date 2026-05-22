@@ -21,3 +21,11 @@ gui_crash_log.txt
 # Ignore local kanji progress database records
 kanji_data.json
 
+# Ignore temporary audio/voice recording logs and tests
+*.wav
+*.mp3
+temp_voice.wav
+temp_tts.mp3
+temp_tts.wav
+
+

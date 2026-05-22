@@ -122,6 +122,606 @@ GRAMMAR_LESSONS = [
     }
 ]
 
+# ==================== PRE-DEFINED JLPT KANJI DATABASE (N5 TO N1) ====================
+JLPT_KANJI_DATABASE = {
+    "N5": [
+        {"kanji": "日", "meaning": "day, sun", "onyomi": "ニチ, ジツ", "kunyomi": "ひ, び", "stroke_count": 4, "example_ja": "日本にいきたいです。", "example_en": "I want to go to Japan.", "kanji_yomi": "ひ", "kanji_romaji": "hi", "example_yomi": "にほん に いきたい です。", "example_romaji": "nihon ni ikitai desu."},
+        {"kanji": "本", "meaning": "book, origin", "onyomi": "ホン", "kunyomi": "もと", "stroke_count": 5, "example_ja": "これは私の本です。", "example_en": "This is my book.", "kanji_yomi": "ほん", "kanji_romaji": "hon", "example_yomi": "これ は わたし の ほん です。", "example_romaji": "kore wa watashi no hon desu."},
+        {"kanji": "人", "meaning": "person", "onyomi": "ジン, ニン", "kunyomi": "ひと", "stroke_count": 2, "example_ja": "あの人は先生です。", "example_en": "That person is a teacher.", "kanji_yomi": "ひと", "kanji_romaji": "hito", "example_yomi": "あの ひと は せんせい です。", "example_romaji": "ano hito wa sensei desu."},
+        {"kanji": "学", "meaning": "study, learn", "onyomi": "ガク", "kunyomi": "まな-ぶ", "stroke_count": 8, "example_ja": "日本語を学びます。", "example_en": "I learn Japanese.", "kanji_yomi": "まなぶ", "kanji_romaji": "manabu", "example_yomi": "にほんご を まなびます。", "example_romaji": "nihongo o manabimasu."},
+        {"kanji": "校", "meaning": "school", "onyomi": "コウ", "kunyomi": "(none)", "stroke_count": 10, "example_ja": "学校に行きます。", "example_en": "I go to school.", "kanji_yomi": "こう", "kanji_romaji": "kou", "example_yomi": "がっこう に いきます。", "example_romaji": "gakkou ni ikimasu."}
+    ],
+    "N4": [
+        {"kanji": "犬", "meaning": "dog", "onyomi": "ケン", "kunyomi": "いぬ", "stroke_count": 4, "example_ja": "黒い犬がいます。", "example_en": "There is a black dog.", "kanji_yomi": "いぬ", "kanji_romaji": "inu", "example_yomi": "くろい いぬ が います。", "example_romaji": "kuroi inu ga imasu."},
+        {"kanji": "猫", "meaning": "cat", "onyomi": "ビョウ", "kunyomi": "ねこ", "stroke_count": 11, "example_ja": "猫が寝ています。", "example_en": "The cat is sleeping.", "kanji_yomi": "ねこ", "kanji_romaji": "neko", "example_yomi": "ねこ が ねています。", "example_romaji": "neko ga neteimasu."},
+        {"kanji": "魚", "meaning": "fish", "onyomi": "ギョ", "kunyomi": "さかな", "stroke_count": 11, "example_ja": "魚が泳いでいます。", "example_en": "Fish is swimming.", "kanji_yomi": "さかな", "kanji_romaji": "sakana", "example_yomi": "さかな が およいで います。", "example_romaji": "sakana ga oyoide imasu."},
+        {"kanji": "雨", "meaning": "rain", "onyomi": "ウ", "kunyomi": "あめ", "stroke_count": 8, "example_ja": "雨が降っています。", "example_en": "It is raining.", "kanji_yomi": "あめ", "kanji_romaji": "ame", "example_yomi": "あめ が ふっています。", "example_romaji": "ame ga futteimasu."},
+        {"kanji": "空", "meaning": "sky, empty", "onyomi": "クウ", "kunyomi": "そら", "stroke_count": 8, "example_ja": "青い空がきれいです。", "example_en": "The blue sky is beautiful.", "kanji_yomi": "そら", "kanji_romaji": "sora", "example_yomi": "あおい そら が きれいです。", "example_romaji": "aoi sora ga kirei desu."}
+    ],
+    "N3": [
+        {"kanji": "旅", "meaning": "travel, trip", "onyomi": "リョ", "kunyomi": "たび", "stroke_count": 10, "example_ja": "一人で旅をします。", "example_en": "I travel alone.", "kanji_yomi": "たび", "kanji_romaji": "tabi", "example_yomi": "ひとり で たび を します。", "example_romaji": "hitori de tabi o shimasu."},
+        {"kanji": "界", "meaning": "world, boundary", "onyomi": "カイ", "kunyomi": "(none)", "stroke_count": 9, "example_ja": "世界は広いです。", "example_en": "The world is wide.", "kanji_yomi": "かい", "kanji_romaji": "kai", "example_yomi": "せかい は ひろいです。", "example_romaji": "sekai wa hiroi desu."},
+        {"kanji": "変", "meaning": "change, strange", "onyomi": "ヘン", "kunyomi": "か-わる", "stroke_count": 9, "example_ja": "天気が変わりました。", "example_en": "The weather changed.", "kanji_yomi": "かわる", "kanji_romaji": "kawaru", "example_yomi": "てんき が かわりました。", "example_romaji": "tenki ga kawarimashita."},
+        {"kanji": "選", "meaning": "choose, select", "onyomi": "セン", "kunyomi": "えら-ぶ", "stroke_count": 15, "example_ja": "好きなものを選んでください。", "example_en": "Please choose your favorite one.", "kanji_yomi": "えらぶ", "kanji_romaji": "erabu", "example_yomi": "すきな もの を えらんで ください。", "example_romaji": "sukina mono o erande kudasai."},
+        {"kanji": "調", "meaning": "investigate, tone", "onyomi": "チョウ", "kunyomi": "しら-べる", "stroke_count": 15, "example_ja": "辞書で意味を調べます。", "example_en": "I look up the meaning in a dictionary.", "kanji_yomi": "しらべる", "kanji_romaji": "shiraberu", "example_yomi": "じしょ で いみ を しらべます。", "example_romaji": "jisho de imi o shirabemasu."}
+    ],
+    "N2": [
+        {"kanji": "資", "meaning": "assets, resources", "onyomi": "シ", "kunyomi": "(none)", "stroke_count": 13, "example_ja": "地球の資源を守ります。", "example_en": "Protect earth's resources.", "kanji_yomi": "しげん", "kanji_romaji": "shigen", "example_yomi": "ちきゅう の しげん を まもります。", "example_romaji": "chikyuu no shigen o mamorimasu."},
+        {"kanji": "製", "meaning": "manufacture", "onyomi": "セイ", "kunyomi": "(none)", "stroke_count": 14, "example_ja": "これは日本製です。", "example_en": "This is made in Japan.", "kanji_yomi": "せい", "kanji_romaji": "sei", "example_yomi": "これ は にほんせい です。", "example_romaji": "kore wa nihonsei desu."},
+        {"kanji": "賞", "meaning": "prize, award", "onyomi": "ショウ", "kunyomi": "(none)", "stroke_count": 15, "example_ja": "彼はノーベル賞を受賞した。", "example_en": "He won the Nobel Prize.", "kanji_yomi": "しょう", "kanji_romaji": "shou", "example_yomi": "かれ は のーべるしょう を じゅしょう した。", "example_romaji": "kare wa nooberushou o jushou shita."},
+        {"kanji": "優", "meaning": "excellent, gentle", "onyomi": "ユウ", "kunyomi": "やさ-しい", "stroke_count": 17, "example_ja": "彼は優しい人です。", "example_en": "He is a gentle person.", "kanji_yomi": "やさしい", "kanji_romaji": "yasashii", "example_yomi": "かれ は やさしい ひと です。", "example_romaji": "kare wa yasashii hito desu."},
+        {"kanji": "防", "meaning": "prevent, defend", "onyomi": "ボウ", "kunyomi": "ふせ-ぐ", "stroke_count": 7, "example_ja": "病気を防ぎます。", "example_en": "Prevent illnesses.", "kanji_yomi": "ふせぐ", "kanji_romaji": "fusegu", "example_yomi": "びょうき を ふせぎます。", "example_romaji": "byouki o fusegimasu."}
+    ],
+    "N1": [
+        {"kanji": "微", "meaning": "delicate, microscopic", "onyomi": "ビ", "kunyomi": "(none)", "stroke_count": 13, "example_ja": "微かな光が見えます。", "example_en": "I can see a faint light.", "kanji_yomi": "かすか", "kanji_romaji": "kasuka", "example_yomi": "かすかな ひかり が みえます。", "example_romaji": "kasukana hikari ga miemasu."},
+        {"kanji": "妙", "meaning": "exquisite, strange", "onyomi": "ミョウ", "kunyomi": "(none)", "stroke_count": 7, "example_ja": "妙な音が聞こえます。", "example_en": "I hear a strange sound.", "kanji_yomi": "みょう", "kanji_romaji": "myou", "example_yomi": "みょうな おと が きこえます。", "example_romaji": "myouna oto ga kikoemasu."},
+        {"kanji": "輝", "meaning": "sparkle, shine", "onyomi": "キ", "kunyomi": "かがや-く", "stroke_count": 15, "example_ja": "星が輝いています。", "example_en": "Stars are shining.", "kanji_yomi": "かがやく", "kanji_romaji": "kagayaku", "example_yomi": "ほし が かがやいて います。", "example_romaji": "hoshi ga kagayaiter imasu."},
+        {"kanji": "驚", "meaning": "wonder, surprise", "onyomi": "キョウ", "kunyomi": "おどろ-く", "stroke_count": 22, "example_ja": "ニュースに驚きました。", "example_en": "I was surprised by the news.", "kanji_yomi": "おどろく", "kanji_romaji": "odoroku", "example_yomi": "にゅーす に おどろきました。", "example_romaji": "nyuusu ni odorokimashita."},
+        {"kanji": "護", "meaning": "protect, defend", "onyomi": "ゴ", "kunyomi": "まも-る", "stroke_count": 20, "example_ja": "自然環境を保護します。", "example_en": "Protect the natural environment.", "kanji_yomi": "ほご", "kanji_romaji": "hogo", "example_yomi": "しぜん かんきょう を ほご します。", "example_romaji": "shizen kankyou o hogo shimasu."}
+    ]
+}
+
+# ==================== PRE-DEFINED JLPT GRAMMAR CURRICULUM ====================
+JLPT_GRAMMAR_LESSONS = {
+    "N5": [
+        GRAMMAR_LESSONS[0],
+        GRAMMAR_LESSONS[1],
+        GRAMMAR_LESSONS[2],
+        GRAMMAR_LESSONS[3]
+    ],
+    "N4": [
+        GRAMMAR_LESSONS[4],
+        GRAMMAR_LESSONS[5],
+        {
+            "id": "tai_form",
+            "title": "Lesson 3: Expressing Desire (~たい - tai)",
+            "desc": "The ~たい form is used to express what you want to do. It conjugates like an i-adjective.",
+            "concept": "Verb Stem + たい です (I want to do...)\nExample: 日本に行きたいです (I want to go to Japan).",
+            "examples": [
+                {"ja": "お寿司を食べたいです。", "romaji": "osushi o tabetai desu.", "en": "I want to eat sushi.", "pron": "おすしをたべたいです。"},
+                {"ja": "日本に行きたいです。", "romaji": "nihon ni ikitai desu.", "en": "I want to go to Japan.", "pron": "にほん に いきたい です。"}
+            ],
+            "builder": {
+                "english": "I want to eat sushi.",
+                "correct_order": ["お寿司", "を", "食べたい", "です"],
+                "options": ["お寿司", "が", "を", "食べたい", "です", "飲みます"]
+            }
+        },
+        {
+            "id": "te_iru",
+            "title": "Lesson 4: Present Progressive (~ている - te iru)",
+            "desc": "Using the te-form of a verb + いる expresses an ongoing action (like -ing in English) or state.",
+            "concept": "Verb Te-form + いる / います\nExample: 本を読んでいる (I am reading a book).",
+            "examples": [
+                {"ja": "本を読んでいます。", "romaji": "hon o yondeimasu.", "en": "I am reading a book.", "pron": "ほんをよんでいます。"},
+                {"ja": "雨が降っています。", "romaji": "ame ga futteimasu.", "en": "It is raining.", "pron": "あめがふっています。"}
+            ],
+            "builder": {
+                "english": "I am reading a book.",
+                "correct_order": ["本", "を", "読んで", "います"],
+                "options": ["本", "が", "を", "読んで", "います", "飲みます"]
+            }
+        }
+    ],
+    "N3": [
+        {
+            "id": "koto_ga_dekiru",
+            "title": "Lesson 1: Ability (ことができる - koto ga dekiru)",
+            "desc": "Expresses ability or permission to do something by adding ことができる to the dictionary form of a verb.",
+            "concept": "Verb Dict form + ことが できる / できます\nExample: 日本語を話すことができます (I can speak Japanese).",
+            "examples": [
+                {"ja": "日本語を話すことができます。", "romaji": "nihongo o hanasu koto ga dekimasu.", "en": "I can speak Japanese.", "pron": "にほんご を はなす こと が できます。"},
+                {"ja": "泳ぐことができます。", "romaji": "oyogu koto ga dekimasu.", "en": "I can swim.", "pron": "およぐ ことが できます。"}
+            ],
+            "builder": {
+                "english": "I can speak Japanese.",
+                "correct_order": ["日本語", "を", "話す", "こと", "が", "できます"],
+                "options": ["日本語", "を", "に", "話す", "こと", "が", "できます", "話します"]
+            }
+        },
+        {
+            "id": "sou_desu",
+            "title": "Lesson 2: Conjecture / Appearance (~そうです - sou desu)",
+            "desc": "Indicates that something looks like it is about to happen or has a certain quality, based on appearance.",
+            "concept": "Verb stem / Adj (drop i/na) + そうです\nExample: 雨が降りそうです (It looks like it will rain).",
+            "examples": [
+                {"ja": "雨が降りそうです。", "romaji": "ame ga furisou desu.", "en": "It looks like it is going to rain.", "pron": "あめがふりそうです。"},
+                {"ja": "美味しそうです。", "romaji": "oishisou desu.", "en": "It looks delicious.", "pron": "おいしそうです。"}
+            ],
+            "builder": {
+                "english": "It looks delicious.",
+                "correct_order": ["美味し", "そう", "です"],
+                "options": ["美味し", "そう", "です", "くて", "な", "甘い"]
+            }
+        }
+    ],
+    "N2": [
+        {
+            "id": "ni_chigainai",
+            "title": "Lesson 1: Strong Certainty (に違いない - ni chigainai)",
+            "desc": "Used to express a strong, logical belief that something is without a doubt true.",
+            "concept": "Noun/Verb/Adj Plain + に違いない / に違いありません\nExample: 彼は先生に違いない (He must be a teacher).",
+            "examples": [
+                {"ja": "彼は先生に違いない。", "romaji": "kare wa sensei ni chigainai.", "en": "He must be a teacher.", "pron": "かれはせんせいにちがいない。"},
+                {"ja": "明日は雨に違いない。", "romaji": "ashita wa ame ni chigainai.", "en": "Tomorrow it will rain without a doubt.", "pron": "あしたはあめにちがいない。"}
+            ],
+            "builder": {
+                "english": "He must be a teacher.",
+                "correct_order": ["彼", "は", "先生", "に", "違いない"],
+                "options": ["彼", "は", "が", "先生", "に", "違いない", "です"]
+            }
+        },
+        {
+            "id": "wake_ni_wa_ikanai",
+            "title": "Lesson 2: Cannot Afford to (~わけにはいかない - wake ni wa ikanai)",
+            "desc": "Indicates that due to social, moral, or situational circumstances, one cannot or must not perform an action.",
+            "concept": "Verb Dict form + わけにはいかない\nExample: 休むわけにはいかない (I cannot afford to take a day off).",
+            "examples": [
+                {"ja": "休むわけにはいかない。", "romaji": "yasumu wake ni wa ikanai.", "en": "I cannot afford to take a day off.", "pron": "やすむわけにはいかない。"},
+                {"ja": "負けるわけにはいかない。", "romaji": "makeru wake ni wa ikanai.", "en": "I cannot afford to lose.", "pron": "まけるわけにはいかない。"}
+            ],
+            "builder": {
+                "english": "I cannot afford to take a day off.",
+                "correct_order": ["休む", "わけ", "には", "いかない"],
+                "options": ["休む", "こと", "わけ", "には", "いかない", "できません"]
+            }
+        }
+    ],
+    "N1": [
+        {
+            "id": "kagiri_da",
+            "title": "Lesson 1: Extreme Emotion (限りだ - kagiri da)",
+            "desc": "Expresses that a certain feeling or state is at its absolute peak or limit. Often used with emotional i/na-adjectives.",
+            "concept": "Adjective + 限りだ / 限りです\nExample: 嬉しい限りです (I am extremely happy).",
+            "examples": [
+                {"ja": "嬉しい限りです。", "romaji": "ureshishi kagiri desu.", "en": "I am extremely happy.", "pron": "うれしいかぎりです。"},
+                {"ja": "残念な限りです。", "romaji": "zannen na kagiri desu.", "en": "It is extremely regrettable.", "pron": "ざんねんなかぎりです。"}
+            ],
+            "builder": {
+                "english": "I am extremely happy.",
+                "correct_order": ["嬉しい", "限り", "です"],
+                "options": ["嬉しい", "限り", "です", "そう", "とても", "楽しむ"]
+            }
+        },
+        {
+            "id": "wo_mochiite",
+            "title": "Lesson 2: Utilizing / By Means Of (~を用いて - o mochiite)",
+            "desc": "A highly formal business phrase meaning to make use of or utilize a resource/tool to accomplish a task.",
+            "concept": "Noun + を用いて + Action\nExample: 最新技術を用いて開発する (Develop using the latest technology).",
+            "examples": [
+                {"ja": "最新技術を用いて開発する。", "romaji": "saishin gijutsu o mochiite kaihatsu suru.", "en": "Develop utilizing the latest technology.", "pron": "さいしんぎじゅつをもちいてかいはつする。"},
+                {"ja": "データを用いて説明します。", "romaji": "deeta o mochiite setsumei shimasu.", "en": "I will explain using the data.", "pron": "でーたをもちいてせつめいします。"}
+            ],
+            "builder": {
+                "english": "I will explain using the data.",
+                "correct_order": ["データ", "を", "用いて", "説明", "します"],
+                "options": ["データ", "を", "に", "用いて", "説明", "します", "使います"]
+            }
+        }
+    ]
+}
+
+# ==================== PRE-DEFINED OFFLINE CONVERSATION SIMULATOR TREES ====================
+OFFLINE_CONVERSATION_TREES = {
+    "At a Japanese Restaurant": {
+        "start": {
+            "ai_reply": "いらっしゃいませ！レストランへようこそ。ご注文はお決まりですか？",
+            "ai_yomi": "いらっしゃいませ！ れすとらん へ ようこそ。 ごちゅうもん は おきまり です か？",
+            "ai_romaji": "irasshaimase! resutoran e yokoso. gochuumon wa okimari desu ka?",
+            "ai_en": "Welcome! Welcome to the restaurant. Have you decided on your order?",
+            "ai_explain": "### 💡 Grammar & Structure\n- **いらっしゃいませ！ (Irasshaimase)**: A polite greeting used by shop/restaurant staff to welcome customers. Derived from the honorific verb いらっしゃる.\n- **ようこそ (Yookoso)**: Welcoming phrase, preceded by [location] + へ.\n- **ご注文はお決まりですか (Gochuumon wa okimari desu ka)**: 'Have you decided on your order?' Uses polite prefixes ご- and お-.\n\n### 📖 Vocabulary & Readings\n1. **ご注文 (ごちゅうもん - Gochuumon)**: Order (n.)\n2. **決まり (きまり - Kimari)**: Decision / set (n.)\n3. **レストラン (Resutoran)**: Restaurant (n.)\n\n### 📌 Particles Used\n- **へ (e)**: Directional particle indicating the destination.\n- **は (wa)**: Topic marker particle.\n- **か (ka)**: Question particle at the end.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Keigo (Respectful hospitality language).",
+            "choices": [
+                {
+                    "text": "メニューをください。",
+                    "en": "Please give me the menu.",
+                    "next_node": "ask_menu"
+                },
+                {
+                    "text": "おすすめは何ですか。",
+                    "en": "What is the recommendation?",
+                    "next_node": "ask_recommend"
+                }
+            ]
+        },
+        "ask_menu": {
+            "ai_reply": "はい、どうぞ！当店のおすすめは特製ラーメンと新鮮な寿司です。",
+            "ai_yomi": "はい、 どうぞ！ とうてん の おすすめ は とくせい らーめん と しんせん な すし です。",
+            "ai_romaji": "hai, douzo! touten no osusume wa tokusei ramen to shinsen na sushi desu.",
+            "ai_en": "Here you go! Our recommendation is the special ramen and fresh sushi.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **はい、どうぞ！ (Hai, douzo)**: 'Yes, here you go!' Used when handing things over.\n- **おすすめはラーメンと寿司です (Osusume wa raamen to sushi desu)**: 'The recommendation is ramen and sushi.'\n\n### 📖 Vocabulary & Readings\n1. **当店 (とうてん - Touten)**: Our shop (n.)\n2. **おすすめ (Osusume)**: Recommendation (n.)\n3. **特製 (とくせい - Tokusei)**: Special / deluxe (n.)\n4. **新鮮な (しんせんな - Shinsenna)**: Fresh (Na-adj.)\n5. **お寿司 (おすし - Osushi)**: Sushi (n., polite prefix お-)\n\n### 📌 Particles Used\n- **の (no)**: Possessive particle (当店のおすすめ).\n- **は (wa)**: Topic marker.\n- **と (to)**: Coordinating particle meaning 'and'.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Standard polite (Teineigo) using です.",
+            "choices": [
+                {
+                    "text": "じゃあ、ラーメンをください。",
+                    "en": "Then, ramen please.",
+                    "next_node": "order_ramen"
+                },
+                {
+                    "text": "お寿司をお願いします。",
+                    "en": "Sushi please.",
+                    "next_node": "order_sushi"
+                }
+            ]
+        },
+        "ask_recommend": {
+            "ai_reply": "本日のおすすめは特製ラーメンです。醤油と味噌があります。",
+            "ai_yomi": "ほんじつ の おすすめ は とくせい らーめん です。 しょうゆ と みそ が あります。",
+            "ai_romaji": "honjitsu no osusume wa tokusei ramen desu. shouyu to miso ga arimasu.",
+            "ai_en": "Today's recommendation is the special ramen. We have soy sauce and miso flavor.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **本日のおすすめは特製ラーメンです (Honjitsu no osusume wa tokusei ramen desu)**: 'Today's recommendation is the special ramen.'\n- **醤油と味噌があります (Shouyu to miso ga arimasu)**: 'We have soy sauce and miso.' Uses the existence verb あります.\n\n### 📖 Vocabulary & Readings\n1. **本日 (ほんじつ - Honjitsu)**: Today (formal alternative to 今日 kyou).\n2. **醤油 (しょうゆ - Shouyu)**: Soy sauce (n.)\n3. **味噌 (みそ - Miso)**: Fermented soybean paste (n.)\n\n### 📌 Particles Used\n- **の (no)**: Connecting particle (本日のおすすめ).\n- **と (to)**: Meaning 'and'.\n- **が (ga)**: Subject marker particle indicating what exists (arimasu).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Standard polite using です and あります.",
+            "choices": [
+                {
+                    "text": "醤油ラーメンをください。",
+                    "en": "Soy sauce ramen please.",
+                    "next_node": "order_ramen"
+                },
+                {
+                    "text": "お水をください。",
+                    "en": "Please give me water.",
+                    "next_node": "ask_water"
+                }
+            ]
+        },
+        "order_ramen": {
+            "ai_reply": "かしこまりました！特製ラーメンですね。少々お待ちください。",
+            "ai_yomi": "かしこまりました！ とくせい らーめん です ね。 しょうしょう おまち ください。",
+            "ai_romaji": "kashikomarimashita! tokusei ramen desu ne. shoushou omachi kudasai.",
+            "ai_en": "Certainly! Special ramen, correct. Please wait a moment.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **かしこまりました (Kashikomarimashita)**: A humble verb meaning 'Understood / Certainly'. Extremely polite equivalent of わかりました.\n- **少々お待ちください (Shoushou omachi kudasai)**: 'Please wait a moment.' Respectful request formula (お- + verb stem + ください).\n\n### 📖 Vocabulary & Readings\n1. **かしこまりました**: Certainly / I understand (humble verb).\n2. **少々 (しょうしょう - Shoushou)**: A little / a moment (formal adverb).\n3. **待ち (まち - Machi)**: Wait (noun/stem of 待つ matsu).\n\n### 📌 Particles Used\n- **ね (ne)**: Agreement seeker particle (特製ラーメンですね).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Kenjougo (Humble) and Sonkeigo (Respectful) combined for high-end hospitality.",
+            "choices": [
+                {
+                    "text": "はい、楽しみにしています。",
+                    "en": "Yes, I am looking forward to it.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "order_sushi": {
+            "ai_reply": "かしこまりました！新鮮なお寿司です。お飲み物はいかがですか？",
+            "ai_yomi": "かしこまりました！ しんせん な おすし です。 おのみもの は いかが です か？",
+            "ai_romaji": "kashikomarimashita! shinsen na osushi desu. onomimono wa ikaga desu ka?",
+            "ai_en": "Certainly! Fresh sushi. Would you like something to drink?",
+            "ai_explain": "### 💡 Grammar & Structure\n- **かしこまりました (Kashikomarimashita)**: 'Certainly'. Extremely polite/humble response.\n- **お飲み物はいかがですか (Onomimono wa ikaga desu ka)**: 'Would you like something to drink?' polite offer pattern.\n\n### 📖 Vocabulary & Readings\n1. **新鮮な (しんせんな - Shinsenna)**: Fresh (Na-adj.)\n2. **お飲み物 (おのみもの - Onomimono)**: Beverage (n., with polite prefix お-)\n3. **いかが (Ikaga)**: How / what about (polite equivalent of どう dou)\n\n### 📌 Particles Used\n- **は (wa)**: Topic marker.\n- **か (ka)**: Question marker.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Extremely polite customer-service Japanese.",
+            "choices": [
+                {
+                    "text": "お茶をください。",
+                    "en": "Green tea please.",
+                    "next_node": "tea_done"
+                },
+                {
+                    "text": "いいえ、大丈夫です。",
+                    "en": "No, I am fine.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "tea_done": {
+            "ai_reply": "温かいお茶ですね、ただいまお持ちします！",
+            "ai_yomi": "あたたかい おちゃ です ね、 ただいま おもち します！",
+            "ai_romaji": "atakai ocha desu ne, tadaima omochi shimasu!",
+            "ai_en": "Warm green tea, correct. I'll bring it right away!",
+            "ai_explain": "### 💡 Grammar & Structure\n- **温かいお茶ですね (Atatakai ocha desu ne)**: 'Warm green tea, correct?'\n- **ただいまお持ちします (Tadaima omochi shimasu)**: 'I will bring it right away!' Humble action pattern (お + verb stem + します).\n\n### 📖 Vocabulary & Readings\n1. **温かい (あたたかい - Atatakai)**: Warm (I-adj.)\n2. **お茶 (おちゃ - Ocha)**: Green tea (n., polite prefix お-)\n3. **ただいま (Tadaima)**: Right now / immediately (formal adverb).\n4. **お持ちします (おもちします - Omochi shimasu)**: Bring (humble verb format of 持つ).\n\n### 📌 Particles Used\n- **ね (ne)**: Tag-question / confirmation particle.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Humble language (Kenjougo). Standard polite restaurant response.",
+            "choices": [
+                {
+                    "text": "ありがとう。",
+                    "en": "Thank you.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "ask_water": {
+            "ai_reply": "はい、お冷をお持ちします。ご注文は他によろしいですか？",
+            "ai_yomi": "はい、 おひや を おもち します。 ごちゅうもん は ほか に よろしい です か？",
+            "ai_romaji": "hai, ohiya o omochi shimasu. gochuumon wa hoka ni yoroshii desu ka?",
+            "ai_en": "Yes, I'll bring cold water. Is there anything else you would like to order?",
+            "ai_explain": "### 💡 Grammar & Structure\n- **お冷をお持ちします (Ohiya o omochi shimasu)**: 'I will bring cold water.' Humble action pattern (お + verb stem + します).\n- **ご注文は他によろしいですか (Gochuumon wa hoka ni yoroshii desu ka)**: 'Is there anything else you would like to order?'\n\n### 📖 Vocabulary & Readings\n1. **お冷 (おひや - Ohiya)**: Cold drinking water (n., polite/respectful term used in restaurants).\n2. **他に (ほかに - Hoka ni)**: Other / besides (adverb).\n3. **よろしい (Yoroshii)**: Good / acceptable (polite equivalent of いい ii).\n\n### 📌 Particles Used\n- **を (o)**: Object marker particle.\n- **は (wa)**: Topic marker.\n- **に (ni)**: Particle indicating addition/direction.\n- **か (ka)**: Question particle.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Respectful restaurant language. Uses 'お冷' (ohiya) which is a standard Japanese dining custom.",
+            "choices": [
+                {
+                    "text": "以上で大丈夫です。",
+                    "en": "That's all, thank you.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "end_convo": {
+            "ai_reply": "ごゆっくりどうぞ！何かありましたらお呼びください。",
+            "ai_yomi": "ごゆっくり どうぞ！ なにか ありましたら および ください。",
+            "ai_romaji": "goyukkuri douzo! nanika arimashitara oyobi kudasai.",
+            "ai_en": "Please enjoy! Please call me if you need anything.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **ごゆっくりどうぞ (Goyukkuri douzo)**: 'Please enjoy / take your time.' Polite welcoming invitation.\n- **何かありましたらお呼びください (Nanika arimashitara oyobi kudasai)**: 'Please call me if there is anything.' Respectful request form.\n\n### 📖 Vocabulary & Readings\n1. **ゆっくり (Yukkuri)**: Slowly / at ease (adv., prefixed with polite ご-).\n2. **呼び (よび - Yobi)**: Call (stem of 呼ぶ yobu).\n3. **ありましたら**: If there exists (polite conditional form of ある aru).\n\n### 📌 Particles Used\n- **か (ka)**: Indefinite particle (何か nanika = something).\n- **ら (ra)**: Conditional marker (〜たら -tara = if/when).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Highly polite and welcoming service Japanese.",
+            "choices": []
+        }
+    },
+    "Asking for Directions": {
+        "start": {
+            "ai_reply": "はい、何でしょうか？何かお困りですか？",
+            "ai_yomi": "はい、 なん でしょう か？ なにか おこまり です か？",
+            "ai_romaji": "hai, nan deshou ka? nanika okomari desu ka?",
+            "ai_en": "Yes, what is it? Are you having some trouble?",
+            "ai_explain": "### 💡 Grammar & Structure\n- **何でしょうか (Nan deshou ka)**: 'What is it?' polite expression.\n- **何かお困りですか (Nanika okomari desu ka)**: 'Are you having some trouble?'\n  - **お- + verb stem + です (o- + stem + desu)**: Polite form to state someone else's state or action.\n\n### 📖 Vocabulary & Readings\n1. **何か (なにか - Nanika)**: Something (pronoun).\n2. **お困り (おこまり - Okomari)**: Trouble / in difficulty (n., stem of 困る komaru with polite お-).\n\n### 📌 Particles Used\n- **か (ka)**: Question particle at the end of both questions.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Standard polite Japanese. Helpful and friendly stranger tone.",
+            "choices": [
+                {
+                    "text": "すみません、駅はどこですか。",
+                    "en": "Excuse me, where is the station?",
+                    "next_node": "ask_station"
+                },
+                {
+                    "text": "近くにコンビニはありますか。",
+                    "en": "Is there a convenience store nearby?",
+                    "next_node": "ask_conbini"
+                }
+            ]
+        },
+        "ask_station": {
+            "ai_reply": "駅ですね。この道をまっすぐ行って、最初の交差点を右に曲がってください。",
+            "ai_yomi": "えき です ね。 この みち を まっすぐ いって、 さいしょ の こうさてん を みぎ に まがって ください。",
+            "ai_romaji": "eki desu ne. kono michi o massugu itte, saisho no kousaten o migi ni magatte kudasai.",
+            "ai_en": "The station, correct. Go straight down this street, and turn right at the first intersection.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **駅ですね (Eki desu ne)**: 'The station, correct?'\n- **この道をまっすぐ行って (Kono michi o massugu itte)**: 'Go straight down this street...'\n  - **行って (itte)**: Te-form of 行く (iku - to go), used to connect instructions sequentially.\n- **曲がってください (Magatte kudasai)**: 'Please turn...'\n  - **[Verb Te-form] + ください (kudasai)**: Standard request pattern.\n\n### 📖 Vocabulary & Readings\n1. **駅 (えき - Eki)**: Station (n.)\n2. **道 (みち - Michi)**: Street / road (n.)\n3. **まっすぐ (Massugu)**: Straight ahead (adv.)\n4. **最初 (さいしょ - Saisho)**: First (n.)\n5. **交差点 (こうさてん - Kousaten)**: Intersection (n.)\n6. **右 (みぎ - Migi)**: Right (direction) (n.)\n7. **曲がり (まがり - Magari)**: Turn (stem of 曲がる magaru).\n\n### 📌 Particles Used\n- **を (o)**: Object marker indicating the path walked along (道を).\n- **に (ni)**: Directional particle indicating the direction of the turn (右に).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Standard polite request. Standard street directions tone.",
+            "choices": [
+                {
+                    "text": "歩いて何分くらいですか。",
+                    "en": "How many minutes on foot?",
+                    "next_node": "station_minutes"
+                },
+                {
+                    "text": "ありがとうございます！",
+                    "en": "Thank you very much!",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "station_minutes": {
+            "ai_reply": "歩いて五分くらいですよ。とても近いです。",
+            "ai_yomi": "あるいて ごふん くらい です よ。 とても ちかい です。",
+            "ai_romaji": "aruite gofun kurai desu yo. totemo chikai desu.",
+            "ai_en": "It is about 5 minutes on foot. It is very close.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **歩いて五分くらいですよ (Aruite gofun kurai desu yo)**: 'It's about five minutes on foot, you know.'\n  - **歩いて (aruite)**: Te-form of 歩く (aruku - to walk), used adverbially as 'on foot'.\n  - **五分くらい (gofun kurai)**: 'About five minutes'.\n- **とても近いです (Totemo chikai desu)**: 'It is very close.'\n\n### 📖 Vocabulary & Readings\n1. **歩く (あるく - Aruku)**: Walk (v.)\n2. **五分 (ごふん - Gofun)**: 5 minutes (counter word).\n3. **くらい (Kurai)**: Approximately / about (suffix).\n4. **とても (Totemo)**: Very (adv.)\n5. **近い (ちかい - Chikai)**: Close / near (I-adj.)\n\n### 📌 Particles Used\n- **よ (yo)**: Assuring/informative sentence-ending particle.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Standard polite. Warm and helpful tone.",
+            "choices": [
+                {
+                    "text": "助かりました。ありがとうございます！",
+                    "en": "That helped a lot. Thank you!",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "ask_conbini": {
+            "ai_reply": "はい、あそこの角を左に曲がると、ローソンがありますよ。",
+            "ai_yomi": "はい、 あそこ の かど を ひだり に まがる と、 ろーそん が あります よ。",
+            "ai_romaji": "hai, asoko no kado o hidari ni magaru to, rooson ga arimasu yo.",
+            "ai_en": "Yes, if you turn left at that corner over there, there is a Lawson.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **あそこの角を左に曲がると (Asoko no kado o hidari ni magaru to)**: 'If you turn left at that corner over there...'\n  - **曲がると (magaru to)**: Verb dictionary form + と, indicating a natural conditional/consequence ('if you do [X], then [Y] happens').\n- **ローソンがありますよ (Rooson ga arimasu yo)**: 'There is a Lawson.'\n\n### 📖 Vocabulary & Readings\n1. **あそこ (Asoko)**: Over there (demonstrative pronoun).\n2. **角 (かど - Kado)**: Corner (n.)\n3. **左 (ひだり - Hidari)**: Left (direction) (n.)\n4. **ローソン (Rooson)**: Lawson (popular Japanese convenience store chain) (n.)\n\n### 📌 Particles Used\n- **の (no)**: Connecting pronoun and corner (あそこの角).\n- **を (o)**: Indicating the space through which one turns (角を).\n- **に (ni)**: Direction of turning (左に).\n- **が (ga)**: Subject of existence (ローソンが).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Standard polite with conditional 'と' (to).",
+            "choices": [
+                {
+                    "text": "ATMはありますか。",
+                    "en": "Is there an ATM?",
+                    "next_node": "conbini_atm"
+                },
+                {
+                    "text": "ありがとうございます。",
+                    "en": "Thank you.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "conbini_atm": {
+            "ai_reply": "はい、そのローソンの中に銀行のATMがありますよ。",
+            "ai_yomi": "はい、 その ろーそん の なか に ぎんこう の ATM が あります よ。",
+            "ai_romaji": "hai, sono rooson no naka ni ginkou no ATM ga arimasu yo.",
+            "ai_en": "Yes, there is a bank ATM inside that Lawson.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **そのローソンの中に (Sono rooson no naka ni)**: 'Inside that Lawson...'\n- **銀行のATMがありますよ (Ginkou no ATM ga arimasu yo)**: 'There is a bank ATM.'\n\n### 📖 Vocabulary & Readings\n1. **中 (なか - Naka)**: Inside (n.)\n2. **銀行 (ぎんこう - Ginkou)**: Bank (n.)\n3. **ATM (エーティーエム - Eetiiemu)**: ATM (n.)\n\n### 📌 Particles Used\n- **の (no)**: Connecting 'Lawson' and 'inside' (ローソンの中), and 'bank' and 'ATM' (銀行 of ATM).\n- **に (ni)**: Location of existence particle.\n- **が (ga)**: Subject marker for あります.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Polite. Helpful follow-up details.",
+            "choices": [
+                {
+                    "text": "わかりました！行ってみます。",
+                    "en": "I understand! I will go check it out.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "end_convo": {
+            "ai_reply": "いえいえ、お気をつけて行ってくださいね！",
+            "ai_yomi": "いえいえ、 おき を つけて いって ください ね！",
+            "ai_romaji": "ieie, oki o tsukete itte kudasai ne!",
+            "ai_en": "No problem, please take care and have a safe trip!",
+            "ai_explain": "### 💡 Grammar & Structure\n- **いえいえ (Ieie)**: 'No, not at all!' Standard friendly way to brush off a thank you.\n- **お気をつけて行ってくださいね (Oki o tsukete itte kudasai ne)**: 'Please go carefully.' Respectful safety parting phrase.\n  - **気をつける (ki o tsukeru)**: 'To pay attention / be careful'.\n\n### 📖 Vocabulary & Readings\n1. **気 (き - Ki)**: Spirit / mind (n.)\n2. **気をつける (きをつける - Ki o tsukeru)**: Be careful (compound verb).\n3. **行って (いって - Itte)**: Te-form of 行く (iku - to go).\n\n### 📌 Particles Used\n- **お- (o-)**: Polite prefix attached to '気' (ki).\n- **を (o)**: Object marker.\n- **ね (ne)**: Softening/friendly sentence-ending particle.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Standard polite. Shows typical Japanese customer-first hospitality or friendly concern.",
+            "choices": []
+        }
+    },
+    "Checking in at a Hotel": {
+        "start": {
+            "ai_reply": "いらっしゃいませ。帝国ホテルへようこそ。チェックインでございますか？",
+            "ai_yomi": "いらっしゃいませ。 ていこく ほてる へ ようこそ。 ちぇっくいん で ございます か？",
+            "ai_romaji": "irasshaimase. teikoku hoteru e yokoso. chekkuin de gozaimasu ka?",
+            "ai_en": "Welcome. Welcome to the Imperial Hotel. Are you checking in?",
+            "ai_explain": "### 💡 Grammar & Structure\n- **いらっしゃいませ (Irasshaimase)**: Standard shop greeting.\n- **チェックインでございますか (Chekkuin de gozaimasu ka)**: 'Are you checking in?'\n  - **でございます (de gozaimasu)**: Humble/highly polite equivalent of です (desu).\n\n### 📖 Vocabulary & Readings\n1. **帝国ホテル (ていこくほてる - Teikoku Hoteru)**: Imperial Hotel (n.)\n2. **チェックイン (Chekkuin)**: Check-in (n.)\n\n### 📌 Particles Used\n- **へ (e)**: Direction particle.\n- **か (ka)**: Question particle.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Keigo / Teineigo. Highly formal hospitality suited for prestigious hotels.",
+            "choices": [
+                {
+                    "text": "はい、チェックインをお願いします。",
+                    "en": "Yes, check-in please.",
+                    "next_node": "check_in"
+                }
+            ]
+        },
+        "check_in": {
+            "ai_reply": "かしこまりました。ご予約のお名前をカタカナでお願いいたします。",
+            "ai_yomi": "かしこまりました。 ごよやく の おなまえ を かたかな で おねがい いたします。",
+            "ai_romaji": "kashikomarimashita. goyoyaku no onamae o katakana de onegai itashimasu.",
+            "ai_en": "Certainly. Could I have the name on your reservation in Katakana?",
+            "ai_explain": "### 💡 Grammar & Structure\n- **ご予約のお名前 (Goyoyaku no onamae)**: 'Your reservation name'. Respectful prefixes ご- and お-.\n- **お願いいたします (Onegai itashimasu)**: 'Please / I humbly request.' Humble equivalent of お願いします.\n\n### 📖 Vocabulary & Readings\n1. **予約 (よやく - Yoyaku)**: Reservation (n.)\n2. **名前 (なまえ - Namae)**: Name (n.)\n3. **カタカナ (Katakana)**: Katakana script (n.)\n4. **お願いいたします (おねがいいたします - Onegai itashimasu)**: Humbly request (humble verb).\n\n### 📌 Particles Used\n- **の (no)**: Connects reservation and name.\n- **を (o)**: Object marker for naming (お名前を).\n- **de (de)**: Instrumental particle meaning 'by / using' (カタカナで).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Kenjougo (Humble). Extremely polite Japanese concierge style.",
+            "choices": [
+                {
+                    "text": "スミスです。",
+                    "en": "I am Smith.",
+                    "next_node": "smith_booking"
+                },
+                {
+                    "text": "予約はありません。空室はありますか。",
+                    "en": "No reservation. Do you have vacancies?",
+                    "next_node": "no_booking"
+                }
+            ]
+        },
+        "smith_booking": {
+            "ai_reply": "スミス様ですね。はい、二泊のご予約を確認いたしました。こちらが鍵でございます。",
+            "ai_yomi": "すみす さま です ね。 はい、 にはく の ごよやく を かくにん いたしました。 こちら が かぎ で ございます。",
+            "ai_romaji": "sumisu sama desu ne. hai, nihaku no goyoyaku o kakunin itashimaishita. kochira ga kagi de gozaimasu.",
+            "ai_en": "Mr./Ms. Smith, correct. Yes, I have confirmed your 2-night stay reservation. Here is your key.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **スミス様ですね (Sumisu-sama desu ne)**: 'Mr./Ms. Smith, correct?'\n  - **様 (さま - sama)**: Respectful title suffix, much more polite than さん (san).\n- **二泊のご予約を確認いたしました (Nihaku no goyoyaku o kakunin itashimashita)**: 'I have confirmed your reservation for two nights.'\n  - **いたしました (itashimashita)**: Humble form of しました (did).\n\n### 📖 Vocabulary & Readings\n1. **二泊 (にはく - Nihaku)**: Two nights stay (counter word).\n2. **確認 (かくにん - Kakunin)**: Confirmation (n./v.)\n3. **鍵 (かぎ - Kagi)**: Key (n.)\n4. **ございます (Gozaimasu)**: Polite equivalent of あります.\n\n### 📌 Particles Used\n- **の (no)**: Connecting stay duration and reservation (二泊のご予約).\n- **を (o)**: Object of confirmation (ご予約を).\n- **が (ga)**: Subject marker indicating the key (こちらが).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Highly respectful hotel concierge language.",
+            "choices": [
+                {
+                    "text": "朝食の時間は何時ですか。",
+                    "en": "What time is breakfast?",
+                    "next_node": "breakfast_time"
+                },
+                {
+                    "text": "Wi-Fiはありますか。",
+                    "en": "Is there Wi-Fi?",
+                    "next_node": "wifi_info"
+                }
+            ]
+        },
+        "no_booking": {
+            "ai_reply": "申し訳ございません。本日は満室でございます。",
+            "ai_yomi": "もうしわけ ございません。 ほんじつ は まんしつ で ございます。",
+            "ai_romaji": "moushiwake gozaimasen. honjitsu wa manshitsu de gozaimasu.",
+            "ai_en": "I am deeply sorry. Today we are fully booked.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **申し訳ございません (Moushiwake gozaimasen)**: 'I am deeply sorry.' The standard highly formal apology in Japanese.\n- **満室でございます (Manshitsu de gozaimasu)**: 'We are fully booked.' Uses formal でございます.\n\n### 📖 Vocabulary & Readings\n1. **申し訳 (もうしわけ - Moushiwake)**: Excuse / apology (n.)\n2. **満室 (まんしつ - Manshitsu)**: Full rooms / no occupancy (n.)\n\n### 📌 Particles Used\n- **は (wa)**: Topic marker.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Max politeness Keigo. Shows deep regret and apology.",
+            "choices": [
+                {
+                    "text": "そうですか。残念です。",
+                    "en": "I see. That's unfortunate.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "breakfast_time": {
+            "ai_reply": "朝食は一階のレストランで朝七時から十時までとなっております。",
+            "ai_yomi": "ちょうしょく は いっかい の れすとらん で あさ しちじ から じゅうじ まで と なって おります。",
+            "ai_romaji": "choushoku wa ikkai no resutoran de asa shichiji kara juuji made to natte orimasu.",
+            "ai_en": "Breakfast is on the first floor restaurant from 7 AM to 10 AM.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **朝七時から十時まで (Asa shichiji kara juuji made)**: 'From 7:00 AM to 10:00 AM'.\n  - **から (kara) & まで (made)**: 'From' and 'To' time range markers.\n- **となっております (to natte orimasu)**: 'It has been decided/set as...' extremely polite equivalent of となっています.\n\n### 📖 Vocabulary & Readings\n1. **朝食 (ちょうしょく - Choushoku)**: Breakfast (n.)\n2. **一階 (いっかい - Ikkai)**: First floor (n.)\n3. **朝 (あさ - Asa)**: Morning (n.)\n4. **七時 (しちじ - Shichiji)**: 7 o'clock (counter word).\n5. **十時 (じゅうじ - Juuji)**: 10 o'clock (counter word).\n\n### 📌 Particles Used\n- **は (wa)**: Topic marker.\n- **の (no)**: Location modifier (一階のレストラン).\n- **で (de)**: Location of action particle (レストランで).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Highly polite service Japanese.",
+            "choices": [
+                {
+                    "text": "ありがとうございます。部屋に行きます。",
+                    "en": "Thank you. I'll head to my room.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "wifi_info": {
+            "ai_reply": "はい、お部屋で無料Wi-Fiが使えます。パスワードは鍵のカバーに書いてあります。",
+            "ai_yomi": "はい、 おへや で むりょう Wi-Fi が つかえます。 ぱすわーど は かぎ の かばー に かいて あります。",
+            "ai_romaji": "hai, oheya de muryou Wi-Fi ga tsukaemasu. pasuwaado wa kagi no kabaa ni kaite arimasu.",
+            "ai_en": "Yes, free Wi-Fi is available in your room. The password is written on the key cover.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **無料Wi-Fiが使えます (Muryou Wi-Fi ga tsukaemasu)**: 'Free Wi-Fi is usable.'\n  - **使えます (tsukaemasu)**: Potential form of 使う (tsukau - to use), meaning 'can use / is usable'.\n- **書いてあります (Kaite arimasu)**: 'It is written.' State pattern (Te-form + あります) representing an action performed in the past whose results remain.\n\n### 📖 Vocabulary & Readings\n1. **無料 (むりょう - Muryou)**: Free of charge (n.)\n2. **使う (つかう - Tsukau)**: Use (v.)\n3. **パスワード (Pasuwaado)**: Password (n.)\n4. **カバー (Kabaa)**: Cover (n.)\n5. **書く (かく - Kaku)**: Write (v.)\n\n### 📌 Particles Used\n- **で (de)**: Location of availability (お部屋で).\n- **が (ga)**: Subject marker for potential verb (Wi-Fiが).\n- **は (wa)**: Topic marker.\n- **in (ni)**: Target of writing location (カバーに).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Standard polite. Informative and polite hotel clerk tone.",
+            "choices": [
+                {
+                    "text": "わかりました！ありがとうございます。",
+                    "en": "Understood! Thank you very much.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "end_convo": {
+            "ai_reply": "ごゆっくりお過ごしくださいませ。素晴らしいご滞在を！",
+            "ai_yomi": "ごゆっくり おすごし くださいませ。 すばらしい ごたいざい を！",
+            "ai_romaji": "goyukkuri osugoshi kudasaimase. subarashii gotaizai o!",
+            "ai_en": "Please enjoy your stay with us. Have a wonderful stay!",
+            "ai_explain": "### 💡 Grammar & Structure\n- **お過ごしくださいませ (Osugoshi kudasaimase)**: 'Please spend your time / stay.' Polite honorific request.\n  - **過ごす (sugosu)**: 'To spend time'. prefixed with お- and followed by honorific request くださいませ.\n- **素晴らしいご滞在を！ (Subarashii gotaizai o!)**: 'Have a wonderful stay!' (The verb 'have/enjoy' is politely omitted but implied).\n\n### 📖 Vocabulary & Readings\n1. **過ごす (すごす - Sugosu)**: Spend time / pass time (v.)\n2. **素晴らしい (すばらしい - Subarashii)**: Wonderful (I-adj.)\n3. **滞在 (たいざい - Taizai)**: Stay / visit (n., prefixed with polite ご-).\n\n### 📌 Particles Used\n- **を (o)**: Object marker pointing to the implied verb of wishing (素晴らしいご滞在を).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Max hospitality Keigo. Warm wishing parting statement.",
+            "choices": []
+        }
+    },
+    "Casual Talk with Friends": {
+        "start": {
+            "ai_reply": "ヤッホー！最近どう？元気にしてる？",
+            "ai_yomi": "ヤッホー！ さいきん どう？ げんき に してる？",
+            "ai_romaji": "yahhoo! saikin dou? genki ni shiteru?",
+            "ai_en": "Hey! How's it going lately? Are you doing well?",
+            "ai_explain": "### 💡 Grammar & Structure\n- **ヤッホー！ (Yahhoo)**: Casual hello / hi! Used strictly between close friends.\n- **最近どう？ (Saikin dou?)**: 'How are you lately / How have things been?' Casual equivalent of いかがですか.\n- **元気にしてる？ (Genki ni shiteru?)**: 'Are you doing well / keeping active?' Casual equivalent of 元気にしていますか.\n\n### 📖 Vocabulary & Readings\n1. **最近 (さいきん - Saikin)**: Recently / lately (n.)\n2. **どう (Dou)**: How (adv.)\n3. **元気 (げんき - Genki)**: Healthy / energetic (Na-adj./n.)\n\n### 📌 Particles Used\n- **に (ni)**: Adverbial marker transforming '元気' into 'genki ni' (energetically / healthily).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Casual / Informal (Tameguchi). Absolutely zero Keigo, standard friendly speech.",
+            "choices": [
+                {
+                    "text": "元気だよ！そっちは？",
+                    "en": "I'm doing well! How about you?",
+                    "next_node": "friend_well"
+                },
+                {
+                    "text": "ちょっと疲れているんだ。",
+                    "en": "I'm a little bit tired.",
+                    "next_node": "friend_tired"
+                }
+            ]
+        },
+        "friend_well": {
+            "ai_reply": "私も絶好調！ねえ、今週末空いてる？遊びに行かない？",
+            "ai_yomi": "わたし も ぜっこうちょう！ ねえ、 こんしゅうまつ あいてる？ あそび に いかない？",
+            "ai_romaji": "watashi mo zekkouchou! nee, konshuumatsu aiteru? asobi ni ikanai?",
+            "ai_en": "I'm in top shape too! Hey, are you free this weekend? Want to go hang out?",
+            "ai_explain": "### 💡 Grammar & Structure\n- **私も絶好調！ (Watashi mo zekkouchou!)**: 'I'm also doing fantastic!'\n- **空いてる？ (Aiteru?)**: 'Are you free/open?' Shortened from 空いていますか.\n- **遊びに行かない？ (Asobi ni ikanai?)**: 'Do you want to hang out?' Casual invitation pattern (negative question form equivalent of 行きませんか).\n\n### 📖 Vocabulary & Readings\n1. **絶好調 (ぜっこうちょう - Zekkouchou)**: In perfect form / top shape (n.)\n2. **今週末 (こんしゅうまつ - Konshuumatsu)**: This weekend (n.)\n3. **遊ぶ (あそぶ - Asobu)**: Play / hang out (v.)\n\n### 📌 Particles Used\n- **も (mo)**: Particle meaning 'also / too' (私も).\n- **に (ni)**: Purpose particle indicating the goal of going (遊びに = for playing/hanging out).\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Friendly informal. Excited tone indicated by exclamation marks and casual negative-question invites.",
+            "choices": [
+                {
+                    "text": "空いてるよ！どこに行く？",
+                    "en": "I'm free! Where should we go?",
+                    "next_node": "friend_plan"
+                },
+                {
+                    "text": "ごめん、今週末は忙しいんだ。",
+                    "en": "Sorry, I'm busy this weekend.",
+                    "next_node": "friend_busy"
+                }
+            ]
+        },
+        "friend_tired": {
+            "ai_reply": "えっ、大丈夫？仕事が忙しいの？無理しないでね。",
+            "ai_yomi": "えっ、 だいじょうぶ？ しごと が いそがしい の？ むり しないで ね。",
+            "ai_romaji": "e, daijoubu? shigoto ga isogashii no? muri shinaide ne.",
+            "ai_en": "Oh, are you okay? Are you busy with work? Don't push yourself too hard.",
+            "ai_explain": "### 💡 Grammar & Structure\n- **仕事が忙しいの？ (Shigoto ga isogashii no?)**: 'Are you busy with work?'\n  - **の (no)**: Soft question-ending particle popular in casual speech.\n- **無理しないでね (Muri shinaide ne)**: 'Don't overdo it / Don't push yourself.'\n  - **しないで (shinaide)**: Casual negative request ('don't do [X]').\n\n### 📖 Vocabulary & Readings\n1. **大丈夫 (だいじょうぶ - Daijoubu)**: Okay / all right (Na-adj.)\n2. **仕事 (しごと - Shigoto)**: Work / job (n.)\n3. **忙しい (いそがしい - Isogashii)**: Busy (I-adj.)\n4. **無理 (むり - Muri)**: Impossible / strain (Na-adj./n.)\n\n### 📌 Particles Used\n- **が (ga)**: Subject marker.\n- **ね (ne)**: Caring sentence-ending tag particle.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Casual friendly sympathy. Expresses closeness and warm concern.",
+            "choices": [
+                {
+                    "text": "ありがとう。今日は早く寝るよ。",
+                    "en": "Thank you. I'll go to sleep early today.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "friend_plan": {
+            "ai_reply": "渋谷に新しいカフェができたんだって！そこ行ってみようよ！",
+            "ai_yomi": "しぶや に あたらしい かふぇ が できたんだ って！ そこ いって みよう よ！",
+            "ai_romaji": "shibuya ni atarashii kafe ga dekitanda tte! soko itte miyou yo!",
+            "ai_en": "I heard a new cafe opened in Shibuya! Let's go check it out!",
+            "ai_explain": "### 💡 Grammar & Structure\n- **〜できたんだって！ (~dekitanda tte!)**: 'I heard that [X] was made/opened!'\n  - **〜って (~tte)**: Casual quotient particle used to report hearsay ('I heard that...').\n- **行ってみようよ！ (Itte miyou yo!)**: 'Let's go check it out!'\n  - **〜てみる (~te miru)**: Try doing [X]. Conjugated here to volitional 'みよう' (miyou - let's try).\n\n### 📖 Vocabulary & Readings\n1. **渋谷 (しぶや - Shibuya)**: Shibuya (n., famous district in Tokyo).\n2. **新しい (あたらしい - Atarashii)**: New (I-adj.)\n3. **カフェ (Kafe)**: Cafe (n., Katakana)\n4. **行く (いく - Iku)**: Go (v.)\n\n### 📌 Particles Used\n- **に (ni)**: Location of action destination.\n- **が (ga)**: Subject marker.\n- **よ (yo)**: Volitional emphasis particle ('let's go!').\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Energetic casual talk. Suggests high excitement about trends.",
+            "choices": [
+                {
+                    "text": "いいね！楽しみ！",
+                    "en": "Sounds good! Looking forward to it!",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "friend_busy": {
+            "ai_reply": "そっか、残念。じゃあまた今度遊ぼうね！お仕事頑張って！",
+            "ai_yomi": "そっか、 ざんねん。 じゃあ また こんど あそぼう ね！ おしごと がんばって！",
+            "ai_romaji": "sokka, zannen. jaa mata kondo asobou ne! oshigoto ganbatte!",
+            "ai_en": "I see, too bad. Well, let's hang out next time! Good luck with your work!",
+            "ai_explain": "### 💡 Grammar & Structure\n- **そっか、残念 (Sokka, zannen)**: 'Ah, I see. That's too bad.'\n- **遊ぼうね (Asobou ne)**: 'Let's hang out / play, okay?' Volitional form of 遊ぶ (asobu) + friendly ne.\n- **お仕事頑張って (Oshigoto ganbatte)**: 'Good luck with work!' Polite prefix お- attached to work, and 'ganbatte' which is te-form of ganbaru (to try hard) used as a friendly cheer.\n\n### 📖 Vocabulary & Readings\n1. **残念 (ざんねん - Zannen)**: Regret / too bad (Na-adj./n.)\n2. **今度 (こんど - Kondo)**: Next time (n.)\n3. **頑張る (がんばる - Ganbaru)**: Persist / work hard (v.)\n\n### 📌 Particles Used\n- **ね (ne)**: Confirmation/softener.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: Friendly casual encouragement. Standard Japanese way of cheering on a busy friend.",
+            "choices": [
+                {
+                    "text": "うん、またね！ありがとう。",
+                    "en": "Yeah, see you later! Thanks.",
+                    "next_node": "end_convo"
+                }
+            ]
+        },
+        "end_convo": {
+            "ai_reply": "はーい！じゃあまた連絡するね。バイバイ！",
+            "ai_yomi": "はーい！ じゃあ また れんらく する ね。 ばいばい！",
+            "ai_romaji": "haai! jaa mata renraku suru ne. baibai!",
+            "ai_en": "Okay! I'll contact you again. Bye bye!",
+            "ai_explain": "### 💡 Grammar & Structure\n- **連絡するね (Renraku suru ne)**: 'I'll get in touch with you, okay?' (Future tense indicated by dictionary verb form suru).\n- **バイバイ！ (Baibai)**: 'Bye bye!' universally used casual loanword parting.\n\n### 📖 Vocabulary & Readings\n1. **連絡 (れんらく - Renraku)**: Contact / communication (n./v.)\n2. **バイバイ (Baibai)**: Bye bye (n.)\n\n### 📌 Particles Used\n- **ね (ne)**: Sentence-ending softener.\n\n### 🎭 Formality & Nuance\n- **Politeness Level**: 100% casual daily parting. High intimacy tone.",
+            "choices": []
+        }
+    }
+}
+
 # ==================== TOOLTIP COMPONENT ====================
 class HoverTooltip:
     def __init__(self, widget, get_text_func):
@@ -188,8 +788,25 @@ class JapaneseLearningApp:
         self.tracker_data = guardian.load_data()
         
         # Active states
+        self.difficulty_level = "N5"
         self.active_kanji = None
         self.api_in_progress = False
+        
+        self.active_learn_kanji = None
+        self.learn_api_in_progress = False
+        
+        self.chat_history = []
+        self.active_scenario = "At a Japanese Restaurant"
+        self.chat_api_in_progress = False
+        self.active_offline_node = "start"
+        self.current_view_key = "dashboard"
+        
+        # Voice recording and Deep Explanation states
+        self.voice_recording_in_progress = False
+        self.voice_recording_seconds = 5
+        self.explaining_message_ids = set()
+        self.message_explanations = {}
+        self.expanded_explanations = set()
         
         # Sentence builder active selection
         self.selected_builder_words = []
@@ -239,16 +856,45 @@ class JapaneseLearningApp:
             fg=ACCENT_CYAN,
             bg=BG_CARD,
             font=(FONT_FAMILY, 11, "bold"),
-            pady=25
+            pady=20
         )
         logo_lbl.pack()
+        
+        # Difficulty Level Segmented Buttons Frame
+        diff_frame = tk.Frame(self.sidebar_frame, bg=BG_CARD, pady=5)
+        diff_frame.pack(fill="x", padx=10)
+        
+        self.diff_buttons = {}
+        for level in ["N5", "N4", "N3", "N2", "N1"]:
+            btn = tk.Button(
+                diff_frame,
+                text=level,
+                bg=BG_INNER if level == self.difficulty_level else BG_CARD,
+                fg=ACCENT_CYAN if level == self.difficulty_level else FG_SECONDARY,
+                activebackground=HOVER_COLOR,
+                activeforeground=FG_LIGHT,
+                bd=0,
+                padx=6,
+                pady=4,
+                font=(FONT_FAMILY, 8, "bold"),
+                cursor="hand2",
+                command=lambda l=level: self.change_difficulty(l)
+            )
+            btn.pack(side="left", fill="x", expand=True, padx=1)
+            self.diff_buttons[level] = btn
+            
+        # Spacing
+        spacing_lbl = tk.Label(self.sidebar_frame, text="", bg=BG_CARD, font=(FONT_FAMILY, 4))
+        spacing_lbl.pack()
         
         # Navigation Items list
         self.nav_buttons = {}
         nav_items = [
             ("dashboard", "📊  Dashboard"),
+            ("learn_kanji", "🎓  Learn Kanji"),
             ("kanji_explorer", "🎋  Kanji Explorer"),
             ("grammar_hub", "📖  Grammar Hub"),
+            ("ai_conversation", "💬  AI Conversation"),
             ("srs_review", "⚡  SRS Review Center")
         ]
         
@@ -352,6 +998,7 @@ class JapaneseLearningApp:
     # ==================== NAVIGATION CONTROLLER ====================
     def switch_view(self, view_key):
         """Cleans current views and swaps in the targeted modular panel."""
+        self.current_view_key = view_key
         # Reset navigation highlights
         for key, btn in self.nav_buttons.items():
             btn.config(bg=BG_CARD, fg=FG_SECONDARY)
@@ -371,10 +1018,14 @@ class JapaneseLearningApp:
         # Launch corresponding view constructor
         if view_key == "dashboard":
             self.draw_dashboard()
+        elif view_key == "learn_kanji":
+            self.draw_learn_kanji()
         elif view_key == "kanji_explorer":
             self.draw_kanji_explorer()
         elif view_key == "grammar_hub":
             self.draw_grammar_hub()
+        elif view_key == "ai_conversation":
+            self.draw_ai_conversation()
         elif view_key == "srs_review":
             self.draw_srs_review()
 
@@ -1207,8 +1858,9 @@ class JapaneseLearningApp:
         progress = self.kanji_db.setdefault("grammar_progress", {})
         
         # Build cards for each lesson
+        active_lessons = JLPT_GRAMMAR_LESSONS.get(self.difficulty_level, GRAMMAR_LESSONS)
         idx = 1
-        for lesson in GRAMMAR_LESSONS:
+        for lesson in active_lessons:
             lesson_id = lesson.get("id")
             is_learned = progress.get(lesson_id, False)
             
@@ -1279,7 +1931,8 @@ class JapaneseLearningApp:
     def launch_interactive_lesson(self, lesson_idx):
         """Replaces main content view with the interactive detailed Grammar study card."""
         self.current_lesson_idx = lesson_idx
-        lesson = GRAMMAR_LESSONS[lesson_idx]
+        active_lessons = JLPT_GRAMMAR_LESSONS.get(self.difficulty_level, GRAMMAR_LESSONS)
+        lesson = active_lessons[lesson_idx]
         
         # Reset selection order
         self.selected_builder_words = []
@@ -1404,7 +2057,8 @@ class JapaneseLearningApp:
         for child in self.sentence_builder_frame.winfo_children():
             child.destroy()
             
-        lesson = GRAMMAR_LESSONS[self.current_lesson_idx]
+        active_lessons = JLPT_GRAMMAR_LESSONS.get(self.difficulty_level, GRAMMAR_LESSONS)
+        lesson = active_lessons[self.current_lesson_idx]
         builder = lesson.get("builder")
         
         tk.Label(
@@ -1542,7 +2196,8 @@ class JapaneseLearningApp:
 
     def check_sentence_builder_correctness(self):
         """Validates if selected words match the correct grammatical sentence sequence."""
-        lesson = GRAMMAR_LESSONS[self.current_lesson_idx]
+        active_lessons = JLPT_GRAMMAR_LESSONS.get(self.difficulty_level, GRAMMAR_LESSONS)
+        lesson = active_lessons[self.current_lesson_idx]
         builder = lesson.get("builder")
         correct = builder.get("correct_order")
         
@@ -1733,7 +2388,7 @@ class JapaneseLearningApp:
             lbl_m = tk.Label(
                 info_frame,
                 text=f"Meaning: {card_data.get('meaning')}".upper(),
-                fg=FG_LIGHT,
+                fg=BG_INNER,
                 bg=BG_INNER,
                 font=(FONT_FAMILY, 11, "bold")
             )
@@ -1742,11 +2397,16 @@ class JapaneseLearningApp:
             lbl_o = tk.Label(
                 info_frame,
                 text=f"Onyomi (音): {card_data.get('onyomi', '(none)')}      Kunyomi (訓): {card_data.get('kunyomi', '(none)')}",
-                fg=FG_SECONDARY,
+                fg=BG_INNER,
                 bg=BG_INNER,
                 font=(FONT_FAMILY, 9, "bold")
             )
             lbl_o.pack(anchor="w", pady=(4, 0))
+            
+            widgets_to_fade = [
+                (lbl_m, FG_LIGHT),
+                (lbl_o, FG_SECONDARY)
+            ]
             
             # Show example sentences
             ex_ja = card_data.get("example_ja")
@@ -1754,7 +2414,7 @@ class JapaneseLearningApp:
                 lbl_e_ja = tk.Label(
                     info_frame,
                     text=f"例句: {ex_ja}",
-                    fg=FG_LIGHT,
+                    fg=BG_INNER,
                     bg=BG_INNER,
                     font=(FONT_FAMILY, 9),
                     wraplength=600,
@@ -1766,13 +2426,18 @@ class JapaneseLearningApp:
                 lbl_e_en = tk.Label(
                     info_frame,
                     text=card_data.get("example_en"),
-                    fg=FG_SECONDARY,
+                    fg=BG_INNER,
                     bg=BG_INNER,
                     font=(FONT_FAMILY, 8, "italic"),
                     wraplength=600,
                     justify="left"
                 )
                 lbl_e_en.pack(anchor="w")
+                
+                widgets_to_fade.append((lbl_e_ja, FG_LIGHT))
+                widgets_to_fade.append((lbl_e_en, FG_SECONDARY))
+                
+            self.animate_text_fade(widgets_to_fade)
                 
             # Evaluation control buttons (Correct / Incorrect)
             eval_frame = tk.Frame(card_container, bg=BG_CARD)
@@ -1891,6 +2556,1371 @@ class JapaneseLearningApp:
                         pass
         widget.bind("<Enter>", enter)
         widget.bind("<Leave>", leave)
+        for child in widget.winfo_children():
+            if not isinstance(child, (tk.Button, tk.Canvas)):
+                child.bind("<Enter>", enter)
+                child.bind("<Leave>", leave)
+
+    def change_difficulty(self, new_level):
+        """Updates global difficulty and resets/refreshes the current view."""
+        self.difficulty_level = new_level
+        self.update_difficulty_buttons()
+        self.switch_view(self.current_view_key)
+
+    def update_difficulty_buttons(self):
+        """Updates segmented difficulty buttons highlights in the sidebar."""
+        for level, btn in self.diff_buttons.items():
+            if level == self.difficulty_level:
+                btn.config(bg=BG_INNER, fg=ACCENT_CYAN)
+            else:
+                btn.config(bg=BG_CARD, fg=FG_SECONDARY)
+
+    def draw_learn_kanji(self):
+        """Renders the Dual-Column interactive JLPT Kanji unlocking room."""
+        body = tk.Frame(self.content_frame, bg=BG_DARK)
+        body.pack(fill="both", expand=True)
+        
+        # 1. Left panel: list of curated JLPT level kanji & AI button
+        left_panel = tk.Frame(body, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, width=320)
+        left_panel.pack(side="left", fill="both")
+        left_panel.pack_propagate(False)
+        
+        lbl_head = tk.Label(
+            left_panel,
+            text=f"📚 JLPT {self.difficulty_level} CURRICULUM",
+            fg=ACCENT_CYAN,
+            bg=BG_CARD,
+            font=(FONT_FAMILY, 10, "bold"),
+            pady=10
+        )
+        lbl_head.pack()
+        
+        ai_btn_text = "⌛ FETCHING AI KANJI..." if self.learn_api_in_progress else "✨ GENERATE NEW KANJI (AI)"
+        self.btn_ai_gen = tk.Button(
+            left_panel,
+            text=ai_btn_text,
+            bg=BG_INNER,
+            fg=ACCENT_PURPLE,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            font=(FONT_FAMILY, 8, "bold"),
+            pady=10,
+            cursor="hand2" if not self.learn_api_in_progress else "arrow",
+            command=self.generate_learn_kanji_ai,
+            state="disabled" if self.learn_api_in_progress else "normal"
+        )
+        self.btn_ai_gen.pack(fill="x", padx=10, pady=(0, 10))
+        if not self.learn_api_in_progress:
+            self.bind_button_hover(self.btn_ai_gen, BG_INNER, HOVER_COLOR)
+            
+        scroll_container = tk.Frame(left_panel, bg=BG_CARD)
+        scroll_container.pack(fill="both", expand=True, padx=5, pady=(0, 10))
+        
+        list_canvas = tk.Canvas(scroll_container, bg=BG_CARD, highlightthickness=0)
+        scrollbar = tk.Scrollbar(scroll_container, orient="vertical", command=list_canvas.yview)
+        list_frame = tk.Frame(list_canvas, bg=BG_CARD)
+        
+        list_frame.bind(
+            "<Configure>",
+            lambda e: list_canvas.configure(scrollregion=list_canvas.bbox("all"))
+        )
+        list_canvas.create_window((0, 0), window=list_frame, anchor="nw", width=290)
+        list_canvas.configure(yscrollcommand=scrollbar.set)
+        
+        list_canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        def _on_scroll(event):
+            if event.delta:
+                list_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        list_canvas.bind("<MouseWheel>", _on_scroll)
+        
+        vocab = self.kanji_db.get("vocab", {})
+        curriculum_pool = JLPT_KANJI_DATABASE.get(self.difficulty_level, [])
+        
+        if curriculum_pool and (not self.active_learn_kanji or self.active_learn_kanji.get("level") != self.difficulty_level):
+            unstudied = [k for k in curriculum_pool if k["kanji"] not in vocab]
+            if unstudied:
+                self.active_learn_kanji = unstudied[0]
+            else:
+                self.active_learn_kanji = curriculum_pool[0]
+                
+        for item in curriculum_pool:
+            k = item.get("kanji")
+            meaning = item.get("meaning")
+            is_studied = k in vocab
+            
+            status_symbol = "✓" if is_studied else "🔒"
+            status_color = ACCENT_GREEN if is_studied else FG_SECONDARY
+            
+            is_active = self.active_learn_kanji and self.active_learn_kanji.get("kanji") == k
+            bg_c = HOVER_COLOR if is_active else BG_CARD
+            border_c = ACCENT_CYAN if is_active else BORDER_COLOR
+            
+            row = tk.Frame(
+                list_frame,
+                bg=bg_c,
+                pady=10,
+                padx=12,
+                highlightbackground=border_c,
+                highlightthickness=1,
+                cursor="hand2"
+            )
+            row.pack(fill="x", pady=2)
+            
+            lbl_sym = tk.Label(row, text=status_symbol, fg=status_color, bg=bg_c, font=(FONT_FAMILY, 10, "bold"))
+            lbl_sym.pack(side="left", padx=2)
+            
+            lbl_k = tk.Label(row, text=k, fg=ACCENT_CYAN, bg=bg_c, font=(FONT_FAMILY, 14, "bold"))
+            lbl_k.pack(side="left", padx=10)
+            
+            lbl_m = tk.Label(row, text=meaning[:15], fg=FG_LIGHT, bg=bg_c, font=(FONT_FAMILY, 8, "bold"))
+            lbl_m.pack(side="left", padx=5)
+            
+            def make_select_cmd(target_item=item):
+                def select_action(e):
+                    self.active_learn_kanji = target_item
+                    self.switch_view("learn_kanji")
+                return select_action
+                
+            row.bind("<Button-1>", make_select_cmd(item))
+            for child in row.winfo_children():
+                child.bind("<Button-1>", make_select_cmd(item))
+                child.bind("<MouseWheel>", _on_scroll)
+            row.bind("<MouseWheel>", _on_scroll)
+            self.bind_hover_highlight(row, bg_c, HOVER_COLOR)
+            
+        self.right_learn_pane = tk.Frame(body, bg=BG_DARK, padx=15)
+        self.right_learn_pane.pack(side="right", fill="both", expand=True)
+        
+        self.render_learn_details_pane()
+
+    def generate_learn_kanji_ai(self):
+        """Asynchronously calls Gemini API to fetch an unstudied progressive Kanji card."""
+        if self.learn_api_in_progress:
+            return
+            
+        self.learn_api_in_progress = True
+        self.btn_ai_gen.config(text="⌛ FETCHING AI KANJI...", state="disabled")
+        
+        studied_list = list(self.kanji_db.get("vocab", {}).keys())
+        
+        def run_ai():
+            api_key = self.config.get("gemini_api_key", "").strip()
+            new_card = guardian.get_gemini_kanji_card(api_key, self.difficulty_level, studied_list)
+            self.root.after(0, lambda: self.on_ai_kanji_resolved(new_card))
+            
+        threading.Thread(target=run_ai, daemon=True).start()
+
+    def on_ai_kanji_resolved(self, new_card):
+        """Invoked when Gemini returns the progressive Kanji card."""
+        self.learn_api_in_progress = False
+        if not new_card:
+            messagebox.showerror("Error", "Failed to generate new progressive Kanji. Please check internet connection or API keys.", parent=self.root)
+            self.switch_view("learn_kanji")
+            return
+            
+        self.active_learn_kanji = new_card
+        self.switch_view("learn_kanji")
+        messagebox.showinfo("✨ Progressive AI Kanji", f"AI has generated a new progressive Kanji card for you: '{new_card.get('kanji')}'!\nReview the details on the right and click Learn to add it to your deck.", parent=self.root)
+
+    def render_learn_details_pane(self):
+        """Renders the detailed interactive info-card panel for learning."""
+        for child in self.right_learn_pane.winfo_children():
+            child.destroy()
+            
+        if not self.active_learn_kanji:
+            no_card = tk.Frame(self.right_learn_pane, bg=BG_DARK, pady=100)
+            no_card.pack(fill="both", expand=True)
+            tk.Label(
+                no_card,
+                text="🎓 Study Card Empty",
+                fg=FG_SECONDARY,
+                bg=BG_DARK,
+                font=(FONT_FAMILY, 14, "bold")
+            ).pack()
+            tk.Label(
+                no_card,
+                text="Select a Kanji from the left list to review detailed explanations.",
+                fg=FG_SECONDARY,
+                bg=BG_DARK,
+                font=(FONT_FAMILY, 9)
+            ).pack(pady=4)
+            return
+            
+        item = self.active_learn_kanji
+        k = item.get("kanji")
+        vocab = self.kanji_db.get("vocab", {})
+        is_learned = k in vocab
+        
+        card_frame = tk.Frame(
+            self.right_learn_pane,
+            bg=BG_CARD,
+            padx=25,
+            pady=25,
+            highlightbackground=BORDER_COLOR,
+            highlightthickness=1
+        )
+        card_frame.pack(fill="both", expand=True)
+        
+        left_header = tk.Frame(card_frame, bg=BG_CARD)
+        left_header.pack(fill="x")
+        
+        kanji_lbl = tk.Label(
+            left_header,
+            text=k,
+            fg=ACCENT_CYAN,
+            bg=BG_CARD,
+            font=(FONT_FAMILY, 64, "bold"),
+            cursor="hand2"
+        )
+        kanji_lbl.pack(side="left", padx=(0, 20))
+        HoverTooltip(kanji_lbl, lambda: item.get("kanji_romaji", ""))
+        
+        details_col = tk.Frame(left_header, bg=BG_CARD)
+        details_col.pack(side="left", fill="y", pady=10)
+        
+        lbl_meaning = tk.Label(
+            details_col,
+            text=item.get("meaning", "").upper(),
+            fg=BG_INNER,
+            bg=BG_CARD,
+            font=(FONT_FAMILY, 16, "bold"),
+            justify="left"
+        )
+        lbl_meaning.pack(anchor="w")
+        
+        lbl_yomi = tk.Label(
+            details_col,
+            text=f"読み: {item.get('kanji_yomi', '')}",
+            fg=BG_INNER,
+            bg=BG_CARD,
+            font=(FONT_FAMILY, 11, "bold")
+        )
+        lbl_yomi.pack(anchor="w", pady=2)
+        HoverTooltip(lbl_yomi, lambda: item.get("kanji_romaji", ""))
+        
+        readings_frame = tk.Frame(card_frame, bg=BG_INNER, padx=15, pady=12, highlightbackground=BORDER_COLOR, highlightthickness=1)
+        readings_frame.pack(fill="x", pady=15)
+        
+        onyomi = item.get("onyomi", "")
+        onyomi_txt = f"音読み (Onyomi): {onyomi}" if onyomi else "音読み (Onyomi): (none)"
+        lbl_on = tk.Label(readings_frame, text=onyomi_txt, fg=BG_INNER, bg=BG_INNER, font=(FONT_FAMILY, 9, "bold"))
+        lbl_on.pack(anchor="w")
+        
+        kunyomi = item.get("kunyomi", "")
+        kunyomi_txt = f"訓読み (Kunyomi): {kunyomi}" if kunyomi else "訓読み (Kunyomi): (none)"
+        lbl_kun = tk.Label(readings_frame, text=kunyomi_txt, fg=BG_INNER, bg=BG_INNER, font=(FONT_FAMILY, 9, "bold"))
+        lbl_kun.pack(anchor="w", pady=(4, 0))
+        
+        example_frame = tk.Frame(card_frame, bg=BG_CARD)
+        example_frame.pack(fill="x", pady=10)
+        
+        tk.Label(
+            example_frame,
+            text="例句 (EXAMPLE SENTENCE)",
+            fg=ACCENT_PURPLE,
+            bg=BG_CARD,
+            font=(FONT_FAMILY, 9, "bold")
+        ).pack(anchor="w")
+        
+        sentence_box = tk.Frame(example_frame, bg=BG_INNER, padx=15, pady=15, highlightbackground=BORDER_COLOR, highlightthickness=1)
+        sentence_box.pack(fill="x", pady=6)
+        
+        lbl_sentence_ja = tk.Label(
+            sentence_box,
+            text=item.get("example_ja"),
+            fg=BG_INNER,
+            bg=BG_INNER,
+            font=(FONT_FAMILY, 12),
+            wraplength=450,
+            justify="left"
+        )
+        lbl_sentence_ja.pack(anchor="w")
+        HoverTooltip(lbl_sentence_ja, lambda: item.get("example_romaji", ""))
+        
+        lbl_sentence_en = tk.Label(
+            sentence_box,
+            text=item.get("example_en"),
+            fg=BG_INNER,
+            bg=BG_INNER,
+            font=(FONT_FAMILY, 9, "italic"),
+            wraplength=450,
+            justify="left"
+        )
+        lbl_sentence_en.pack(anchor="w", pady=(4, 0))
+        
+        audio_row = tk.Frame(card_frame, bg=BG_CARD)
+        audio_row.pack(fill="x", pady=10)
+        
+        btn_pron_k = tk.Button(
+            audio_row,
+            text="🔊 PRONOUNCE KANJI",
+            bg=BG_INNER,
+            fg=ACCENT_CYAN,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            font=(FONT_FAMILY, 8, "bold"),
+            padx=12,
+            pady=8,
+            cursor="hand2",
+            command=lambda: guardian.speak_japanese_text(item.get("kanji_yomi", item.get("kanji")))
+        )
+        btn_pron_k.pack(side="left", padx=2)
+        self.bind_button_hover(btn_pron_k, BG_INNER, HOVER_COLOR)
+        
+        btn_pron_s = tk.Button(
+            audio_row,
+            text="🔊 PRONOUNCE SENTENCE",
+            bg=BG_INNER,
+            fg=ACCENT_CYAN,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            font=(FONT_FAMILY, 8, "bold"),
+            padx=12,
+            pady=8,
+            cursor="hand2",
+            command=lambda: guardian.speak_japanese_text(item.get("example_ja"))
+        )
+        btn_pron_s.pack(side="left", padx=2)
+        self.bind_button_hover(btn_pron_s, BG_INNER, HOVER_COLOR)
+        
+        bottom_action_frame = tk.Frame(card_frame, bg=BG_CARD)
+        bottom_action_frame.pack(fill="x", side="bottom", pady=(10, 0))
+        
+        if is_learned:
+            lbl_learned_badge = tk.Label(
+                bottom_action_frame,
+                text="✓  ALREADY ADDED TO STUDY DECK",
+                fg=ACCENT_GREEN,
+                bg=BG_INNER,
+                font=(FONT_FAMILY, 10, "bold"),
+                pady=12,
+                highlightbackground=BORDER_COLOR,
+                highlightthickness=1
+            )
+            lbl_learned_badge.pack(fill="x")
+        else:
+            self.btn_learn_unlock = tk.Button(
+                bottom_action_frame,
+                text="🎓 LEARN & ADD TO DECK",
+                bg=ACCENT_GREEN,
+                fg=FG_LIGHT,
+                activebackground="#2aa848",
+                bd=0,
+                font=(FONT_FAMILY, 10, "bold"),
+                pady=12,
+                cursor="hand2",
+                command=self.learn_active_kanji
+            )
+            self.btn_learn_unlock.pack(fill="x")
+            self.bind_button_hover(self.btn_learn_unlock, ACCENT_GREEN, "#2aa848")
+            
+        widgets_to_fade = [
+            (lbl_meaning, FG_LIGHT),
+            (lbl_yomi, FG_SECONDARY),
+            (lbl_on, ACCENT_ORANGE),
+            (lbl_kun, ACCENT_GREEN),
+            (lbl_sentence_ja, FG_LIGHT),
+            (lbl_sentence_en, FG_SECONDARY)
+        ]
+        self.animate_text_fade(widgets_to_fade)
+
+    def learn_active_kanji(self):
+        """Unlocks and adds the active Kanji to study deck progress database."""
+        if not self.active_learn_kanji:
+            return
+            
+        item = self.active_learn_kanji
+        k = item.get("kanji")
+        vocab = self.kanji_db.setdefault("vocab", {})
+        
+        if k in vocab:
+            return
+            
+        vocab[k] = {
+            "kanji": k,
+            "meaning": item.get("meaning"),
+            "onyomi": item.get("onyomi"),
+            "kunyomi": item.get("kunyomi"),
+            "stroke_count": item.get("stroke_count", len(k)),
+            "example_ja": item.get("example_ja"),
+            "example_en": item.get("example_en"),
+            "kanji_yomi": item.get("kanji_yomi", ""),
+            "kanji_romaji": item.get("kanji_romaji", ""),
+            "example_yomi": item.get("example_yomi", item.get("kanji_yomi", "")),
+            "example_romaji": item.get("example_romaji", item.get("kanji_romaji", "")),
+            "level": item.get("level", self.difficulty_level),
+            "srs_stage": 1,
+            "next_review": (datetime.now() + timedelta(days=1)).isoformat(),
+            "history": []
+        }
+        
+        guardian.save_kanji_data(self.kanji_db)
+        guardian.speak_japanese_text(f"覚えた！ {k}")
+        self.switch_view("learn_kanji")
+        messagebox.showinfo("🎉 UNLOCKED!", f"Successfully unlocked '{k}'! It has been added to your SRS Review Deck.", parent=self.root)
+
+    def draw_ai_conversation(self):
+        """Renders the Premium Apple AI Sensei Conversation Room."""
+        body = tk.Frame(self.content_frame, bg=BG_DARK)
+        body.pack(fill="both", expand=True)
+        
+        top_bar = tk.Frame(body, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, pady=8, padx=15)
+        top_bar.pack(fill="x", pady=(0, 10))
+        
+        tk.Label(
+            top_bar,
+            text="💬 PRACTICE SCENARIO:",
+            fg=FG_SECONDARY,
+            bg=BG_CARD,
+            font=(FONT_FAMILY, 9, "bold")
+        ).pack(side="left", padx=(0, 10))
+        
+        scenarios = list(OFFLINE_CONVERSATION_TREES.keys())
+        self.scenario_var = tk.StringVar(value=self.active_scenario)
+        
+        style = ttk.Style()
+        style.theme_use('default')
+        style.configure("TCombobox", fieldbackground=BG_INNER, background=BG_INNER, foreground=FG_LIGHT, darkcolor=BG_INNER, lightcolor=BG_INNER, bordercolor=BORDER_COLOR)
+        
+        self.scenario_combo = ttk.Combobox(
+            top_bar,
+            textvariable=self.scenario_var,
+            values=scenarios,
+            state="readonly",
+            width=28,
+            font=(FONT_FAMILY, 9)
+        )
+        self.scenario_combo.pack(side="left")
+        self.scenario_combo.bind("<<ComboboxSelected>>", lambda e: self.reset_conversation())
+        
+        btn_reset = tk.Button(
+            top_bar,
+            text="↻  RESET CHAT",
+            bg=BG_INNER,
+            fg=ACCENT_RED,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            font=(FONT_FAMILY, 8, "bold"),
+            padx=10,
+            pady=4,
+            cursor="hand2",
+            command=self.reset_conversation
+        )
+        btn_reset.pack(side="right")
+        self.bind_button_hover(btn_reset, BG_INNER, HOVER_COLOR)
+        
+        self.chat_container = tk.Frame(body, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1)
+        self.chat_container.pack(fill="both", expand=True)
+        
+        self.chat_canvas = tk.Canvas(self.chat_container, bg=BG_CARD, highlightthickness=0)
+        self.chat_scrollbar = tk.Scrollbar(self.chat_container, orient="vertical", command=self.chat_canvas.yview)
+        self.chat_frame = tk.Frame(self.chat_canvas, bg=BG_CARD)
+        
+        self.chat_frame.bind(
+            "<Configure>",
+            lambda e: self.chat_canvas.configure(scrollregion=self.chat_canvas.bbox("all"))
+        )
+        self.chat_canvas.create_window((0, 0), window=self.chat_frame, anchor="nw", width=700)
+        self.chat_canvas.configure(yscrollcommand=self.chat_scrollbar.set)
+        
+        self.chat_canvas.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+        self.chat_scrollbar.pack(side="right", fill="y")
+        
+        def _on_chat_scroll(event):
+            if event.delta:
+                self.chat_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        self.chat_canvas.bind("<MouseWheel>", _on_chat_scroll)
+        
+        self.bottom_control_frame = tk.Frame(body, bg=BG_DARK, pady=10)
+        self.bottom_control_frame.pack(fill="x")
+        
+        if not self.chat_history:
+            self.reset_conversation(first_time=True)
+        else:
+            self.render_chat_bubbles()
+            self.render_bottom_controls()
+
+    def reset_conversation(self, first_time=False):
+        """Resets the chat log and state for the chosen scenario."""
+        if not first_time:
+            self.active_scenario = self.scenario_var.get()
+            
+        self.chat_history = []
+        self.active_offline_node = "start"
+        
+        api_key = self.config.get("gemini_api_key", "").strip()
+        if api_key:
+            welcomes = {
+                "At a Japanese Restaurant": "いらっしゃいませ！レストランへようこそ。ご注文はお決まりですか？ (Welcome! Are you ready to order?)",
+                "Asking for Directions": "すみません、何かお困りですか？どこへ行きたいですか？ (Excuse me, do you need help? Where would you like to go?)",
+                "Checking in at a Hotel": "いらっしゃいませ。ホテルへようこそ。チェックインをお願いします。(Welcome to the hotel. Please check in.)",
+                "Casual Talk with Friends": "ヤッホー！最近どう？元気にしてる？(Hey! How's it going lately?)"
+            }
+            self.chat_history.append({
+                "sender": "ai",
+                "text": welcomes.get(self.active_scenario, "こんにちは！日本語で話しましょう。"),
+                "yomi": "",
+                "romaji": "",
+                "en": "",
+                "corrections": None
+            })
+        else:
+            tree = OFFLINE_CONVERSATION_TREES.get(self.active_scenario, {})
+            start_node = tree.get("start", {})
+            if start_node:
+                self.chat_history.append({
+                    "sender": "ai",
+                    "text": start_node.get("ai_reply"),
+                    "yomi": start_node.get("ai_yomi", ""),
+                    "romaji": start_node.get("ai_romaji", ""),
+                    "en": start_node.get("ai_en", ""),
+                    "corrections": None
+                })
+                
+        if self.chat_history:
+            greeting_text = self.chat_history[0]["text"]
+            if " (" in greeting_text:
+                greeting_text = greeting_text.split(" (")[0]
+            guardian.speak_japanese_text(greeting_text)
+            
+        if not first_time:
+            self.render_chat_bubbles()
+            self.render_bottom_controls()
+
+    def render_chat_bubbles(self):
+        """Renders the Premium Apple AI Sensei Chat history and explanation cards."""
+        for child in self.chat_frame.winfo_children():
+            child.destroy()
+            
+        for msg_idx, msg in enumerate(self.chat_history):
+            sender = msg["sender"]
+            text = msg["text"]
+            
+            # Wrapper for this message bubble & potential explanation card
+            bubble_container = tk.Frame(self.chat_frame, bg=BG_CARD, pady=6)
+            bubble_container.pack(fill="x", expand=True)
+            
+            # Check sender to align left (Sensei) or right (User)
+            if sender == "ai":
+                # Sensei bubble
+                header_frame = tk.Frame(bubble_container, bg=BG_CARD)
+                header_frame.pack(fill="x", anchor="w")
+                
+                avatar_lbl = tk.Label(
+                    header_frame,
+                    text="🎓  Sensei",
+                    fg=ACCENT_CYAN,
+                    bg=BG_CARD,
+                    font=(FONT_FAMILY, 9, "bold")
+                )
+                avatar_lbl.pack(side="left")
+                
+                # Action buttons next to header
+                actions_frame = tk.Frame(header_frame, bg=BG_CARD)
+                actions_frame.pack(side="right")
+                
+                # Play audio button
+                def make_speak_cmd(t=text):
+                    clean_t = t
+                    if " (" in clean_t:
+                        clean_t = clean_t.split(" (")[0]
+                    return lambda: guardian.speak_japanese_text(clean_t)
+                    
+                btn_speak = tk.Button(
+                    actions_frame,
+                    text="🔊",
+                    bg=BG_CARD,
+                    fg=ACCENT_CYAN,
+                    activebackground=HOVER_COLOR,
+                    activeforeground=FG_LIGHT,
+                    bd=0,
+                    font=(FONT_FAMILY, 8),
+                    cursor="hand2",
+                    padx=4,
+                    command=make_speak_cmd(text)
+                )
+                btn_speak.pack(side="left", padx=4)
+                HoverTooltip(btn_speak, lambda: "Speak sentence out loud")
+                
+                # Explain button
+                explain_text = "💡 EXPLAINING..." if msg_idx in self.explaining_message_ids else "💡 EXPLAIN"
+                explain_state = "disabled" if msg_idx in self.explaining_message_ids else "normal"
+                
+                def make_explain_cmd(idx=msg_idx):
+                    return lambda: self.toggle_deep_explanation(idx)
+                    
+                btn_explain = tk.Button(
+                    actions_frame,
+                    text=explain_text,
+                    bg=BG_CARD,
+                    fg=ACCENT_PURPLE,
+                    activebackground=HOVER_COLOR,
+                    activeforeground=FG_LIGHT,
+                    bd=0,
+                    font=(FONT_FAMILY, 8, "bold"),
+                    cursor="hand2" if msg_idx not in self.explaining_message_ids else "arrow",
+                    padx=4,
+                    command=make_explain_cmd(msg_idx),
+                    state=explain_state
+                )
+                btn_explain.pack(side="left", padx=4)
+                HoverTooltip(btn_explain, lambda: "Get deep grammar & vocabulary breakdown")
+                
+                # Bubble contents
+                bubble = tk.Frame(
+                    bubble_container,
+                    bg=BG_INNER,
+                    highlightbackground=BORDER_COLOR,
+                    highlightthickness=1,
+                    padx=12,
+                    pady=10
+                )
+                bubble.pack(fill="x", anchor="w", pady=(4, 0))
+                
+                # Main Japanese reply text
+                lbl_ja = tk.Label(
+                    bubble,
+                    text=text,
+                    fg=FG_LIGHT,
+                    bg=BG_INNER,
+                    font=(FONT_FAMILY, 11),
+                    anchor="w",
+                    justify="left",
+                    wraplength=640
+                )
+                lbl_ja.pack(fill="x", anchor="w")
+                
+                # Yomi / Romaji readings (if available)
+                readings_str = []
+                if msg.get("yomi"):
+                    readings_str.append(f"Yomi: {msg['yomi']}")
+                if msg.get("romaji"):
+                    readings_str.append(f"Romaji: {msg['romaji']}")
+                if msg.get("en"):
+                    readings_str.append(f"English: {msg['en']}")
+                    
+                if readings_str:
+                    readings_lbl = tk.Label(
+                        bubble,
+                        text="\n".join(readings_str),
+                        fg=FG_SECONDARY,
+                        bg=BG_INNER,
+                        font=(FONT_FAMILY, 8),
+                        anchor="w",
+                        justify="left",
+                        wraplength=640
+                    )
+                    readings_lbl.pack(fill="x", anchor="w", pady=(8, 0))
+                    
+                # Grammar corrections (if present)
+                if msg.get("corrections"):
+                    corr_lbl = tk.Label(
+                        bubble,
+                        text=f"📝 Sensei's Feedback:\n{msg['corrections']}",
+                        fg=ACCENT_ORANGE,
+                        bg=BG_INNER,
+                        font=(FONT_FAMILY, 8, "italic"),
+                        anchor="w",
+                        justify="left",
+                        wraplength=640
+                    )
+                    corr_lbl.pack(fill="x", anchor="w", pady=(8, 0))
+                    
+                # If expanded explanation exists, show explanation card
+                if msg_idx in self.expanded_explanations:
+                    explanation = self.message_explanations.get(msg_idx)
+                    if explanation:
+                        explain_frame = tk.Frame(
+                            bubble_container,
+                            bg="#1C1C1E",
+                            highlightbackground="#2C2C2E",
+                            highlightthickness=1,
+                            padx=15,
+                            pady=12
+                        )
+                        explain_frame.pack(fill="x", anchor="w", pady=(8, 0))
+                        
+                        # Header row with title & close button
+                        title_row = tk.Frame(explain_frame, bg="#1C1C1E")
+                        title_row.pack(fill="x", anchor="w", pady=(0, 6))
+                        
+                        lbl_title = tk.Label(
+                            title_row,
+                            text="💡 DEEP LINGUISTIC BREAKDOWN",
+                            fg=ACCENT_PURPLE,
+                            bg="#1C1C1E",
+                            font=(FONT_FAMILY, 9, "bold")
+                        )
+                        lbl_title.pack(side="left")
+                        
+                        btn_close = tk.Button(
+                            title_row,
+                            text="✕",
+                            bg="#1C1C1E",
+                            fg=FG_SECONDARY,
+                            activebackground="#2C2C2E",
+                            activeforeground=FG_LIGHT,
+                            bd=0,
+                            font=(FONT_FAMILY, 9, "bold"),
+                            cursor="hand2",
+                            command=make_explain_cmd(msg_idx)
+                        )
+                        btn_close.pack(side="right")
+                        
+                        lines = explanation.split("\n")
+                        for line in lines:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            if line.startswith("###"):
+                                title_sec = line.replace("###", "").strip()
+                                lbl_sec = tk.Label(
+                                    explain_frame,
+                                    text=title_sec,
+                                    fg=ACCENT_CYAN,
+                                    bg="#1C1C1E",
+                                    font=(FONT_FAMILY, 10, "bold"),
+                                    anchor="w",
+                                    justify="left"
+                                )
+                                lbl_sec.pack(fill="x", anchor="w", pady=(8, 4))
+                            elif line.startswith("-"):
+                                bullet_text = line.replace("-", "").strip()
+                                lbl_bullet = tk.Label(
+                                    explain_frame,
+                                    text=f"  •  {bullet_text}",
+                                    fg=FG_LIGHT,
+                                    bg="#1C1C1E",
+                                    font=(FONT_FAMILY, 9),
+                                    anchor="w",
+                                    justify="left",
+                                    wraplength=640
+                                )
+                                lbl_bullet.pack(fill="x", anchor="w", pady=2)
+                            else:
+                                lbl_norm = tk.Label(
+                                    explain_frame,
+                                    text=line,
+                                    fg=FG_LIGHT,
+                                    bg="#1C1C1E",
+                                    font=(FONT_FAMILY, 9),
+                                    anchor="w",
+                                    justify="left",
+                                    wraplength=640
+                                )
+                                lbl_norm.pack(fill="x", anchor="w", pady=2)
+                    elif msg_idx in self.explaining_message_ids:
+                        # Loader frame
+                        loader_frame = tk.Frame(
+                            bubble_container,
+                            bg="#1C1C1E",
+                            highlightbackground="#2C2C2E",
+                            highlightthickness=1,
+                            padx=15,
+                            pady=15
+                        )
+                        loader_frame.pack(fill="x", anchor="w", pady=(8, 0))
+                        
+                        lbl_loader = tk.Label(
+                            loader_frame,
+                            text="⌛ Analyzing grammar patterns and fetching deep linguistic context from Gemini...",
+                            fg=FG_SECONDARY,
+                            bg="#1C1C1E",
+                            font=(FONT_FAMILY, 9, "italic"),
+                            anchor="w"
+                        )
+                        lbl_loader.pack(fill="x", anchor="w")
+                        
+            else:
+                # User bubble (aligned right)
+                header_frame = tk.Frame(bubble_container, bg=BG_CARD)
+                header_frame.pack(fill="x", anchor="e")
+                
+                avatar_lbl = tk.Label(
+                    header_frame,
+                    text="Student  👤",
+                    fg=ACCENT_CYAN,
+                    bg=BG_CARD,
+                    font=(FONT_FAMILY, 9, "bold")
+                )
+                avatar_lbl.pack(side="right")
+                
+                bubble = tk.Frame(
+                    bubble_container,
+                    bg="#0071E3", # Apple Royal Blue
+                    padx=12,
+                    pady=10
+                )
+                bubble.pack(fill="x", anchor="e", pady=(4, 0))
+                
+                lbl_user = tk.Label(
+                    bubble,
+                    text=text,
+                    fg=FG_LIGHT,
+                    bg="#0071E3",
+                    font=(FONT_FAMILY, 11),
+                    anchor="e",
+                    justify="right",
+                    wraplength=640
+                )
+                lbl_user.pack(fill="x", anchor="e")
+                
+        # Auto scroll to bottom
+        self.chat_canvas.update_idletasks()
+        self.chat_canvas.yview_moveto(1.0)
+
+    def start_voice_recording(self):
+        """Starts dynamic microphone voice recording via native winmm.dll asynchronously."""
+        if self.voice_recording_in_progress or self.chat_api_in_progress:
+            return
+            
+        self.voice_recording_in_progress = True
+        self.voice_recording_seconds = 5
+        self.render_bottom_controls()
+        
+        output_path = os.path.abspath("temp_voice.wav")
+        
+        def run_recording():
+            import subprocess
+            import os
+            
+            # Clean up old voice recording if exists
+            if os.path.exists(output_path):
+                try:
+                    os.remove(output_path)
+                except Exception:
+                    pass
+                    
+            ps_commands = f"""
+$memberDefinition = @'
+[DllImport("winmm.dll", EntryPoint="mciSendStringA", CharSet=CharSet.Ansi)]
+public static extern int mciSendString(string lpstrCommand, System.Text.StringBuilder lpstrReturnString, int uReturnLength, IntPtr hwndCallback);
+'@
+$winaudio = Add-Type -MemberDefinition $memberDefinition -Name "WinAudio" -Namespace "WinMM" -PassThru
+[void]$winaudio::mciSendString("open new type waveaudio alias recsound", $null, 0, [System.IntPtr]::Zero)
+[void]$winaudio::mciSendString("record recsound", $null, 0, [System.IntPtr]::Zero)
+Start-Sleep -Seconds 5
+[void]$winaudio::mciSendString("save recsound \\`"{output_path}\\`"", $null, 0, [System.IntPtr]::Zero)
+[void]$winaudio::mciSendString("close recsound", $null, 0, [System.IntPtr]::Zero)
+"""
+            try:
+                subprocess.run(
+                    ["powershell", "-Command", ps_commands],
+                    capture_output=True,
+                    text=True,
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+                )
+            except Exception as e:
+                print(f"Subprocess recording failed: {e}")
+                
+            self.root.after(0, self.finish_voice_recording)
+            
+        # Start the countdown timer in Tkinter
+        self.tick_voice_countdown()
+        
+        # Launch background recording thread
+        import threading
+        threading.Thread(target=run_recording, daemon=True).start()
+
+    def tick_voice_countdown(self):
+        """Ticks down recording visual display countdown every second."""
+        if not self.voice_recording_in_progress:
+            return
+        if self.voice_recording_seconds > 1:
+            self.voice_recording_seconds -= 1
+            self.render_bottom_controls()
+            self.root.after(1000, self.tick_voice_countdown)
+        else:
+            self.voice_recording_seconds = 0
+
+    def finish_voice_recording(self):
+        """Completes recording background execution and forwards WAV to Gemini."""
+        self.voice_recording_in_progress = False
+        self.voice_recording_seconds = 5
+        self.render_bottom_controls()
+        
+        # Verify voice file exists before sending
+        if os.path.exists("temp_voice.wav") and os.path.getsize("temp_voice.wav") > 100:
+            self.send_custom_chat_message(audio_path="temp_voice.wav")
+        else:
+            print("Recording file temp_voice.wav was missing or invalid.")
+
+    def toggle_deep_explanation(self, msg_idx):
+        """Expands/collapses the detailed grammar and vocab explanation card."""
+        if msg_idx in self.expanded_explanations:
+            self.expanded_explanations.remove(msg_idx)
+            self.render_chat_bubbles()
+        else:
+            self.expanded_explanations.add(msg_idx)
+            if msg_idx not in self.message_explanations:
+                msg = self.chat_history[msg_idx]
+                if msg.get("ai_explain"):
+                    self.message_explanations[msg_idx] = msg["ai_explain"]
+                    self.render_chat_bubbles()
+                else:
+                    api_key = self.config.get("gemini_api_key", "").strip()
+                    if api_key:
+                        self.explain_message_in_deep(msg_idx, msg["text"])
+                    else:
+                        explanation = self.find_offline_explanation_for_text(msg["text"])
+                        self.message_explanations[msg_idx] = explanation
+                        self.render_chat_bubbles()
+            else:
+                self.render_chat_bubbles()
+
+    def explain_message_in_deep(self, msg_idx, ja_text):
+        """Asynchronously queries Gemini for a complete grammatical and vocabulary breakdown."""
+        if msg_idx in self.explaining_message_ids:
+            return
+            
+        self.explaining_message_ids.add(msg_idx)
+        self.render_chat_bubbles()
+        
+        def run_explain():
+            import requests
+            import json
+            
+            api_key = self.config.get("gemini_api_key", "").strip()
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+            headers = {"Content-Type": "application/json"}
+            
+            prompt = (
+                f"You are a native Japanese language teacher and linguist.\\n"
+                f"Please provide a deep, elegant, and highly structured linguistic breakdown of the following Japanese sentence:\\n"
+                f"\\\"{ja_text}\\\"\\n\\n"
+                f"Your breakdown must be formatted in beautiful GitHub Markdown (using subheadings and bullet points). Break it down into the following four clear sections:\\n"
+                f"1. ### 💡 Grammar & Structure: Detail the overall sentence pattern, clauses, and verb/adjective conjugations.\\n"
+                f"2. ### 📖 Vocabulary & Readings: List key vocabulary terms with their kanji, kana, romaji, and English translation.\\n"
+                f"3. ### 📌 Particles Used: Analyze each particle used in the sentence (like は, が, を, に, etc.) and explain its specific role.\\n"
+                f"4. ### 🎭 Formality & Nuance: Describe the politeness level (Keigo, standard polite, or casual) and any cultural or situational nuances.\\n\\n"
+                f"Keep your tone extremely encouraging, clear, and professional. Return only the markdown text response."
+            )
+            
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": prompt}
+                        ]
+                    }
+                ]
+            }
+            
+            explanation = ""
+            try:
+                response = requests.post(url, json=payload, headers=headers, timeout=12)
+                if response.status_code == 200:
+                    res_json = response.json()
+                    explanation = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+            except Exception as e:
+                print(f"Gemini Explanation API call failed: {e}")
+                
+            if not explanation:
+                explanation = "Failed to fetch online explanation. Please check your internet connection."
+                
+            def resolve():
+                self.explaining_message_ids.discard(msg_idx)
+                self.message_explanations[msg_idx] = explanation
+                self.render_chat_bubbles()
+                
+            self.root.after(0, resolve)
+            
+        import threading
+        threading.Thread(target=run_explain, daemon=True).start()
+
+    def find_offline_explanation_for_text(self, text):
+        """Searches offline conversation trees for matching AI replies to retrieve pre-curated explanations."""
+        for scenario, nodes in OFFLINE_CONVERSATION_TREES.items():
+            for node_name, node in nodes.items():
+                if node.get("ai_reply") == text and node.get("ai_explain"):
+                    return node.get("ai_explain")
+        return (
+            "### 💡 Grammar & Structure\\n"
+            "This is an offline fallback breakdown. Learn Japanese grammar patterns to analyze verb conjugations and particle usage.\\n\\n"
+            "### 📖 Vocabulary & Readings\\n"
+            "Check the Kanji Explorer tab to study readings, strokes, and definitions of the kanji in this sentence.\\n\\n"
+            "### 📌 Particles Used\\n"
+            "Particles form the backbone of Japanese grammar. Study は, が, を, に, and で to understand sentence relations.\\n\\n"
+            "### 🎭 Formality & Nuance\\n"
+            "Politeness level is usually polite (Desu/Masu) in customer-service scenarios, or casual in daily friend talks."
+        )
+
+    def render_bottom_controls(self):
+        """Builds either the text input bar (Online) or the multiple-choice option pills (Offline)."""
+        for child in self.bottom_control_frame.winfo_children():
+            child.destroy()
+            
+        api_key = self.config.get("gemini_api_key", "").strip()
+        
+        if api_key:
+            input_container = tk.Frame(self.bottom_control_frame, bg=BG_DARK)
+            input_container.pack(fill="x")
+            
+            entry_state = "disabled" if self.chat_api_in_progress or self.voice_recording_in_progress else "normal"
+            btn_state = "disabled" if self.chat_api_in_progress or self.voice_recording_in_progress else "normal"
+            btn_text = "⌛ SENDING..." if self.chat_api_in_progress else "✉️  SEND"
+            
+            self.chat_input = tk.Entry(
+                input_container,
+                bg=BG_CARD,
+                fg=FG_LIGHT,
+                insertbackground=FG_LIGHT,
+                bd=1,
+                relief="flat",
+                font=(FONT_FAMILY, 10),
+                state=entry_state
+            )
+            self.chat_input.pack(side="left", fill="x", expand=True, padx=(0, 10), ipady=8)
+            self.chat_input.bind("<Return>", lambda e: self.send_custom_chat_message())
+            
+            # Send button
+            btn_send = tk.Button(
+                input_container,
+                text=btn_text,
+                bg=ACCENT_CYAN,
+                fg=FG_LIGHT,
+                activebackground="#147ce5",
+                activeforeground=FG_LIGHT,
+                bd=0,
+                font=(FONT_FAMILY, 9, "bold"),
+                padx=15,
+                pady=8,
+                cursor="hand2" if btn_state == "normal" else "arrow",
+                command=self.send_custom_chat_message,
+                state=btn_state
+            )
+            btn_send.pack(side="right")
+            if btn_state == "normal":
+                self.bind_button_hover(btn_send, ACCENT_CYAN, "#147ce5")
+                
+            # Microphone Record Voice Button
+            if self.voice_recording_in_progress:
+                btn_mic_text = f"🔴 REC ({self.voice_recording_seconds}s)"
+                btn_mic_bg = "#FF453A"  # Neon Red
+                btn_mic_fg = FG_LIGHT
+                btn_mic_state = "disabled"
+                btn_mic_cmd = None
+            else:
+                btn_mic_text = "🎙️ RECORD"
+                btn_mic_bg = "#BF5AF2"  # Neon Purple
+                btn_mic_fg = FG_LIGHT
+                btn_mic_state = "disabled" if self.chat_api_in_progress else "normal"
+                btn_mic_cmd = self.start_voice_recording
+
+            btn_mic = tk.Button(
+                input_container,
+                text=btn_mic_text,
+                bg=btn_mic_bg,
+                fg=btn_mic_fg,
+                activebackground="#AC45D6",
+                activeforeground=FG_LIGHT,
+                bd=0,
+                font=(FONT_FAMILY, 9, "bold"),
+                padx=15,
+                pady=8,
+                cursor="hand2" if btn_mic_state == "normal" else "arrow",
+                command=btn_mic_cmd,
+                state=btn_mic_state
+            )
+            btn_mic.pack(side="right", padx=(0, 10))
+            if btn_mic_state == "normal":
+                self.bind_button_hover(btn_mic, btn_mic_bg, "#AC45D6")
+            HoverTooltip(btn_mic, lambda: "Record 5s of Japanese speech from microphone")
+        else:
+            tree = OFFLINE_CONVERSATION_TREES.get(self.active_scenario, {})
+            node = tree.get(self.active_offline_node, {})
+            choices = node.get("choices", [])
+            
+            if choices:
+                lbl_prompt = tk.Label(
+                    self.bottom_control_frame,
+                    text="⚡  SELECT YOUR RESPONSE PILL:",
+                    fg=ACCENT_CYAN,
+                    bg=BG_DARK,
+                    font=(FONT_FAMILY, 8, "bold")
+                )
+                lbl_prompt.pack(anchor="w", pady=(0, 6))
+                
+                tray = tk.Frame(self.bottom_control_frame, bg=BG_DARK)
+                tray.pack(fill="x")
+                
+                for idx, opt in enumerate(choices):
+                    text_disp = opt.get("text")
+                    
+                    def make_click_cmd(o=opt):
+                        return lambda: self.select_offline_choice(o)
+                        
+                    pill = tk.Button(
+                        tray,
+                        text=text_disp,
+                        bg=BG_CARD,
+                        fg=FG_LIGHT,
+                        activebackground=HOVER_COLOR,
+                        activeforeground=FG_LIGHT,
+                        bd=1,
+                        highlightbackground=BORDER_COLOR,
+                        font=(FONT_FAMILY, 9, "bold"),
+                        padx=12,
+                        pady=8,
+                        cursor="hand2",
+                        command=make_click_cmd(opt)
+                    )
+                    pill.pack(side="left", padx=4)
+                    self.bind_button_hover(pill, BG_CARD, HOVER_COLOR)
+                    HoverTooltip(pill, lambda o=opt: f"ENGLISH: {o.get('en')}")
+            else:
+                lbl_end = tk.Label(
+                    self.bottom_control_frame,
+                    text="🎉 CONVERSATION COMPLETED SUCCESSFULLY!",
+                    fg=ACCENT_GREEN,
+                    bg=BG_DARK,
+                    font=(FONT_FAMILY, 9, "bold")
+                )
+                lbl_end.pack(anchor="center", pady=10)
+
+    def select_offline_choice(self, opt):
+        """Pushes the offline multiple-choice nodes forward and narrates response."""
+        self.chat_history.append({
+            "sender": "user",
+            "text": opt["text"],
+            "corrections": None
+        })
+        
+        self.active_offline_node = opt["next_node"]
+        
+        tree = OFFLINE_CONVERSATION_TREES.get(self.active_scenario, {})
+        next_node = tree.get(self.active_offline_node, {})
+        
+        if next_node:
+            self.chat_history.append({
+                "sender": "ai",
+                "text": next_node.get("ai_reply"),
+                "yomi": next_node.get("ai_yomi", ""),
+                "romaji": next_node.get("ai_romaji", ""),
+                "en": next_node.get("ai_en", ""),
+                "corrections": None
+            })
+            
+            guardian.speak_japanese_text(next_node.get("ai_reply"))
+            
+        self.render_chat_bubbles()
+        self.render_bottom_controls()
+
+    def send_custom_chat_message(self, audio_path=None):
+        """Sends custom text or audio inputs to the Gemini conversation practice endpoint asynchronously."""
+        if self.chat_api_in_progress:
+            return
+            
+        if audio_path:
+            text = ""
+        else:
+            text = self.chat_input.get().strip()
+            if not text:
+                return
+            self.chat_input.delete(0, tk.END)
+            
+        if audio_path:
+            self.chat_history.append({
+                "sender": "user",
+                "text": "🎙️ [Transcribing Spoken Audio...]",
+                "corrections": None,
+                "is_audio": True
+            })
+        else:
+            self.chat_history.append({
+                "sender": "user",
+                "text": text,
+                "corrections": None
+            })
+            
+        self.render_chat_bubbles()
+        
+        self.chat_api_in_progress = True
+        self.render_bottom_controls()
+        
+        def run_api_chat():
+            import requests
+            import base64
+            import json
+            import os
+            
+            api_key = self.config.get("gemini_api_key", "").strip()
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+            headers = {"Content-Type": "application/json"}
+            
+            hist_summary = []
+            history_subset = self.chat_history[:-1]
+            for m in history_subset:
+                hist_summary.append(f"{m['sender'].upper()}: {m['text']}")
+            hist_str = "\n".join(hist_summary)
+            
+            if audio_path:
+                audio_base64 = ""
+                if os.path.exists(audio_path):
+                    try:
+                        with open(audio_path, "rb") as f:
+                            audio_base64 = base64.b64encode(f.read()).decode("utf-8")
+                    except Exception as e:
+                        print(f"Error encoding audio file: {e}")
+                
+                prompt = (
+                    f"You are Sensei, a native Japanese language teacher having a conversation with a student.\n"
+                    f"The active scenario is: '{self.active_scenario}'\n"
+                    f"The student just spoke in the attached audio. Please transcribe what they said in Japanese as accurately as possible.\n"
+                    f"The student's difficulty level (JLPT) is: '{self.difficulty_level}'\n"
+                    f"Here is the recent conversation history:\n{hist_str}\n\n"
+                    f"Please respond to the student in natural Japanese matching the scenario and difficulty level.\n"
+                    f"Also, review the student's transcription. If they made any spelling, grammatical, or vocabulary mistakes, provide gentle corrections and tips in English. If their message is perfect, say so.\n\n"
+                    f"You MUST return a raw JSON object with the following keys. Do NOT wrap in markdown code blocks or add any extra conversational text. Return only the raw JSON string:\n"
+                    f"{{\n"
+                    f'  "student_transcription": "Your transcription of what the student said in Japanese in the audio (e.g. メニューをください)",\n'
+                    f'  "reply_ja": "Your reply in natural Japanese (e.g. はい、どうぞ！)",\n'
+                    f'  "reply_yomi": "The hiragana/furigana representation of your reply with spaces separating words for readability (e.g. はい、 どうぞ！)",\n'
+                    f'  "reply_romaji": "The romaji reading of your reply with spaces separating words, all lowercase (e.g. hai, douzo!)",\n'
+                    f'  "reply_en": "The English translation of your reply",\n'
+                    f'  "corrections": "Your evaluation and corrections of the student\'s Japanese input in English. Highlight any mistakes in grammar, spelling, or vocabulary, and comment on their spoken audio if applicable. Be encouraging!"\n'
+                    f"}}"
+                )
+                
+                payload = {
+                    "contents": [
+                        {
+                            "parts": [
+                                {
+                                    "inline_data": {
+                                        "mime_type": "audio/wav",
+                                        "data": audio_base64
+                                    }
+                                },
+                                {
+                                    "text": prompt
+                                }
+                            ]
+                        }
+                    ]
+                }
+            else:
+                prompt = (
+                    f"You are Sensei, a native Japanese language teacher having a conversation with a student.\n"
+                    f"The active scenario is: '{self.active_scenario}'\n"
+                    f"The student's difficulty level (JLPT) is: '{self.difficulty_level}'\n"
+                    f"The student just said: '{text}'\n"
+                    f"Here is the recent conversation history:\n{hist_str}\n\n"
+                    f"Please respond to the student in natural Japanese matching the scenario and difficulty level.\n"
+                    f"Also, review the student's message. If they made any spelling, grammatical, or vocabulary mistakes, provide gentle corrections and tips in English. If their message is perfect, say so.\n\n"
+                    f"You MUST return a raw JSON object with the following keys. Do NOT wrap in markdown code blocks or add any extra conversational text. Return only the raw JSON string:\n"
+                    f"{{\n"
+                    f'  "reply_ja": "Your reply in natural Japanese (e.g. はい、どうぞ！)",\n'
+                    f'  "reply_yomi": "The hiragana/furigana representation of your reply with spaces separating words for readability (e.g. はい、 どうぞ！)",\n'
+                    f'  "reply_romaji": "The romaji reading of your reply with spaces separating words, all lowercase (e.g. hai, douzo!)",\n'
+                    f'  "reply_en": "The English translation of your reply",\n'
+                    f'  "corrections": "Your evaluation and corrections of the student\'s Japanese input in English. Highlight any mistakes in grammar, spelling, or vocabulary and give tips on how to improve. Be encouraging!"\n'
+                    f"}}"
+                )
+                
+                payload = {
+                    "contents": [
+                        {
+                            "parts": [
+                                {"text": prompt}
+                            ]
+                        }
+                    ]
+                }
+                
+            parsed = None
+            try:
+                response = requests.post(url, headers=headers, json=payload, timeout=15)
+                if response.status_code == 200:
+                    res_json = response.json()
+                    res_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+                    if res_text.startswith("```json"):
+                        res_text = res_text[7:]
+                    if res_text.startswith("```"):
+                        res_text = res_text[3:]
+                    if res_text.endswith("```"):
+                        res_text = res_text[:-3]
+                    res_text = res_text.strip()
+                    parsed = json.loads(res_text)
+            except Exception as e:
+                print(f"Gemini Chat API call failed: {e}")
+                
+            self.root.after(0, lambda: self.on_api_chat_resolved(parsed))
+            
+        import threading
+        threading.Thread(target=run_api_chat, daemon=True).start()
+
+    def on_api_chat_resolved(self, parsed):
+        """Invoked when Gemini returns the conversational chat reply and feedback."""
+        self.chat_api_in_progress = False
+        
+        # If there's a transcription in the parsed response, update the last user message
+        if parsed and "student_transcription" in parsed and parsed["student_transcription"]:
+            for msg in reversed(self.chat_history):
+                if msg["sender"] == "user" and msg.get("is_audio"):
+                    msg["text"] = f"🎙️ Spoken: \"{parsed['student_transcription']}\""
+                    break
+                    
+        if parsed and "reply_ja" in parsed:
+            self.chat_history.append({
+                "sender": "ai",
+                "text": parsed["reply_ja"],
+                "yomi": parsed.get("reply_yomi", ""),
+                "romaji": parsed.get("reply_romaji", ""),
+                "en": parsed.get("reply_en", ""),
+                "corrections": parsed.get("corrections", "")
+            })
+            guardian.speak_japanese_text(parsed["reply_ja"])
+        else:
+            # Fallback if transcription failed but we had a user placeholder
+            for msg in reversed(self.chat_history):
+                if msg["sender"] == "user" and msg.get("is_audio") and msg["text"].startswith("🎙️ ["):
+                    msg["text"] = "🎙️ Spoken: [Audio input]"
+                    break
+                    
+            fallback_text = "すみません、聞き取れませんでした。もう一度言ってください。(Sorry, I couldn't hear that. Please say it again.)"
+            self.chat_history.append({
+                "sender": "ai",
+                "text": fallback_text,
+                "yomi": "",
+                "romaji": "",
+                "en": "",
+                "corrections": "Gemini connection error. Offline fallback used."
+            })
+            guardian.speak_japanese_text("すみません、聞き取れませんでした。もう一度言ってください。")
+            
+        self.render_chat_bubbles()
+        self.render_bottom_controls()
+
+    def interpolate_color(self, color1, color2, step, total_steps=10):
+        """Linearly interpolates between two hex colors at a specific step."""
+        c1 = [int(color1[i:i+2], 16) for i in (1, 3, 5)]
+        c2 = [int(color2[i:i+2], 16) for i in (1, 3, 5)]
+        curr = [int(c1[j] + (c2[j] - c1[j]) * (step / total_steps)) for j in range(3)]
+        return f"#{curr[0]:02x}{curr[1]:02x}{curr[2]:02x}"
+
+    def animate_text_fade(self, widgets_to_fade, bg_fade_widgets=None, step=0):
+        """Linearly interpolates text/bg colors over 10 steps (15ms intervals) to complete in 150ms."""
+        total_steps = 10
+        if step > total_steps:
+            return
+            
+        for widget, target_fg in widgets_to_fade:
+            try:
+                if widget.winfo_exists():
+                    curr_fg = self.interpolate_color(BG_INNER, target_fg, step, total_steps)
+                    widget.config(fg=curr_fg)
+            except Exception:
+                pass
+                
+        self.root.after(15, lambda: self.animate_text_fade(widgets_to_fade, bg_fade_widgets, step + 1))
+
         for child in widget.winfo_children():
             if not isinstance(child, (tk.Button, tk.Canvas)):
                 child.bind("<Enter>", enter)
