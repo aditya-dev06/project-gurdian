@@ -187,14 +187,9 @@ class GuardianWidget:
         self.stats_frame = tk.Frame(self.root, bg=BG_DARK, pady=12)
         self.stats_frame.pack(fill="x", padx=15)
         
-        # Load stats
-        stats = guardian.calculate_stats()
-        
         # Flame Indicator
         self.flame_label = tk.Label(
             self.stats_frame,
-            text=f"🔥  {stats['current_streak']} DAY STREAK",
-            fg=ACCENT_ORANGE,
             bg=BG_DARK,
             font=(FONT_FAMILY, 13, "bold")
         )
@@ -203,22 +198,29 @@ class GuardianWidget:
         # Compliance stats
         self.compliance_label = tk.Label(
             self.stats_frame,
-            text=f"📊  7d Compliance: {stats['compliance_7d']:.1f}%   |   30d: {stats['compliance_30d']:.1f}%",
-            fg=FG_LIGHT,
             bg=BG_DARK,
             font=(FONT_FAMILY, 8)
         )
         self.compliance_label.pack(anchor="w", pady=2)
+        
+        # Set text based on state
+        self.update_stats_header()
         
         # Divider line
         divider = tk.Frame(self.root, bg=BG_CARD, height=1)
         divider.pack(fill="x", padx=15, pady=2)
 
     def render_all_cards(self):
-        """Destroys and recreates the card list for manual tasks and github."""
+        """Destroys and recreates the card list for manual tasks, weekend prep, and github."""
         # Clear existing cards
         for widget in self.cards_frame.winfo_children():
             widget.destroy()
+            
+        # Draw Weekend Japan MNC Prep card if today is weekend and it is active
+        is_weekend = guardian.get_current_weekend_saturday_date() is not None
+        is_active = self.config.get("japan_mnc_prep_active", True)
+        if is_weekend and is_active:
+            self.create_weekend_prep_card()
             
         # Draw all manual tracked tasks
         idx = 1
@@ -318,6 +320,389 @@ class GuardianWidget:
             state="disabled" if self.is_syncing_github else "normal"
         )
         self.sync_btn.pack(side="right", padx=5)
+
+    def create_weekend_prep_card(self):
+        """Creates the premium Weekend Japan MNC Prep card at the top of the habit board."""
+        # Get or create current weekend task
+        task_entry = guardian.get_or_create_weekend_task()
+        if not task_entry:
+            return
+            
+        is_done = task_entry.get("completed", False)
+        
+        # Glowing premium card frame with purple border highlight
+        card = tk.Frame(
+            self.cards_frame, 
+            bg="#2B2B42", # Distinct darker indigo-slate background
+            pady=10, 
+            padx=12,
+            highlightbackground=ACCENT_PURPLE,
+            highlightcolor=ACCENT_PURPLE,
+            highlightthickness=1
+        )
+        card.pack(fill="x", pady=6)
+        
+        # Header Row
+        header_frame = tk.Frame(card, bg="#2B2B42")
+        header_frame.pack(fill="x")
+        
+        # Header Label with Emoji
+        header_lbl = tk.Label(
+            header_frame,
+            text="🎌  TOKYO MNC PREP",
+            fg=ACCENT_CYAN,
+            bg="#2B2B42",
+            font=(FONT_FAMILY, 9, "bold")
+        )
+        header_lbl.pack(side="left")
+        
+        # Source tag (e.g. Gemini AI or Curated)
+        source_lbl = tk.Label(
+            header_frame,
+            text=f"[{task_entry.get('source', 'Roadmap')}]",
+            fg=ACCENT_ORANGE,
+            bg="#2B2B42",
+            font=(FONT_FAMILY, 7, "bold")
+        )
+        source_lbl.pack(side="right")
+        
+        # Task Description (Wrapped)
+        task_lbl = tk.Label(
+            card,
+            text=task_entry.get("task_title", ""),
+            fg=FG_LIGHT,
+            bg="#2B2B42",
+            font=(FONT_FAMILY, 9),
+            justify="left",
+            wraplength=310,
+            pady=6
+        )
+        task_lbl.pack(anchor="w")
+        
+        # Controls Frame (Complete, Notes, History)
+        ctrl_frame = tk.Frame(card, bg="#2B2B42")
+        ctrl_frame.pack(fill="x", pady=4)
+        
+        # Toggle Button
+        btn_text = "UNDO" if is_done else "✓ COMPLETE"
+        btn_bg = ACCENT_GREEN if not is_done else ACCENT_PURPLE
+        btn_fg = BG_DARK if not is_done else FG_LIGHT
+        
+        toggle_btn = tk.Button(
+            ctrl_frame,
+            text=btn_text,
+            bg=btn_bg,
+            fg=btn_fg,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            relief="flat",
+            font=(FONT_FAMILY, 8, "bold"),
+            padx=10,
+            cursor="hand2",
+            command=self.toggle_weekend_task_state
+        )
+        toggle_btn.pack(side="left", padx=2)
+        
+        # Notes Button
+        notes_btn = tk.Button(
+            ctrl_frame,
+            text="📝 NOTES",
+            bg=BG_CARD,
+            fg=FG_LIGHT,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            relief="flat",
+            font=(FONT_FAMILY, 8, "bold"),
+            padx=8,
+            cursor="hand2",
+            command=self.open_weekend_notes_dialog
+        )
+        notes_btn.pack(side="left", padx=2)
+        
+        # History Button
+        history_btn = tk.Button(
+            ctrl_frame,
+            text="📚 HISTORY",
+            bg=BG_CARD,
+            fg=FG_LIGHT,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            relief="flat",
+            font=(FONT_FAMILY, 8, "bold"),
+            padx=8,
+            cursor="hand2",
+            command=self.open_weekend_history_dialog
+        )
+        history_btn.pack(side="left", padx=2)
+
+    def toggle_weekend_task_state(self):
+        """Toggles the completed state of the current weekend task in the database."""
+        sat_date_str = guardian.get_current_weekend_saturday_date()
+        if not sat_date_str:
+            return
+            
+        data = guardian.load_data()
+        if "weekend_history" not in data:
+            data["weekend_history"] = []
+            
+        for entry in data["weekend_history"]:
+            if entry.get("date") == sat_date_str:
+                entry["completed"] = not entry.get("completed", False)
+                break
+                
+        guardian.save_data(data)
+        self.reload_and_sync_data()
+        self.render_all_cards()
+
+    def open_weekend_notes_dialog(self):
+        """Opens a Tkinter Toplevel modal dialog to log/edit study notes for the weekend task."""
+        sat_date_str = guardian.get_current_weekend_saturday_date()
+        if not sat_date_str:
+            return
+            
+        task_entry = guardian.get_or_create_weekend_task()
+        current_notes = task_entry.get("notes", "")
+        
+        modal = tk.Toplevel(self.root)
+        modal.title("Log Weekend Notes")
+        modal.configure(bg=BG_DARK)
+        modal.geometry("340x380")
+        modal.resizable(False, False)
+        modal.attributes("-topmost", True)
+        
+        # Center modal relative to main widget
+        mx = self.root.winfo_x() + 10
+        my = self.root.winfo_y() + 40
+        modal.geometry(f"+{mx}+{my}")
+        
+        # Modal Header
+        lbl = tk.Label(
+            modal, 
+            text="📝  WEEKEND STUDY JOURNAL", 
+            bg=BG_DARK, 
+            fg=ACCENT_CYAN, 
+            font=(FONT_FAMILY, 10, "bold"), 
+            pady=10
+        )
+        lbl.pack()
+        
+        # Task sub-header
+        sub_lbl = tk.Label(
+            modal,
+            text=f"Task: {task_entry.get('task_title')[:45]}...",
+            bg=BG_DARK,
+            fg=ACCENT_ORANGE,
+            font=(FONT_FAMILY, 8, "italic"),
+            wraplength=300
+        )
+        sub_lbl.pack(pady=2)
+        
+        # Text input area
+        text_frame = tk.Frame(modal, bg=BG_DARK, padx=15, pady=5)
+        text_frame.pack(fill="both", expand=True)
+        
+        # Text widget
+        notes_text = tk.Text(
+            text_frame,
+            bg=BG_CARD,
+            fg=FG_LIGHT,
+            bd=0,
+            insertbackground=FG_LIGHT,
+            font=(FONT_FAMILY, 9),
+            padx=8,
+            pady=8,
+            wrap="word"
+        )
+        notes_text.pack(fill="both", expand=True)
+        notes_text.insert("1.0", current_notes)
+        
+        def save_notes():
+            notes_content = notes_text.get("1.0", "end-1c").strip()
+            data = guardian.load_data()
+            for entry in data.get("weekend_history", []):
+                if entry.get("date") == sat_date_str:
+                    entry["notes"] = notes_content
+                    break
+            guardian.save_data(data)
+            modal.destroy()
+            messagebox.showinfo("Notes Saved", "Your research notes have been saved successfully!", parent=self.root)
+            self.reload_and_sync_data()
+            self.render_all_cards()
+            
+        save_btn = tk.Button(
+            modal,
+            text="SAVE JOURNAL ENTRY",
+            bg=ACCENT_PURPLE,
+            fg=FG_LIGHT,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            pady=10,
+            font=(FONT_FAMILY, 9, "bold"),
+            command=save_notes,
+            cursor="hand2"
+        )
+        save_btn.pack(fill="x", padx=15, pady=15)
+
+    def open_weekend_history_dialog(self):
+        """Opens a Toplevel modal dialog displaying all historical weekend prep logs in a scrollable view."""
+        data = guardian.load_data()
+        history = data.get("weekend_history", [])
+        
+        modal = tk.Toplevel(self.root)
+        modal.title("Japan MNC Prep History")
+        modal.configure(bg=BG_DARK)
+        modal.geometry("350x420")
+        modal.resizable(False, False)
+        modal.attributes("-topmost", True)
+        
+        mx = self.root.winfo_x() + 5
+        my = self.root.winfo_y() + 30
+        modal.geometry(f"+{mx}+{my}")
+        
+        # Header
+        lbl = tk.Label(
+            modal, 
+            text="📚  MNC PREP HISTORY LOG", 
+            bg=BG_DARK, 
+            fg=ACCENT_CYAN, 
+            font=(FONT_FAMILY, 10, "bold"), 
+            pady=10
+        )
+        lbl.pack()
+        
+        # Scrollable Frame Container
+        container = tk.Frame(modal, bg=BG_DARK, padx=10, pady=5)
+        container.pack(fill="both", expand=True)
+        
+        canvas = tk.Canvas(container, bg=BG_DARK, highlightthickness=0)
+        scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        
+        scrollable_frame = tk.Frame(canvas, bg=BG_DARK)
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw", width=310)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Enable mousewheel scrolling on scrollable frame
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        
+        def _unbind_mousewheel(event):
+            canvas.unbind_all("<MouseWheel>")
+            
+        modal.bind("<Destroy>", _unbind_mousewheel)
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        if not history:
+            no_data_lbl = tk.Label(
+                scrollable_frame,
+                text="No history logs found.\nYour progress will start recording this weekend!",
+                bg=BG_DARK,
+                fg=FG_LIGHT,
+                font=(FONT_FAMILY, 9, "italic"),
+                pady=50
+            )
+            no_data_lbl.pack(fill="x")
+        else:
+            for entry in reversed(history):
+                # Individual History Item Card
+                status_color = ACCENT_GREEN if entry.get("completed") else ACCENT_RED
+                status_text = "COMPLETED" if entry.get("completed") else "PENDING"
+                
+                item_card = tk.Frame(
+                    scrollable_frame, 
+                    bg=BG_CARD, 
+                    pady=8, 
+                    padx=10,
+                    highlightbackground="#34344A",
+                    highlightthickness=1
+                )
+                item_card.pack(fill="x", pady=5)
+                
+                # Header row: date & status
+                meta_frame = tk.Frame(item_card, bg=BG_CARD)
+                meta_frame.pack(fill="x")
+                
+                date_lbl = tk.Label(
+                    meta_frame,
+                    text=entry.get("date", ""),
+                    fg=ACCENT_CYAN,
+                    bg=BG_CARD,
+                    font=(FONT_FAMILY, 8, "bold")
+                )
+                date_lbl.pack(side="left")
+                
+                status_lbl = tk.Label(
+                    meta_frame,
+                    text=status_text,
+                    fg=status_color,
+                    bg=BG_CARD,
+                    font=(FONT_FAMILY, 7, "bold")
+                )
+                status_lbl.pack(side="right")
+                
+                # Task Title
+                task_lbl = tk.Label(
+                    item_card,
+                    text=entry.get("task_title", ""),
+                    fg=FG_LIGHT,
+                    bg=BG_CARD,
+                    font=(FONT_FAMILY, 8, "bold"),
+                    justify="left",
+                    wraplength=280
+                )
+                task_lbl.pack(anchor="w", pady=4)
+                
+                # Notes section if any
+                notes_content = entry.get("notes", "").strip()
+                if notes_content:
+                    notes_lbl = tk.Label(
+                        item_card,
+                        text=f"📝 {notes_content}",
+                        fg="#A0A0B0",
+                        bg=BG_CARD,
+                        font=(FONT_FAMILY, 8),
+                        justify="left",
+                        wraplength=280
+                    )
+                    notes_lbl.pack(anchor="w", pady=2)
+                else:
+                    notes_lbl = tk.Label(
+                        item_card,
+                        text="📝 (No notes recorded)",
+                        fg="#5F5F7A",
+                        bg=BG_CARD,
+                        font=(FONT_FAMILY, 8, "italic")
+                    )
+                    notes_lbl.pack(anchor="w", pady=2)
+        
+        # Close button at the bottom of modal
+        close_btn = tk.Button(
+            modal,
+            text="CLOSE WINDOW",
+            bg=BG_CARD,
+            fg=FG_LIGHT,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            pady=8,
+            font=(FONT_FAMILY, 9, "bold"),
+            command=modal.destroy,
+            cursor="hand2"
+        )
+        close_btn.pack(fill="x", side="bottom")
 
     def create_control_footer(self):
         """Creates the bottom action control footer for Auditing & Settings."""
@@ -420,11 +805,18 @@ class GuardianWidget:
 
     def update_stats_header(self):
         """Updates the text statistics labels without resetting frame."""
-        stats = guardian.calculate_stats()
-        self.flame_label.config(text=f"🔥  {stats['current_streak']} DAY STREAK")
-        self.compliance_label.config(
-            text=f"📊  7d Compliance: {stats['compliance_7d']:.1f}%   |   30d: {stats['compliance_30d']:.1f}%"
-        )
+        if not guardian.is_within_timeline():
+            self.flame_label.config(text="⏱️  TIMELINE IDLE", fg=ACCENT_CYAN)
+            self.compliance_label.config(
+                text="Widget is in standby mode (outside active timeline)", fg="#A0A0B0"
+            )
+        else:
+            stats = guardian.calculate_stats()
+            self.flame_label.config(text=f"🔥  {stats['current_streak']} DAY STREAK", fg=ACCENT_ORANGE)
+            self.compliance_label.config(
+                text=f"📊  7d Compliance: {stats['compliance_7d']:.1f}%   |   30d: {stats['compliance_30d']:.1f}%",
+                fg=FG_LIGHT
+            )
 
     def trigger_manual_audit_test(self):
         """Simulates audit and triggers alerts to phone."""
@@ -461,13 +853,13 @@ class GuardianWidget:
         modal = tk.Toplevel(self.root)
         modal.title("Settings Editor")
         modal.configure(bg=BG_DARK)
-        modal.geometry("320x350")
+        modal.geometry("340x550")
         modal.resizable(False, False)
         modal.attributes("-topmost", True)
         
         # Center modal relative to main widget
-        mx = self.root.winfo_x() + 20
-        my = self.root.winfo_y() + 50
+        mx = self.root.winfo_x() + 10
+        my = self.root.winfo_y() - 30
         modal.geometry(f"+{mx}+{my}")
         
         # Modal Header
@@ -496,15 +888,77 @@ class GuardianWidget:
         tasks_ent.pack(fill="x", pady=2)
         tasks_ent.insert(0, ", ".join(self.config.get("tracked_tasks", guardian.DEFAULT_TASKS)))
 
+        # Field 4: Start Date
+        tk.Label(form, text="Timeline Start Date (YYYY-MM-DD):", bg=BG_DARK, fg=FG_LIGHT, font=(FONT_FAMILY, 9)).pack(anchor="w", pady=2)
+        start_ent = tk.Entry(form, bg=BG_CARD, fg=FG_LIGHT, bd=1, relief="flat", insertbackground=FG_LIGHT, font=(FONT_FAMILY, 9))
+        start_ent.pack(fill="x", pady=2)
+        start_ent.insert(0, self.config.get("start_date", ""))
+
+        # Field 5: End Date
+        tk.Label(form, text="Timeline End Date (YYYY-MM-DD):", bg=BG_DARK, fg=FG_LIGHT, font=(FONT_FAMILY, 9)).pack(anchor="w", pady=2)
+        end_ent = tk.Entry(form, bg=BG_CARD, fg=FG_LIGHT, bd=1, relief="flat", insertbackground=FG_LIGHT, font=(FONT_FAMILY, 9))
+        end_ent.pack(fill="x", pady=2)
+        end_ent.insert(0, self.config.get("end_date", ""))
+
+        # Field 6: Gemini API Key
+        tk.Label(form, text="Gemini API Key (Optional):", bg=BG_DARK, fg=FG_LIGHT, font=(FONT_FAMILY, 9)).pack(anchor="w", pady=2)
+        gemini_ent = tk.Entry(form, bg=BG_CARD, fg=FG_LIGHT, bd=1, relief="flat", insertbackground=FG_LIGHT, font=(FONT_FAMILY, 9), show="*")
+        gemini_ent.pack(fill="x", pady=2)
+        gemini_ent.insert(0, self.config.get("gemini_api_key", ""))
+
+        # Field 7: Checkbutton for active weekend prep
+        mnc_var = tk.BooleanVar(value=self.config.get("japan_mnc_prep_active", True))
+        mnc_chk = tk.Checkbutton(
+            form,
+            text="Enable Weekend Japan MNC Tech Prep",
+            variable=mnc_var,
+            bg=BG_DARK,
+            fg=FG_LIGHT,
+            selectcolor=BG_CARD,
+            activebackground=BG_DARK,
+            activeforeground=FG_LIGHT,
+            font=(FONT_FAMILY, 9),
+            bd=0,
+            highlightthickness=0
+        )
+        mnc_chk.pack(anchor="w", pady=6)
+
         def save_and_close():
             user = git_ent.get().strip()
             topic = topic_ent.get().strip()
             tasks_str = tasks_ent.get().strip()
+            start_val = start_ent.get().strip()
+            end_val = end_ent.get().strip()
+            gemini_val = gemini_ent.get().strip()
+            mnc_val = mnc_var.get()
             
             if not user or not topic:
                 messagebox.showerror("Error", "Fields cannot be blank!", parent=modal)
                 return
                 
+            # Validate dates
+            if start_val:
+                try:
+                    datetime.strptime(start_val, "%Y-%m-%d")
+                except ValueError:
+                    messagebox.showerror("Invalid Date", "Start Date must be in YYYY-MM-DD format!", parent=modal)
+                    return
+            if end_val:
+                try:
+                    datetime.strptime(end_val, "%Y-%m-%d")
+                except ValueError:
+                    messagebox.showerror("Invalid Date", "End Date must be in YYYY-MM-DD format!", parent=modal)
+                    return
+            if start_val and end_val:
+                try:
+                    start_dt = datetime.strptime(start_val, "%Y-%m-%d")
+                    end_dt = datetime.strptime(end_val, "%Y-%m-%d")
+                    if start_dt > end_dt:
+                        messagebox.showerror("Invalid Range", "Start Date cannot be after End Date!", parent=modal)
+                        return
+                except ValueError:
+                    pass
+
             tasks = [t.strip().lower() for t in tasks_str.split(",") if t.strip()]
             if not tasks:
                 tasks = guardian.DEFAULT_TASKS
@@ -512,6 +966,10 @@ class GuardianWidget:
             self.config["github_username"] = user
             self.config["ntfy_topic"] = topic
             self.config["tracked_tasks"] = tasks
+            self.config["start_date"] = start_val
+            self.config["end_date"] = end_val
+            self.config["gemini_api_key"] = gemini_val
+            self.config["japan_mnc_prep_active"] = mnc_val
             guardian.save_config(self.config)
             
             modal.destroy()

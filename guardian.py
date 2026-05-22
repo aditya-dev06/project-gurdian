@@ -31,6 +31,62 @@ DATA_FILE = os.path.join(BASE_DIR, "guardian_data.json")
 
 DEFAULT_TASKS = ["dsa", "dev-project", "language-study"]
 
+#Curated 52-week roadmap for Tokyo Japan Software Engineer MNC Prep
+JAPAN_MNC_ROADMAP = [
+    "Research Japanese MNC engineering cultures (e.g., Mercari vs Rakuten vs LINE vs PayPay vs Sony) and their tech stacks.",
+    "Draft a Japanese format resume (Rirekisho 履歴書) layout and fill in basic personal/educational details.",
+    "Translate your core software engineering skills and projects into professional Japanese terminology.",
+    "Complete your initial Japanese format resume (Rirekisho) and get feedback or self-review for typical formatting errors.",
+    "Understand the Shokumukeirekisho (職務経歴書 - Work Experience Portfolio) format and outline your past professional experience.",
+    "Write a detailed Shokumukeirekisho entry for your primary developer project, focusing on technical impact.",
+    "Practice a standard Japanese self-introduction (Jikoshoukai 自己紹介) tailored for software engineer roles.",
+    "Refine and rehearse your 2-minute Jikoshoukai out loud, recording yourself to polish pronunciation and pacing.",
+    "Review microservices architecture patterns commonly used in high-scale Japanese apps (e.g., Mercari, PayPay).",
+    "Study database scaling and caching strategies (Redis, Memcached) for high-concurrency systems.",
+    "Deep dive into Rakuten's technology ecosystem and their global engineering standards (e.g., English-first culture).",
+    "Analyze LINE/Yahoo Japan's tech stack, engineering blog, and their open-source contributions.",
+    "Study Mercari's engineering blog, focusing on their Go-based microservices and Kubernetes infrastructure.",
+    "Analyze PayPay's technical platform, focusing on their massive transaction processing and backend scalability.",
+    "Perform a system design mock for a localized high-traffic service (e.g., a digital payment or e-commerce platform).",
+    "Review distributed systems concepts: event-driven architecture, message queues (Kafka, RabbitMQ) and consistency.",
+    "Learn fundamental Japanese business manners (Manners/Etiquette) for tech interviews and business communications.",
+    "Study Japanese business Keigo (敬語) basics: Sonkeigo (honorific), Kenjougo (humble), and Teineigo (polite).",
+    "Practice writing professional Japanese business emails for application follow-ups or interview scheduling.",
+    "Rehearse common polite phrases for entering and exiting an interview room (both virtual and in-person settings).",
+    "Formulate answers to standard behavioral questions in Japanese, focusing on teamwork and problem-solving.",
+    "Practice describing a technical challenge you resolved using the STAR method, translated into natural Japanese.",
+    "Study Japanese workplace culture: concepts of Ho-Ren-So (Report, Contact, Consult) and Kaizen (Continuous Improvement).",
+    "Draft a comprehensive Q&A document in Japanese addressing why you want to work in Japan (Shiboudouki 志望動機).",
+    "Research the visa application process and requirements for highly skilled professional (HSP) visa in Japan.",
+    "Conduct a mock technical pitch of your favorite personal project completely in Japanese.",
+    "Study system design for a global content delivery network (CDN) and edge computing solutions.",
+    "Review API design best practices, REST vs gRPC vs GraphQL, and how large-scale Japanese companies manage internal APIs.",
+    "Practice dry-run coding exercises (LeetCode/Codility style) and practice explaining your thought process in simple Japanese.",
+    "Study cloud infrastructure optimization (AWS/GCP cost savings and auto-scaling) for international tech hubs.",
+    "Research Woven by Toyota (Woven Planet) and their smart city/automotive software initiatives.",
+    "Research Sony's software divisions, Playstation network architecture, and their modern backend stacks.",
+    "Deep dive into security practices for web applications (OWASP Top 10) and how Japanese financial apps handle compliance.",
+    "Study containerization and orchestration using Kubernetes, Docker, and service meshes (Istio/Linkerd).",
+    "Rehearse polite clarification questions in Japanese for when you don't fully understand an interviewer's question.",
+    "Practice explaining complex computer science concepts (e.g., concurrency vs parallelism) using basic Japanese vocabulary.",
+    "Design a highly available chat application (system design) and review how Japanese communication giants (like LINE) implement it.",
+    "Analyze how Japanese e-commerce giants handle seasonal high-load events (e.g., Rakuten Super Sale, Black Friday).",
+    "Rehearse a mock behavioral interview with a peer or AI, focusing on alignment with Japanese corporate values.",
+    "Review front-end performance optimization techniques and modern framework trends in the Japanese tech market.",
+    "Study DevOps principles: CI/CD pipelines, green-blue deployments, and monitoring/alerting (Prometheus, Grafana).",
+    "Practice detailing your contributions to open-source software or community projects in natural business Japanese.",
+    "Study SQL vs NoSQL trade-offs and design a scalable schema for a localized reservation/booking system.",
+    "Understand the concept of \"Chokusetsu Oubo\" (direct application) vs utilizing specialized tech recruiters in Japan.",
+    "Review load balancing algorithms, reverse proxies (Nginx, Envoy), and high-availability networking.",
+    "Prepare a list of insightful questions to ask Japanese interviewers (Gyakushitsumon 逆質問) to show deep interest.",
+    "Practice discussing modern agile methodologies, Scrum practices, and cross-functional team collaborations in Japanese.",
+    "Review distributed caching patterns and study write-through vs write-behind caching strategies.",
+    "Do a full mock system design interview for a distributed ride-sharing or food delivery app in Japan.",
+    "Rehearse your complete interview package (Jikoshoukai, Shiboudouki, Shokumukeirekisho highlights) in a full dress rehearsal.",
+    "Review final technical checklists: data structures, algorithms, and key system design trade-offs.",
+    "Polish your professional presence, clean up your public GitHub, and finalize your target application pipelines for Tokyo MNCs!"
+]
+
 # ==================== HELPER UTILITIES ====================
 
 def clear_screen():
@@ -45,26 +101,36 @@ def print_header(title):
 
 def load_config():
     """Loads settings from config.json, creating a template if missing."""
+    default_config = {
+        "github_username": "YOUR_GITHUB_USERNAME",
+        "ntfy_topic": "YOUR_UNIQUE_NTFY_TOPIC",
+        "tracked_tasks": DEFAULT_TASKS,
+        "audit_time": "23:45",
+        "start_date": "",
+        "end_date": "",
+        "gemini_api_key": "",
+        "japan_mnc_prep_active": True
+    }
     if not os.path.exists(CONFIG_FILE):
-        default_config = {
-            "github_username": "YOUR_GITHUB_USERNAME",
-            "ntfy_topic": "YOUR_UNIQUE_NTFY_TOPIC",
-            "tracked_tasks": DEFAULT_TASKS,
-            "audit_time": "23:45"
-        }
         save_config(default_config)
         return default_config
     try:
         with open(CONFIG_FILE, "r") as f:
-            return json.load(f)
+            config = json.load(f)
+        
+        # Migration: Ensure all keys exist
+        modified = False
+        for k, v in default_config.items():
+            if k not in config:
+                config[k] = v
+                modified = True
+        
+        if modified:
+            save_config(config)
+        return config
     except Exception:
         print(f"{RED}⚠️ Error loading config.json. Reverting to default settings.{RESET}")
-        return {
-            "github_username": "YOUR_GITHUB_USERNAME",
-            "ntfy_topic": "YOUR_UNIQUE_NTFY_TOPIC",
-            "tracked_tasks": DEFAULT_TASKS,
-            "audit_time": "23:45"
-        }
+        return default_config
 
 def save_config(config):
     """Saves settings to config.json."""
@@ -77,15 +143,21 @@ def save_config(config):
 def load_data():
     """Loads the tracking data from the local JSON file."""
     if not os.path.exists(DATA_FILE):
-        return {}
+        return {"weekend_history": []}
     try:
         with open(DATA_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+        if not isinstance(data, dict):
+            data = {}
+        if "weekend_history" not in data:
+            data["weekend_history"] = []
+            save_data(data)
+        return data
     except json.JSONDecodeError:
-        return {}
+        return {"weekend_history": []}
     except Exception as e:
         print(f"{RED}❌ Failed to read data file: {e}{RESET}")
-        return {}
+        return {"weekend_history": []}
 
 def save_data(data):
     """Saves the tracking data to the local JSON file."""
@@ -172,6 +244,273 @@ def send_alert(topic, title, message, priority="high", tags="warning"):
     except requests.RequestException as e:
         print(f"{RED}❌ Failed to send push notification: {e}{RESET}")
 
+# ==================== TIMELINE & WEEKEND PREP SERVICES ====================
+
+def is_within_timeline(reference_date=None):
+    """Checks if the reference_date (default today) falls within the start_date and end_date timeline bounds configured in config.json."""
+    config = load_config()
+    start_date_str = config.get("start_date", "").strip()
+    end_date_str = config.get("end_date", "").strip()
+    
+    if reference_date is None:
+        reference_date = datetime.now().date()
+    elif isinstance(reference_date, str):
+        try:
+            reference_date = datetime.strptime(reference_date, "%Y-%m-%d").date()
+        except ValueError:
+            return True
+        
+    if start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            if reference_date < start_date:
+                return False
+        except ValueError:
+            pass
+            
+    if end_date_str:
+        try:
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+            if reference_date > end_date:
+                return False
+        except ValueError:
+            pass
+            
+    return True
+
+def get_current_weekend_saturday_date(reference_date=None):
+    """If reference_date (default today) is Saturday or Sunday, returns the date of that Saturday as a string (YYYY-MM-DD). Otherwise returns None."""
+    if reference_date is None:
+        reference_date = datetime.now().date()
+    elif isinstance(reference_date, str):
+        try:
+            reference_date = datetime.strptime(reference_date, "%Y-%m-%d").date()
+        except ValueError:
+            return None
+            
+    # monday = 0, ..., saturday = 5, sunday = 6
+    weekday = reference_date.weekday()
+    if weekday == 5: # Saturday
+        return reference_date.strftime("%Y-%m-%d")
+    elif weekday == 6: # Sunday
+        saturday = reference_date - timedelta(days=1)
+        return saturday.strftime("%Y-%m-%d")
+    return None
+
+def generate_gemini_task_via_api(api_key, history):
+    """Calls Gemini API to generate a subsequent progressive Japan MNC tech prep task."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    headers = {"Content-Type": "application/json"}
+    
+    # Build history context
+    history_summary = ""
+    if history:
+        history_summary = "Here is the history of previous weekend prep tasks and notes the user completed:\n"
+        for i, entry in enumerate(history):
+            history_summary += f"- Weekend {i+1} Date: {entry.get('date')}, Task: {entry.get('task_title')}, Completed: {entry.get('completed')}, Notes: {entry.get('notes')}\n"
+    else:
+        history_summary = "This is the user's very first weekend preparation task."
+
+    prompt = (
+        "You are an expert career coach and senior staff engineer specializing in helping software developers land elite engineering roles "
+        "at major Multi-National Corporations (MNCs) in Tokyo, Japan (such as Rakuten, Mercari, LINE, Yahoo Japan, PayPay, Sony, and Woven by Toyota).\n\n"
+        "Your task is to generate a highly actionable, high-impact weekend study/preparation micro-task for the user. "
+        "The micro-task should take between 1 to 2 hours to complete and should cover one of the following key areas in a progressive, structured manner:\n"
+        "1. Drafting and polishing Japanese-format resumes (Rirekisho 履歴書) and detailed work history sheets (Shokumukeirekisho 職務経歴書).\n"
+        "2. Practicing standard Japanese business manners, self-introductions (Jikoshoukai 自己紹介), behavioral answers, and Keigo (敬語) basics for interviews.\n"
+        "3. Reviewing system design patterns, distributed caching, database scaling, microservices architectures, and technical stacks utilized by high-scale companies in Japan.\n"
+        "4. Researching target Japanese tech company engineering cultures, tech blogs, open-source initiatives, and interview patterns.\n\n"
+        f"{history_summary}\n"
+        "Analyze the user's progress. Based on what they have done (or if they are just starting), generate the next logical, progressive, and highly effective task. "
+        "IMPORTANT rules:\n"
+        "- The task must be extremely concrete, specific, and actionable. Do not give generic advice.\n"
+        "- Keep the task description short, punchy, and compelling (maximum 1-2 sentences).\n"
+        "- Reply ONLY with the task description. Do not include any introductory remarks, markdown formatting (like bolding or backticks), or extra conversational text. Just output the task text itself."
+    )
+    
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ]
+    }
+    
+    response = requests.post(url, headers=headers, json=payload, timeout=10)
+    if response.status_code == 200:
+        res_json = response.json()
+        try:
+            task_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+            task_text = task_text.replace("`", "").replace('"', '').strip()
+            return task_text
+        except (KeyError, IndexError) as e:
+            raise Exception(f"Failed to parse Gemini response: {e}")
+    else:
+        raise Exception(f"Gemini API returned status code {response.status_code}: {response.text}")
+
+def get_or_create_weekend_task(reference_date=None):
+    """Gets the weekend task for the current weekend. If none exists, creates one and saves it."""
+    sat_date_str = get_current_weekend_saturday_date(reference_date)
+    if not sat_date_str:
+        return None
+
+    data = load_data()
+    if "weekend_history" not in data:
+        data["weekend_history"] = []
+
+    # Check if we already have an entry for this Saturday
+    for entry in data["weekend_history"]:
+        if entry.get("date") == sat_date_str:
+            return entry
+
+    # Create a new task!
+    config = load_config()
+    api_key = config.get("gemini_api_key", "").strip()
+    is_active = config.get("japan_mnc_prep_active", True)
+    
+    if not is_active:
+        return None
+
+    task_title = ""
+    source = "Curated Roadmap"
+    
+    if api_key and api_key != "YOUR_GEMINI_API_KEY":
+        try:
+            task_title = generate_gemini_task_via_api(api_key, data["weekend_history"])
+            source = "Gemini AI"
+        except Exception as e:
+            print(f"{YELLOW}⚠️ Gemini API generation failed ({e}). Falling back to Curated Roadmap.{RESET}")
+    
+    if not task_title:
+        week_idx = len(data["weekend_history"]) % 52
+        task_title = JAPAN_MNC_ROADMAP[week_idx]
+        source = "Curated Roadmap"
+
+    new_entry = {
+        "date": sat_date_str,
+        "task_title": task_title,
+        "source": source,
+        "notes": "",
+        "completed": False
+    }
+    
+    data["weekend_history"].append(new_entry)
+    save_data(data)
+    return new_entry
+
+def show_weekend_status():
+    """Displays the current weekend prep task, completed state, and notes."""
+    sat_date_str = get_current_weekend_saturday_date()
+    if not sat_date_str:
+        print(f"{YELLOW}📅 Today is a weekday. Weekend Japan MNC Prep is only active on Saturdays and Sundays!{RESET}")
+        return
+        
+    entry = get_or_create_weekend_task()
+    if not entry:
+        print(f"{YELLOW}⚠️ Weekend Japan MNC Prep is currently disabled or inactive.{RESET}")
+        return
+        
+    print_header("🎌 WEEKEND JAPAN MNC PREP")
+    status = f"{GREEN}🟢 COMPLETED{RESET}" if entry.get("completed") else f"{RED}🔴 PENDING{RESET}"
+    print(f"📅 Weekend Date : {WHITE}{sat_date_str}{RESET}")
+    print(f"🎯 Target Task  : {BOLD}{CYAN}{entry.get('task_title')}{RESET}")
+    print(f"💡 Task Source  : {YELLOW}{entry.get('source')}{RESET}")
+    print(f"📊 Status       : {status}")
+    print(f"📝 Study Notes  : {WHITE}{entry.get('notes') if entry.get('notes') else '(No notes recorded yet)'}{RESET}")
+    print("-" * 51)
+    print("Commands:")
+    print("  python guardian.py weekend-done          - Toggle task completion")
+    print("  python guardian.py weekend-notes [text]  - Record your study/research notes")
+
+def toggle_weekend_complete_cli():
+    """Toggles completion of the current weekend task."""
+    sat_date_str = get_current_weekend_saturday_date()
+    if not sat_date_str:
+        print(f"{RED}❌ Today is not a weekend day!{RESET}")
+        return
+        
+    data = load_data()
+    if "weekend_history" not in data:
+        data["weekend_history"] = []
+        
+    found = False
+    for entry in data["weekend_history"]:
+        if entry.get("date") == sat_date_str:
+            entry["completed"] = not entry.get("completed", False)
+            found = True
+            status = "completed" if entry["completed"] else "pending"
+            print(f"✅ {GREEN}Weekend task marked as {status}!{RESET}")
+            break
+            
+    if not found:
+        entry = get_or_create_weekend_task()
+        # Find and save
+        data = load_data()
+        for e in data["weekend_history"]:
+            if e.get("date") == sat_date_str:
+                e["completed"] = True
+                print(f"✅ {GREEN}Weekend task marked as completed!{RESET}")
+                break
+                
+    save_data(data)
+
+def save_weekend_notes_cli(notes_text):
+    """Saves study/research notes for the current weekend task."""
+    sat_date_str = get_current_weekend_saturday_date()
+    if not sat_date_str:
+        print(f"{RED}❌ Today is not a weekend day!{RESET}")
+        return
+        
+    if not notes_text:
+        print(f"{RED}❌ Please provide non-empty notes text.{RESET}")
+        return
+        
+    data = load_data()
+    if "weekend_history" not in data:
+        data["weekend_history"] = []
+        
+    found = False
+    for entry in data["weekend_history"]:
+        if entry.get("date") == sat_date_str:
+            entry["notes"] = notes_text
+            found = True
+            print(f"✅ {GREEN}Study notes saved successfully for this weekend!{RESET}")
+            break
+            
+    if not found:
+        entry = get_or_create_weekend_task()
+        # Find and save
+        data = load_data()
+        for e in data["weekend_history"]:
+            if e.get("date") == sat_date_str:
+                e["notes"] = notes_text
+                print(f"✅ {GREEN}Study notes saved successfully for this weekend!{RESET}")
+                break
+                
+    save_data(data)
+
+def show_weekend_history_cli():
+    """Displays the entire history of weekend prep tasks and notes logged."""
+    data = load_data()
+    history = data.get("weekend_history", [])
+    
+    if not history:
+        print(f"{YELLOW}📅 No weekend history logs found. Get started this Saturday!{RESET}")
+        return
+        
+    print_header("📚 JAPAN MNC PREP HISTORY LOG")
+    for entry in reversed(history):
+        status = f"{GREEN}✓{RESET}" if entry.get("completed") else f"{RED}✗{RESET}"
+        print(f"📅 {BOLD}{entry.get('date')}{RESET} [{status}] ({entry.get('source')})")
+        print(f"   🎯 {CYAN}{entry.get('task_title')}{RESET}")
+        if entry.get("notes"):
+            print(f"   📝 Notes: {WHITE}{entry.get('notes')}{RESET}")
+        else:
+            print(f"   📝 Notes: {YELLOW}(No notes logged){RESET}")
+        print("-" * 51)
+
 # ==================== ANALYTICS ENGINE ====================
 
 def calculate_stats():
@@ -179,6 +518,8 @@ def calculate_stats():
     data = load_data()
     config = load_config()
     tracked_tasks = config.get("tracked_tasks", DEFAULT_TASKS)
+    config_start_str = config.get("start_date", "").strip()
+    config_end_str = config.get("end_date", "").strip()
     
     stats = {
         "current_streak": 0,
@@ -192,7 +533,13 @@ def calculate_stats():
     if not data:
         return stats
 
-    dates_str = sorted(data.keys())
+    # Only consider YYYY-MM-DD keys from the database
+    dates_str = []
+    for k in data.keys():
+        if k != "weekend_history":
+            dates_str.append(k)
+    dates_str = sorted(dates_str)
+    
     if not dates_str:
         return stats
 
@@ -206,13 +553,43 @@ def calculate_stats():
     if not parsed_dates:
         return stats
 
-    start_date = min(parsed_dates)
+    db_start_date = min(parsed_dates)
     today = datetime.now().date()
 
-    # Reconstruct timeline from start date to today to ensure missing logged days count as missed streaks
+    # Parse config start date if provided
+    config_start = None
+    if config_start_str:
+        try:
+            config_start = datetime.strptime(config_start_str, "%Y-%m-%d").date()
+        except ValueError:
+            pass
+            
+    # Parse config end date if provided
+    config_end = None
+    if config_end_str:
+        try:
+            config_end = datetime.strptime(config_end_str, "%Y-%m-%d").date()
+        except ValueError:
+            pass
+
+    # The effective start date for stats is the config_start if specified,
+    # otherwise the minimum parsed date in the database.
+    effective_start = config_start if config_start else db_start_date
+    
+    # The effective end date for stats is the config_end if specified and it's in the past,
+    # otherwise today.
+    effective_end = today
+    if config_end and config_end < today:
+        effective_end = config_end
+
+    # If the timeline window hasn't started yet, or we're fully outside, return empty stats safely
+    if effective_start > effective_end:
+        return stats
+
+    # Reconstruct timeline within effective bounds
     all_days = []
-    curr = start_date
-    while curr <= today:
+    curr = effective_start
+    while curr <= effective_end:
         all_days.append(curr)
         curr += timedelta(days=1)
 
@@ -232,12 +609,12 @@ def calculate_stats():
         perfect_days[day] = manual_ok and github_ok
 
     # Current streak calculation:
-    # A streak is active if today is perfect, OR if today is incomplete but yesterday was perfect (user has until midnight).
+    # A streak is active if effective_end (e.g. today) is perfect, OR if effective_end is incomplete but yesterday was perfect.
     current_streak = 0
-    check_day = today
+    check_day = effective_end
 
-    if not perfect_days.get(today, False):
-        yesterday = today - timedelta(days=1)
+    if not perfect_days.get(effective_end, False):
+        yesterday = effective_end - timedelta(days=1)
         if perfect_days.get(yesterday, False):
             check_day = yesterday
 
@@ -248,8 +625,8 @@ def calculate_stats():
     # Longest streak calculation
     longest_streak = 0
     temp_streak = 0
-    curr = start_date
-    while curr <= today:
+    curr = effective_start
+    while curr <= effective_end:
         if perfect_days.get(curr, False):
             temp_streak += 1
             if temp_streak > longest_streak:
@@ -263,11 +640,11 @@ def calculate_stats():
 
     # Calculate compliance for 7-day and 30-day windows
     def get_compliance(days_window):
-        window_days = [today - timedelta(days=i) for i in range(days_window)]
+        window_days = [effective_end - timedelta(days=i) for i in range(days_window)]
         perfect_count = 0
         valid_days = 0
         for d in window_days:
-            if d >= start_date:
+            if d >= effective_start:
                 valid_days += 1
                 if perfect_days.get(d, False):
                     perfect_count += 1
@@ -545,6 +922,9 @@ def show_history_summary():
 
 def run_nightly_audit(force_test=False):
     """Audits all goals, saves results, and fires alerts if missing."""
+    if not is_within_timeline() and not force_test:
+        print(f"{YELLOW}⚠️ Outside of configured timeline bounds. Skipping Nightly Audit.{RESET}")
+        return
     config = load_config()
     tracked_tasks = config.get("tracked_tasks", DEFAULT_TASKS)
     github_user = config.get("github_username", "")
@@ -596,6 +976,9 @@ def run_nightly_audit(force_test=False):
 
 def run_warning_check():
     """Runs a 9:00 PM warning check. If any tasks are incomplete, fires a high-priority loud alarm to the phone."""
+    if not is_within_timeline():
+        print(f"{YELLOW}⚠️ Outside of configured timeline bounds. Skipping 9:00 PM Warning Alarm check.{RESET}")
+        return
     config = load_config()
     tracked_tasks = config.get("tracked_tasks", DEFAULT_TASKS)
     github_user = config.get("github_username", "")
@@ -741,17 +1124,32 @@ if __name__ == "__main__":
         unregister_windows_task()
     elif command == "stats" or command == "history":
         show_history_summary()
+    elif command == "weekend":
+        show_weekend_status()
+    elif command == "weekend-done":
+        toggle_weekend_complete_cli()
+    elif command == "weekend-notes":
+        if len(sys.argv) < 3:
+            print(f"{RED}❌ Error: Please specify the notes content. Example: python guardian.py weekend-notes \"My notes\" {RESET}")
+        else:
+            save_weekend_notes_cli(" ".join(sys.argv[2:]))
+    elif command == "weekend-history":
+        show_weekend_history_cli()
     else:
         print(f"{RED}❌ Unknown command: '{command}'{RESET}")
         print("\nSupported Commands:")
-        print("  python guardian.py dashboard      - Launch interactive visual dashboard (default)")
-        print("  python guardian.py status         - Display clean status board + live GitHub check")
-        print("  python guardian.py done [task]    - Mark a specific manual task as complete")
-        print("  python guardian.py warning        - Trigger a 9:00 PM pending warning alarm check")
-        print("  python guardian.py test-warn      - Trigger a manual high-priority test warning alarm")
-        print("  python guardian.py audit          - Trigger the nightly verification run & alerts")
-        print("  python guardian.py setup          - Start persistent configuration wizard")
-        print("  python guardian.py schedule       - Register warning alarm & audit with Windows")
-        print("  python guardian.py unschedule     - Unregister all tasks from Windows")
-        print("  python guardian.py stats          - View historical statistics & recent logs")
+        print("  python guardian.py dashboard       - Launch interactive visual dashboard (default)")
+        print("  python guardian.py status          - Display clean status board + live GitHub check")
+        print("  python guardian.py done [task]     - Mark a specific manual task as complete")
+        print("  python guardian.py warning         - Trigger a 9:00 PM pending warning alarm check")
+        print("  python guardian.py test-warn       - Trigger a manual high-priority test warning alarm")
+        print("  python guardian.py audit           - Trigger the nightly verification run & alerts")
+        print("  python guardian.py setup           - Start persistent configuration wizard")
+        print("  python guardian.py schedule        - Register warning alarm & audit with Windows")
+        print("  python guardian.py unschedule      - Unregister all tasks from Windows")
+        print("  python guardian.py stats           - View historical statistics & recent logs")
+        print("  python guardian.py weekend         - View modern Weekend Japan MNC Prep task and notes")
+        print("  python guardian.py weekend-done    - Complete/Undo the current weekend Japan MNC Prep task")
+        print("  python guardian.py weekend-notes   - Record study/research notes for the current weekend")
+        print("  python guardian.py weekend-history - View historical logged records of all weekend work")
         sys.exit(1)
