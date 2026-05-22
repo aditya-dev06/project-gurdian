@@ -140,15 +140,33 @@ def send_alert(topic, title, message, priority="high", tags="warning"):
     if not topic or topic == "YOUR_UNIQUE_NTFY_TOPIC":
         print(f"{YELLOW}⚠️ Notification skipped: ntfy topic is not configured.{RESET}")
         return
+        
+    # Map priority text to numeric values for universal mobile app compatibility
+    priority_map = {
+        "max": "5",
+        "urgent": "5",
+        "high": "4",
+        "default": "3",
+        "normal": "3",
+        "low": "2",
+        "min": "1"
+    }
+    numeric_priority = priority_map.get(str(priority).lower(), str(priority))
+    
+    # Clean non-ASCII characters (like emojis) from the Title to prevent HTTP header UnicodeEncodeErrors.
+    # ntfy will prepend emojis automatically on the phone based on the 'Tags' header!
+    clean_title = title.encode('ascii', 'ignore').decode('ascii').strip()
+    
     try:
+        headers = {
+            "Title": clean_title,
+            "Priority": str(numeric_priority),
+            "Tags": str(tags)
+        }
         requests.post(
             f"https://ntfy.sh/{topic}",
             data=message.encode('utf-8'),
-            params={
-                "title": title,
-                "priority": priority,
-                "tags": tags
-            },
+            headers=headers,
             timeout=5
         )
     except requests.RequestException as e:
