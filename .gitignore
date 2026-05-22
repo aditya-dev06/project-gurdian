@@ -1,0 +1,17 @@
+# Guardian Daily Tracker Git Ignore File
+
+# Ignore local configuration and credentials
+config.json
+
+# Ignore local tracking database records
+guardian_data.json
+
+# Ignore python bytecode and environment cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
