@@ -5,7 +5,7 @@ import requests
 from datetime import datetime, timedelta
 
 # Ensure UTF-8 output encoding for standard streams to prevent Windows Console UnicodeEncodeErrors
-if sys.stdout.encoding != 'utf-8':
+if sys.stdout is not None and getattr(sys.stdout, 'encoding', None) != 'utf-8':
     try:
         sys.stdout.reconfigure(encoding='utf-8')
     except AttributeError:
@@ -144,10 +144,10 @@ def send_alert(topic, title, message, priority="high", tags="warning"):
         requests.post(
             f"https://ntfy.sh/{topic}",
             data=message.encode('utf-8'),
-            headers={
-                "Title": title,
-                "Priority": priority,  # 'high' or 'max' to pierce phone silence
-                "Tags": tags
+            params={
+                "title": title,
+                "priority": priority,
+                "tags": tags
             },
             timeout=5
         )

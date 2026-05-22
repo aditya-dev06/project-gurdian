@@ -15,3 +15,5 @@ __pycache__/
 venv/
 ENV/
 env/
+# Ignore local crash logs
+gui_crash_log.txt
