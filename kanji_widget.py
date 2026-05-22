@@ -624,7 +624,7 @@ class KanjiWidget:
         """Pronounces the active Kanji out loud using slow speed control if toggled."""
         kanji = ""
         if self.current_card:
-            kanji = self.current_card.get("kanji", "")
+            kanji = self.current_card.get("kanji_yomi", self.current_card.get("kanji", ""))
         if not kanji:
             try:
                 kanji = self.kanji_lbl.cget("text").strip()
@@ -844,7 +844,7 @@ class KanjiWidget:
         ).pack()
         
         # Pronounce target voice helper in background
-        guardian.speak_japanese_text(target.get("kanji", "") if target else "")
+        guardian.speak_japanese_text(target.get("kanji_yomi", target.get("kanji", "")) if target else "")
         
         def select_option(selected_card):
             # Evaluate answer

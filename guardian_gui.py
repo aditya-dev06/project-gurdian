@@ -1879,7 +1879,7 @@ class GuardianWidget:
                 padx=8,
                 pady=3,
                 cursor="hand2",
-                command=lambda: guardian.speak_japanese_text(q_card.get("kanji", "") if q_card else "")
+                command=lambda: guardian.speak_japanese_text(q_card.get("kanji_yomi", q_card.get("kanji", "")) if q_card else "")
             )
             audio_btn.pack(pady=4)
             self.bind_button_hover(audio_btn, BG_DARK, HOVER_COLOR)
