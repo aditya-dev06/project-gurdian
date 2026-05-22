@@ -637,8 +637,7 @@ class JapaneseLearningApp:
             insertbackground=FG_LIGHT,
             bd=1,
             relief="flat",
-            font=(FONT_FAMILY, 9),
-            padx=8
+            font=(FONT_FAMILY, 9)
         )
         search_entry.pack(fill="x", pady=4)
         
@@ -690,8 +689,8 @@ class JapaneseLearningApp:
         explorer_body.pack(fill="both", expand=True)
         
         # 1. Left List panel
-        list_panel = tk.Frame(explorer_body, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1)
-        list_panel.pack(side="left", fill="both", width=340)
+        list_panel = tk.Frame(explorer_body, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, width=340)
+        list_panel.pack(side="left", fill="both")
         list_panel.pack_propagate(False)
         
         # List Panel Search Filter
@@ -704,8 +703,7 @@ class JapaneseLearningApp:
             fg=FG_LIGHT,
             insertbackground=FG_LIGHT,
             bd=0,
-            font=(FONT_FAMILY, 9),
-            padx=8
+            font=(FONT_FAMILY, 9)
         )
         search_input.pack(fill="x", pady=(0, 8))
         
