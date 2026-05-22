@@ -48,16 +48,19 @@ except Exception as e:
         pass
     sys.exit(1)
 
-# ==================== THEME & COLOR PALETTE ====================
-BG_DARK = "#1E1E2E"       # Slate dark background
-BG_CARD = "#252538"       # Lighter card container
-FG_LIGHT = "#F8F8F2"      # Clean high-contrast text
-ACCENT_CYAN = "#8BE9FD"   # Header title cyan
-ACCENT_GREEN = "#50FA7B"  # Glowing success neon green
-ACCENT_RED = "#FF5555"    # Warning red
-ACCENT_ORANGE = "#FFB86C" # Stats orange / flame
-ACCENT_PURPLE = "#BD93F9" # Accent buttons purple
-HOVER_COLOR = "#34344A"   # Card hover highlight
+# ==================== THEME & COLOR PALETTE (APPLE PREMIUM DARK MODE) ====================
+BG_DARK = "#09090B"          # Pure deep charcoal/black (Midnight)
+BG_CARD = "#121214"          # Sleek Space Black card background
+BG_INNER = "#1C1C1E"         # Apple premium dark gray inner container
+FG_LIGHT = "#F5F5F7"         # Apple primary white text
+FG_SECONDARY = "#8E8E93"     # Apple secondary gray text
+ACCENT_CYAN = "#0071E3"      # Apple royal signature blue (primary interactive accent)
+ACCENT_GREEN = "#30D158"     # Apple vibrant system green (success/completed)
+ACCENT_RED = "#FF453A"       # Apple vibrant system red (error/warning)
+ACCENT_ORANGE = "#FF9F0A"    # Apple vibrant system orange (stats/countdowns)
+ACCENT_PURPLE = "#BF5AF2"    # Apple vibrant system purple (special icons)
+HOVER_COLOR = "#222225"      # Minimalist card hover background
+BORDER_COLOR = "#2C2C2E"     # Thin clean outline divider
 
 FONT_FAMILY = "Segoe UI" if os.name == "nt" else "Arial"
 
@@ -84,17 +87,17 @@ class HoverTooltip:
         tw.wm_geometry(f"+{x}+{y}")
         tw.attributes("-topmost", True)
         
-        # Dracula theme border highlight frame
-        frame = tk.Frame(tw, bg="#282A36", highlightbackground="#BD93F9", highlightcolor="#BD93F9", highlightthickness=1)
+        # Premium Apple Midnight Tooltip border frame
+        frame = tk.Frame(tw, bg=BG_INNER, highlightbackground=BORDER_COLOR, highlightcolor=BORDER_COLOR, highlightthickness=1)
         frame.pack()
         
         label = tk.Label(
             frame,
             text=text,
             justify="left",
-            background="#282A36",
-            foreground="#F8F8F2",
-            font=(FONT_FAMILY, 9, "bold"),
+            background=BG_INNER,
+            foreground=FG_LIGHT,
+            font=(FONT_FAMILY, 8, "normal"),
             padx=8,
             pady=4
         )
@@ -383,12 +386,12 @@ class GuardianWidget:
         """Creates a custom stylized rounded card row for a manual habit with glowing borders."""
         is_done = self.data[self.today].get(task_name, False)
         
-        border_color = ACCENT_GREEN if is_done else BG_CARD
+        border_color = ACCENT_GREEN if is_done else BORDER_COLOR
         card = tk.Frame(
             self.cards_frame, 
             bg=BG_CARD, 
-            pady=8, 
-            padx=10, 
+            pady=12, 
+            padx=15, 
             highlightbackground=border_color,
             highlightcolor=border_color,
             highlightthickness=1
@@ -414,8 +417,8 @@ class GuardianWidget:
         label.pack(side="left", padx=10)
         
         # Toggle Button
-        btn_text = "UNDO" if is_done else "DONE"
-        btn_color = ACCENT_PURPLE if is_done else BG_DARK
+        btn_text = "UNDO" if is_done else "✓ DONE"
+        btn_color = BG_INNER if is_done else ACCENT_CYAN
         btn_fg = FG_LIGHT
         
         toggle_btn = tk.Button(
@@ -423,9 +426,9 @@ class GuardianWidget:
             text=btn_text,
             bg=btn_color,
             fg=btn_fg,
-            activebackground=HOVER_COLOR,
+            activebackground=HOVER_COLOR if is_done else "#147ce5",
             activeforeground=FG_LIGHT,
-            bd=1,
+            bd=0,
             highlightthickness=0,
             relief="flat",
             font=(FONT_FAMILY, 8, "bold"),
@@ -434,7 +437,7 @@ class GuardianWidget:
             command=lambda t=task_name: self.toggle_task_state(t)
         )
         toggle_btn.pack(side="right", padx=5)
-        self.bind_button_hover(toggle_btn, btn_color, "#9d6ef7" if is_done else HOVER_COLOR)
+        self.bind_button_hover(toggle_btn, btn_color, HOVER_COLOR if is_done else "#147ce5")
         
         # Bind tactile hover highlights
         self.bind_hover_highlight(card, BG_CARD, HOVER_COLOR)
@@ -446,12 +449,12 @@ class GuardianWidget:
         if self.github_live_status is not None:
             is_done = self.github_live_status
             
-        border_color = ACCENT_GREEN if is_done else BG_CARD
+        border_color = ACCENT_GREEN if is_done else BORDER_COLOR
         card = tk.Frame(
             self.cards_frame, 
             bg=BG_CARD, 
-            pady=8, 
-            padx=10,
+            pady=12, 
+            padx=15,
             highlightbackground=border_color,
             highlightcolor=border_color,
             highlightthickness=1
@@ -481,11 +484,11 @@ class GuardianWidget:
         self.sync_btn = tk.Button(
             card,
             text=sync_text,
-            bg=BG_DARK,
-            fg=ACCENT_CYAN,
+            bg=BG_INNER,
+            fg=FG_LIGHT,
             activebackground=HOVER_COLOR,
             activeforeground=FG_LIGHT,
-            bd=1,
+            bd=0,
             relief="flat",
             font=(FONT_FAMILY, 8, "bold"),
             width=9,
@@ -494,7 +497,7 @@ class GuardianWidget:
             state="disabled" if self.is_syncing_github else "normal"
         )
         self.sync_btn.pack(side="right", padx=5)
-        self.bind_button_hover(self.sync_btn, BG_DARK, HOVER_COLOR)
+        self.bind_button_hover(self.sync_btn, BG_INNER, HOVER_COLOR)
         
         # Bind tactile hover highlights
         self.bind_hover_highlight(card, BG_CARD, HOVER_COLOR)
@@ -509,13 +512,13 @@ class GuardianWidget:
             
         is_done = task_entry.get("completed", False)
         
-        # Glowing premium card frame with green/purple border highlight
-        border_color = ACCENT_GREEN if is_done else ACCENT_PURPLE
+        # Glowing premium card frame with green/gray border highlight
+        border_color = ACCENT_GREEN if is_done else BORDER_COLOR
         card = tk.Frame(
             self.cards_frame, 
-            bg="#2B2B42", # Distinct darker indigo-slate background
-            pady=10, 
-            padx=12,
+            bg=BG_CARD, 
+            pady=12, 
+            padx=15,
             highlightbackground=border_color,
             highlightcolor=border_color,
             highlightthickness=1
@@ -523,7 +526,7 @@ class GuardianWidget:
         card.pack(fill="x", pady=6)
         
         # Header Row
-        header_frame = tk.Frame(card, bg="#2B2B42")
+        header_frame = tk.Frame(card, bg=BG_CARD)
         header_frame.pack(fill="x")
         
         # Header Label with Emoji
@@ -533,7 +536,7 @@ class GuardianWidget:
             header_frame,
             text=header_text,
             fg=header_color,
-            bg="#2B2B42",
+            bg=BG_CARD,
             font=(FONT_FAMILY, 9, "bold")
         )
         header_lbl.pack(side="left")
@@ -543,7 +546,7 @@ class GuardianWidget:
             header_frame,
             text=f"[{task_entry.get('source', 'Roadmap')}]",
             fg=ACCENT_ORANGE,
-            bg="#2B2B42",
+            bg=BG_CARD,
             font=(FONT_FAMILY, 7, "bold")
         )
         source_lbl.pack(side="right")
@@ -553,7 +556,7 @@ class GuardianWidget:
             card,
             text=task_entry.get("task_title", ""),
             fg=FG_LIGHT,
-            bg="#2B2B42",
+            bg=BG_CARD,
             font=(FONT_FAMILY, 9),
             justify="left",
             wraplength=310,
@@ -562,20 +565,20 @@ class GuardianWidget:
         task_lbl.pack(anchor="w")
         
         # Controls Frame (Complete, Notes, History)
-        ctrl_frame = tk.Frame(card, bg="#2B2B42")
+        ctrl_frame = tk.Frame(card, bg=BG_CARD)
         ctrl_frame.pack(fill="x", pady=4)
         
         # Toggle Button
         btn_text = "UNDO" if is_done else "✓ COMPLETE"
-        btn_bg = ACCENT_GREEN if not is_done else ACCENT_PURPLE
-        btn_fg = BG_DARK if not is_done else FG_LIGHT
+        btn_bg = BG_INNER if is_done else ACCENT_CYAN
+        btn_fg = FG_LIGHT
         
         toggle_btn = tk.Button(
             ctrl_frame,
             text=btn_text,
             bg=btn_bg,
             fg=btn_fg,
-            activebackground=HOVER_COLOR,
+            activebackground=HOVER_COLOR if is_done else "#147ce5",
             activeforeground=FG_LIGHT,
             bd=0,
             relief="flat",
@@ -585,13 +588,13 @@ class GuardianWidget:
             command=self.toggle_weekend_task_state
         )
         toggle_btn.pack(side="left", padx=2)
-        self.bind_button_hover(toggle_btn, btn_bg, "#9d6ef7" if is_done else "#2bfd60")
+        self.bind_button_hover(toggle_btn, btn_bg, HOVER_COLOR if is_done else "#147ce5")
         
         # Notes Button
         notes_btn = tk.Button(
             ctrl_frame,
             text="📝 NOTES",
-            bg=BG_CARD,
+            bg=BG_INNER,
             fg=FG_LIGHT,
             activebackground=HOVER_COLOR,
             activeforeground=FG_LIGHT,
@@ -603,13 +606,13 @@ class GuardianWidget:
             command=self.open_weekend_notes_dialog
         )
         notes_btn.pack(side="left", padx=2)
-        self.bind_button_hover(notes_btn, BG_CARD, HOVER_COLOR)
+        self.bind_button_hover(notes_btn, BG_INNER, HOVER_COLOR)
         
         # History Button
         history_btn = tk.Button(
             ctrl_frame,
             text="📚 HISTORY",
-            bg=BG_CARD,
+            bg=BG_INNER,
             fg=FG_LIGHT,
             activebackground=HOVER_COLOR,
             activeforeground=FG_LIGHT,
@@ -621,13 +624,13 @@ class GuardianWidget:
             command=self.open_weekend_history_dialog
         )
         history_btn.pack(side="left", padx=2)
-        self.bind_button_hover(history_btn, BG_CARD, HOVER_COLOR)
+        self.bind_button_hover(history_btn, BG_INNER, HOVER_COLOR)
 
         # Research Button
         research_btn = tk.Button(
             ctrl_frame,
             text="🔬 RESEARCH",
-            bg=BG_CARD,
+            bg=BG_INNER,
             fg=FG_LIGHT,
             activebackground=HOVER_COLOR,
             activeforeground=FG_LIGHT,
@@ -639,10 +642,10 @@ class GuardianWidget:
             command=self.open_weekend_research_dialog
         )
         research_btn.pack(side="left", padx=2)
-        self.bind_button_hover(research_btn, BG_CARD, HOVER_COLOR)
+        self.bind_button_hover(research_btn, BG_INNER, HOVER_COLOR)
  
-        # Bind tactile hover highlight (distinct slate purple theme)
-        self.bind_hover_highlight(card, "#2B2B42", "#34345C")
+        # Bind tactile hover highlight (distinct minimal dark theme)
+        self.bind_hover_highlight(card, BG_CARD, HOVER_COLOR)
 
     def toggle_weekend_task_state(self):
         """Toggles the completed state of the current weekend task in the database."""
@@ -751,9 +754,9 @@ class GuardianWidget:
         save_btn = tk.Button(
             modal,
             text="SAVE JOURNAL ENTRY",
-            bg=ACCENT_PURPLE,
+            bg=ACCENT_CYAN,
             fg=FG_LIGHT,
-            activebackground=HOVER_COLOR,
+            activebackground="#147ce5",
             activeforeground=FG_LIGHT,
             bd=0,
             pady=10,
@@ -762,6 +765,7 @@ class GuardianWidget:
             cursor="hand2"
         )
         save_btn.pack(fill="x", padx=15, pady=15)
+        self.bind_button_hover(save_btn, ACCENT_CYAN, "#147ce5")
 
     def open_weekend_history_dialog(self):
         """Opens a Toplevel modal dialog displaying all historical weekend prep logs in a scrollable view."""
@@ -844,7 +848,7 @@ class GuardianWidget:
                     bg=BG_CARD, 
                     pady=8, 
                     padx=10,
-                    highlightbackground="#34344A",
+                    highlightbackground=BORDER_COLOR,
                     highlightthickness=1
                 )
                 item_card.pack(fill="x", pady=5)
@@ -910,7 +914,7 @@ class GuardianWidget:
         close_btn = tk.Button(
             modal,
             text="CLOSE WINDOW",
-            bg=BG_CARD,
+            bg=BG_INNER,
             fg=FG_LIGHT,
             activebackground=HOVER_COLOR,
             activeforeground=FG_LIGHT,
@@ -921,6 +925,7 @@ class GuardianWidget:
             cursor="hand2"
         )
         close_btn.pack(fill="x", side="bottom")
+        self.bind_button_hover(close_btn, BG_INNER, HOVER_COLOR)
 
         # Bind MouseWheel to Toplevel modal to capture bubbling events
         modal.bind("<MouseWheel>", _on_mousewheel)
@@ -1017,7 +1022,7 @@ class GuardianWidget:
             bg=BG_CARD,
             pady=8,
             padx=10,
-            highlightbackground="#34344A",
+            highlightbackground=BORDER_COLOR,
             highlightthickness=1
         )
         task_card.pack(fill="x", pady=4)
@@ -1046,7 +1051,7 @@ class GuardianWidget:
             bg=BG_CARD,
             pady=8,
             padx=10,
-            highlightbackground="#34344A",
+            highlightbackground=BORDER_COLOR,
             highlightthickness=1
         )
         tech_card.pack(fill="x", pady=6)
@@ -1076,7 +1081,7 @@ class GuardianWidget:
             bg=BG_CARD,
             pady=8,
             padx=10,
-            highlightbackground="#34344A",
+            highlightbackground=BORDER_COLOR,
             highlightthickness=1
         )
         personality_card.pack(fill="x", pady=6)
@@ -1106,7 +1111,7 @@ class GuardianWidget:
             bg=BG_CARD,
             pady=8,
             padx=10,
-            highlightbackground="#34344A",
+            highlightbackground=BORDER_COLOR,
             highlightthickness=1
         )
         youtube_card.pack(fill="x", pady=6)
@@ -1173,7 +1178,7 @@ class GuardianWidget:
         close_btn = tk.Button(
             modal,
             text="CLOSE RESEARCH",
-            bg=BG_CARD,
+            bg=BG_INNER,
             fg=FG_LIGHT,
             activebackground=HOVER_COLOR,
             activeforeground=FG_LIGHT,
@@ -1184,6 +1189,7 @@ class GuardianWidget:
             cursor="hand2"
         )
         close_btn.pack(fill="x", side="bottom")
+        self.bind_button_hover(close_btn, BG_INNER, HOVER_COLOR)
 
         # Bind MouseWheel to Toplevel modal to capture bubbling events
         modal.bind("<MouseWheel>", _on_mousewheel)
@@ -1517,9 +1523,9 @@ class GuardianWidget:
         save_btn = tk.Button(
             modal, 
             text="SAVE CONFIG", 
-            bg=ACCENT_PURPLE, 
+            bg=ACCENT_CYAN, 
             fg=FG_LIGHT, 
-            activebackground=HOVER_COLOR,
+            activebackground="#147ce5",
             activeforeground=FG_LIGHT,
             bd=0, 
             pady=8,
@@ -1528,7 +1534,7 @@ class GuardianWidget:
             cursor="hand2"
         )
         save_btn.pack(fill="x", padx=20, pady=15)
-        self.bind_button_hover(save_btn, ACCENT_PURPLE, "#9d6ef7")
+        self.bind_button_hover(save_btn, ACCENT_CYAN, "#147ce5")
 
     def bind_button_hover(self, button, bg_normal, bg_hover):
         """Binds mouse enter and leave events to a button to change its background color smoothly."""
@@ -1591,20 +1597,20 @@ class GuardianWidget:
         correct = stats.get("total_correct", 0)
         accuracy = (correct / reviewed * 100.0) if reviewed > 0 else 0.0
         
-        # Glowing premium card frame with cyan accent border highlight
+        # Glowing premium card frame with clean accent border highlight
         card = tk.Frame(
             self.cards_frame, 
-            bg="#2E2E3E", # Distinct darker indigo-slate background
-            pady=10, 
-            padx=12,
-            highlightbackground=ACCENT_CYAN,
-            highlightcolor=ACCENT_CYAN,
+            bg=BG_CARD, 
+            pady=12, 
+            padx=15,
+            highlightbackground=BORDER_COLOR,
+            highlightcolor=BORDER_COLOR,
             highlightthickness=1
         )
         card.pack(fill="x", pady=6)
         
         # Header Row
-        header_frame = tk.Frame(card, bg="#2E2E3E")
+        header_frame = tk.Frame(card, bg=BG_CARD)
         header_frame.pack(fill="x")
         
         # Header Label with Emoji
@@ -1612,7 +1618,7 @@ class GuardianWidget:
             header_frame,
             text="🎌  KANJI STUDY CORE",
             fg=ACCENT_CYAN,
-            bg="#2E2E3E",
+            bg=BG_CARD,
             font=(FONT_FAMILY, 9, "bold")
         )
         header_lbl.pack(side="left")
@@ -1622,23 +1628,23 @@ class GuardianWidget:
             card,
             text=f"Vocabulary: {count} Kanji Studied\nQuiz Accuracy: {accuracy:.1f}% ({correct}/{reviewed})",
             fg=FG_LIGHT,
-            bg="#2E2E3E",
+            bg=BG_CARD,
             font=(FONT_FAMILY, 8, "bold"),
             justify="left"
         )
         stats_lbl.pack(anchor="w", pady=(6, 4))
         
         # Action row
-        ctrl_frame = tk.Frame(card, bg="#2E2E3E")
+        ctrl_frame = tk.Frame(card, bg=BG_CARD)
         ctrl_frame.pack(fill="x", pady=(4, 0))
         
         # Launch Widget button
         launch_btn = tk.Button(
             ctrl_frame,
             text="🧠 LAUNCH",
-            bg=ACCENT_PURPLE,
+            bg=ACCENT_CYAN,
             fg=FG_LIGHT,
-            activebackground=HOVER_COLOR,
+            activebackground="#147ce5",
             activeforeground=FG_LIGHT,
             bd=0,
             relief="flat",
@@ -1649,14 +1655,14 @@ class GuardianWidget:
             command=self.launch_kanji_widget_subapp
         )
         launch_btn.pack(side="left", padx=2, fill="x", expand=True)
-        self.bind_button_hover(launch_btn, ACCENT_PURPLE, "#9d6ef7")
+        self.bind_button_hover(launch_btn, ACCENT_CYAN, "#147ce5")
         
         # Kanji Test button
         test_btn = tk.Button(
             ctrl_frame,
             text="📝 CHALLENGE",
-            bg=BG_CARD,
-            fg=ACCENT_GREEN,
+            bg=BG_INNER,
+            fg=FG_LIGHT,
             activebackground=HOVER_COLOR,
             activeforeground=FG_LIGHT,
             bd=0,
@@ -1668,9 +1674,9 @@ class GuardianWidget:
             command=self.open_weekend_kanji_test_modal
         )
         test_btn.pack(side="right", padx=2, fill="x", expand=True)
-        self.bind_button_hover(test_btn, BG_CARD, HOVER_COLOR)
+        self.bind_button_hover(test_btn, BG_INNER, HOVER_COLOR)
         
-        self.bind_hover_highlight(card, "#2E2E3E", "#39394D")
+        self.bind_hover_highlight(card, BG_CARD, HOVER_COLOR)
 
     def launch_kanji_widget_subapp(self):
         """Launches the Kanji flashcard widget as an independent concurrent subprocess."""

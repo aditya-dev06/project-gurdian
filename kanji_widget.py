@@ -11,17 +11,19 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 import guardian
 
-# ==================== THEME & STYLE CONSTANTS ====================
-BG_DARK = "#1E1E2E"       # Slate dark background
-BG_CARD = "#252538"       # Lighter card container
-BG_INNER = "#2B2B42"      # High contrast inner card
-FG_LIGHT = "#F8F8F2"      # Clean high-contrast text
-ACCENT_CYAN = "#8BE9FD"   # Header title cyan
-ACCENT_GREEN = "#50FA7B"  # Neon success green
-ACCENT_RED = "#FF5555"    # Warning red
-ACCENT_ORANGE = "#FFB86C" # Focus orange
-ACCENT_PURPLE = "#BD93F9" # Premium button purple
-HOVER_COLOR = "#34344A"   # Card hover highlight
+# ==================== THEME & STYLE CONSTANTS (APPLE PREMIUM DARK MODE) ====================
+BG_DARK = "#09090B"          # Pure deep charcoal/black (Midnight)
+BG_CARD = "#121214"          # Sleek Space Black card background
+BG_INNER = "#1C1C1E"         # Apple premium dark gray inner container
+FG_LIGHT = "#F5F5F7"         # Apple primary white text
+FG_SECONDARY = "#8E8E93"     # Apple secondary gray text
+ACCENT_CYAN = "#0071E3"      # Apple royal signature blue (primary interactive accent)
+ACCENT_GREEN = "#30D158"     # Apple vibrant system green (success/completed)
+ACCENT_RED = "#FF453A"       # Apple vibrant system red (error/warning)
+ACCENT_ORANGE = "#FF9F0A"    # Apple vibrant system orange (stats/countdowns)
+ACCENT_PURPLE = "#BF5AF2"    # Apple vibrant system purple (special icons)
+HOVER_COLOR = "#222225"      # Minimalist card hover background
+BORDER_COLOR = "#2C2C2E"     # Thin clean outline divider
 
 FONT_FAMILY = "Segoe UI" if os.name == "nt" else "Arial"
 
@@ -48,17 +50,17 @@ class HoverTooltip:
         tw.wm_geometry(f"+{x}+{y}")
         tw.attributes("-topmost", True)
         
-        # Dracula theme border highlight frame
-        frame = tk.Frame(tw, bg="#282A36", highlightbackground="#BD93F9", highlightcolor="#BD93F9", highlightthickness=1)
+        # Premium Apple Midnight Tooltip border frame
+        frame = tk.Frame(tw, bg=BG_INNER, highlightbackground=BORDER_COLOR, highlightcolor=BORDER_COLOR, highlightthickness=1)
         frame.pack()
         
         label = tk.Label(
             frame,
             text=text,
             justify="left",
-            background="#282A36",
-            foreground="#F8F8F2",
-            font=(FONT_FAMILY, 9, "bold"),
+            background=BG_INNER,
+            foreground=FG_LIGHT,
+            font=(FONT_FAMILY, 8, "normal"),
             padx=8,
             pady=4
         )
@@ -218,8 +220,8 @@ class KanjiWidget:
             bg=BG_INNER,
             pady=10,
             padx=15,
-            highlightbackground=ACCENT_PURPLE,
-            highlightcolor=ACCENT_PURPLE,
+            highlightbackground=BORDER_COLOR,
+            highlightcolor=BORDER_COLOR,
             highlightthickness=1
         )
         self.card_frame.pack(fill="both", expand=True, padx=15, pady=10)
@@ -348,9 +350,9 @@ class KanjiWidget:
         self.next_btn = tk.Button(
             card_ctrl,
             text="🧠 NEW CARD",
-            bg=ACCENT_PURPLE,
+            bg=ACCENT_CYAN,
             fg=FG_LIGHT,
-            activebackground="#9d6ef7",
+            activebackground="#147ce5",
             activeforeground=FG_LIGHT,
             bd=0,
             font=(FONT_FAMILY, 8, "bold"),
@@ -359,7 +361,7 @@ class KanjiWidget:
             command=self.fetch_new_card
         )
         self.next_btn.pack(side="right", fill="x", expand=True, padx=(2, 0), pady=(2, 0))
-        self.bind_button_hover(self.next_btn, ACCENT_PURPLE, "#9d6ef7")
+        self.bind_button_hover(self.next_btn, ACCENT_CYAN, "#147ce5")
         
         # Audio controls inside row
         self.slow_var = tk.BooleanVar(value=False)
@@ -537,7 +539,7 @@ class KanjiWidget:
         self.example_en_lbl.config(text=card_dict.get("example_en", ""))
         
         # Reset card glowing highlight on loaded card
-        self.card_frame.config(highlightbackground=ACCENT_PURPLE)
+        self.card_frame.config(highlightbackground=BORDER_COLOR, highlightcolor=BORDER_COLOR)
         
         # Update navigation buttons
         self.update_navigation_buttons()
@@ -590,7 +592,8 @@ class KanjiWidget:
         self.update_status_display()
         
         # Play small glowing border flash effect
-        self.card_frame.config(highlightbackground=ACCENT_GREEN)
+        self.card_frame.config(highlightbackground=ACCENT_GREEN, highlightcolor=ACCENT_GREEN)
+        self.root.after(1000, lambda: self.card_frame.config(highlightbackground=BORDER_COLOR, highlightcolor=BORDER_COLOR))
         
         # Pre-fetch the next card in the background immediately
         self.trigger_background_prefetch()
@@ -614,8 +617,8 @@ class KanjiWidget:
             self.next_btn.config(text="➡️ NEXT", bg=BG_CARD)
             self.bind_button_hover(self.next_btn, BG_CARD, HOVER_COLOR)
         else:
-            self.next_btn.config(text="🧠 NEW CARD", bg=ACCENT_PURPLE)
-            self.bind_button_hover(self.next_btn, ACCENT_PURPLE, "#9d6ef7")
+            self.next_btn.config(text="🧠 NEW CARD", bg=ACCENT_CYAN)
+            self.bind_button_hover(self.next_btn, ACCENT_CYAN, "#147ce5")
 
     def trigger_background_prefetch(self):
         """Asynchronously pre-fetches the next Kanji card in the background to avoid user-perceived delays."""
@@ -803,7 +806,8 @@ class KanjiWidget:
             guardian.save_kanji_data(self.kanji_db)
             
         # Play small glowing border flash effect
-        self.card_frame.config(highlightbackground=ACCENT_CYAN)
+        self.card_frame.config(highlightbackground=ACCENT_CYAN, highlightcolor=ACCENT_CYAN)
+        self.root.after(1000, lambda: self.card_frame.config(highlightbackground=BORDER_COLOR, highlightcolor=BORDER_COLOR))
 
     def trigger_pop_quiz(self):
         """Interrupts desktop actions, grabs system focus, and prompts a Kanji review multiple-choice pop-up."""
@@ -951,9 +955,9 @@ class KanjiWidget:
                 text=card["meaning"],
                 bg=BG_CARD,
                 fg=FG_LIGHT,
-                activebackground=ACCENT_PURPLE,
+                activebackground=ACCENT_CYAN,
                 activeforeground=FG_LIGHT,
-                bd=1,
+                bd=0,
                 relief="flat",
                 font=(FONT_FAMILY, 9, "bold"),
                 pady=6,
@@ -970,9 +974,11 @@ class KanjiWidget:
 
     def bind_button_hover(self, button, bg_normal, bg_hover):
         def enter(e):
-            button.config(bg=bg_hover)
+            if button.cget('state') != 'disabled':
+                button.config(bg=bg_hover)
         def leave(e):
-            button.config(bg=bg_normal)
+            if button.cget('state') != 'disabled':
+                button.config(bg=bg_normal)
         button.bind("<Enter>", enter)
         button.bind("<Leave>", leave)
 
