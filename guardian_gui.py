@@ -1638,29 +1638,14 @@ class GuardianWidget:
         ctrl_frame = tk.Frame(card, bg=BG_CARD)
         ctrl_frame.pack(fill="x", pady=(4, 0))
         
+        # Row 1 inside ctrl_frame
+        row1 = tk.Frame(ctrl_frame, bg=BG_CARD)
+        row1.pack(fill="x", pady=2)
+        
         # Launch Widget button
         launch_btn = tk.Button(
-            ctrl_frame,
-            text="🧠 LAUNCH",
-            bg=ACCENT_CYAN,
-            fg=FG_LIGHT,
-            activebackground="#147ce5",
-            activeforeground=FG_LIGHT,
-            bd=0,
-            relief="flat",
-            font=(FONT_FAMILY, 8, "bold"),
-            padx=6,
-            pady=3,
-            cursor="hand2",
-            command=self.launch_kanji_widget_subapp
-        )
-        launch_btn.pack(side="left", padx=2, fill="x", expand=True)
-        self.bind_button_hover(launch_btn, ACCENT_CYAN, "#147ce5")
-        
-        # Kanji Test button
-        test_btn = tk.Button(
-            ctrl_frame,
-            text="📝 CHALLENGE",
+            row1,
+            text="🚀 WIDGET",
             bg=BG_INNER,
             fg=FG_LIGHT,
             activebackground=HOVER_COLOR,
@@ -1668,15 +1653,67 @@ class GuardianWidget:
             bd=0,
             relief="flat",
             font=(FONT_FAMILY, 8, "bold"),
-            padx=6,
-            pady=3,
+            padx=4,
+            pady=4,
+            cursor="hand2",
+            command=self.launch_kanji_widget_subapp
+        )
+        launch_btn.pack(side="left", padx=2, fill="x", expand=True)
+        self.bind_button_hover(launch_btn, BG_INNER, HOVER_COLOR)
+        
+        # Full study app button
+        full_app_btn = tk.Button(
+            row1,
+            text="💻 STUDY APP",
+            bg=ACCENT_CYAN,
+            fg=FG_LIGHT,
+            activebackground="#147ce5",
+            activeforeground=FG_LIGHT,
+            bd=0,
+            relief="flat",
+            font=(FONT_FAMILY, 8, "bold"),
+            padx=4,
+            pady=4,
+            cursor="hand2",
+            command=self.launch_japanese_learning_app
+        )
+        full_app_btn.pack(side="right", padx=2, fill="x", expand=True)
+        self.bind_button_hover(full_app_btn, ACCENT_CYAN, "#147ce5")
+        
+        # Row 2 inside ctrl_frame
+        row2 = tk.Frame(ctrl_frame, bg=BG_CARD)
+        row2.pack(fill="x", pady=2)
+        
+        # Kanji Test button
+        test_btn = tk.Button(
+            row2,
+            text="📝 WEEKEND CHALLENGE",
+            bg=BG_INNER,
+            fg=FG_LIGHT,
+            activebackground=HOVER_COLOR,
+            activeforeground=FG_LIGHT,
+            bd=0,
+            relief="flat",
+            font=(FONT_FAMILY, 8, "bold"),
+            padx=4,
+            pady=4,
             cursor="hand2",
             command=self.open_weekend_kanji_test_modal
         )
-        test_btn.pack(side="right", padx=2, fill="x", expand=True)
+        test_btn.pack(fill="x", expand=True, padx=2)
         self.bind_button_hover(test_btn, BG_INNER, HOVER_COLOR)
         
         self.bind_hover_highlight(card, BG_CARD, HOVER_COLOR)
+
+    def launch_japanese_learning_app(self):
+        """Launches the full standalone Japanese learning application as an independent concurrent subprocess."""
+        try:
+            import subprocess
+            python_exe = sys.executable
+            script_path = os.path.join(BASE_DIR, "japanese_learning_app.py")
+            subprocess.Popen([python_exe, script_path], creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+        except Exception as e:
+            messagebox.showerror("Execution Error", f"Failed to launch Japanese Study App:\n\n{e}", parent=self.root)
 
     def launch_kanji_widget_subapp(self):
         """Launches the Kanji flashcard widget as an independent concurrent subprocess."""
