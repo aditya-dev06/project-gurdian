@@ -17,3 +17,7 @@ ENV/
 env/
 # Ignore local crash logs
 gui_crash_log.txt
+
+# Ignore local kanji progress database records
+kanji_data.json
+

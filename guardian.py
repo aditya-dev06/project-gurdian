@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import requests
+import urllib.parse
 from datetime import datetime, timedelta
 
 # Ensure UTF-8 output encoding for standard streams to prevent Windows Console UnicodeEncodeErrors
@@ -109,7 +110,8 @@ def load_config():
         "start_date": "",
         "end_date": "",
         "gemini_api_key": "",
-        "japan_mnc_prep_active": True
+        "japan_mnc_prep_active": True,
+        "startup_enabled": True
     }
     if not os.path.exists(CONFIG_FILE):
         save_config(default_config)
@@ -124,6 +126,11 @@ def load_config():
             if k not in config:
                 config[k] = v
                 modified = True
+        
+        # If startup_enabled is set to False (the old default), migrate to True since the user requested auto-start
+        if config.get("startup_enabled") is False:
+            config["startup_enabled"] = True
+            modified = True
         
         if modified:
             save_config(config)
@@ -166,6 +173,542 @@ def save_data(data):
             json.dump(data, f, indent=4)
     except Exception as e:
         print(f"{RED}❌ Failed to save data file: {e}{RESET}")
+
+# ==================== KANJI SUB-APP DATA & SERVICES ====================
+
+KANJI_DATA_FILE = os.path.join(BASE_DIR, "kanji_data.json")
+
+def load_kanji_data():
+    """Loads Kanji study vocabulary and progress from kanji_data.json."""
+    default_kanji_data = {
+        "vocab": {},
+        "stats": {
+            "total_reviewed": 0,
+            "total_correct": 0
+        }
+    }
+    if not os.path.exists(KANJI_DATA_FILE):
+        return default_kanji_data
+    try:
+        with open(KANJI_DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if "vocab" not in data:
+            data["vocab"] = {}
+        if "stats" not in data:
+            data["stats"] = {"total_reviewed": 0, "total_correct": 0}
+        return data
+    except Exception:
+        return default_kanji_data
+
+def save_kanji_data(data):
+    """Saves Kanji study progress and history to kanji_data.json."""
+    try:
+        with open(KANJI_DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"{RED}❌ Failed to save kanji data file: {e}{RESET}")
+
+def speak_japanese_text(text, slow=False):
+    """Dual-pipeline Windows speech synthesis for Japanese text.
+    1. First attempts online streaming from Google TTS via silent .NET WPF MediaPlayer.
+    2. Falls back to offline SAPI speech synthesizer if offline/error.
+    All runs in a background daemon thread with hidden windows to prevent command prompt flashing.
+    """
+    if not text:
+        return
+        
+    def run_speech():
+        try:
+            import base64
+            import subprocess
+            import urllib.parse
+            
+            # Clean single/double quotes to prevent PowerShell syntax/command injection issues
+            clean_text = text.replace("'", "").replace('"', "")
+            encoded_text = urllib.parse.quote(clean_text)
+            
+            # Slow rate parameter for Google TTS
+            speed_param = "&ttsspeed=0.24" if slow else ""
+            url = f"https://translate.google.com/translate_tts?ie=UTF-8&tl=ja&client=tw-ob{speed_param}&q={encoded_text}"
+            local_path = os.path.join(BASE_DIR, "temp_tts.mp3")
+            
+            # Download the premium audio stream locally first using standard library / requests
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+            r = requests.get(url, headers=headers, timeout=5)
+            if r.status_code == 200:
+                with open(local_path, "wb") as f:
+                    f.write(r.content)
+                    
+                # Play local MP3 via WPF System.Windows.Media.MediaPlayer (completely windowless safe)
+                # Polling position every 100ms lets it exit immediately when sound finishes
+                escaped_path = local_path.replace("\\", "/")
+                ps_cmd_wpf = (
+                    "$ProgressPreference = 'SilentlyContinue'; "
+                    "try { "
+                    "  Add-Type -AssemblyName PresentationCore; "
+                    "  $player = New-Object System.Windows.Media.MediaPlayer; "
+                    f"  $player.Open([Uri]'file:///{escaped_path}'); "
+                    "  for ($i = 0; $i -lt 30; $i++) { "
+                    "    if ($player.NaturalDuration.HasTimeSpan) { break }; "
+                    "    Start-Sleep -Milliseconds 50 "
+                    "  }; "
+                    "  $player.Play(); "
+                    "  Start-Sleep -Milliseconds 100; "
+                    "  $lastPos = $player.Position; "
+                    "  $timeout = 0; "
+                    "  while ($timeout -lt 80) { "
+                    "    Start-Sleep -Milliseconds 100; "
+                    "    if ($player.Position -eq $lastPos -and $player.Position.TotalMilliseconds -gt 0) { "
+                    "      break; "
+                    "    }; "
+                    "    $lastPos = $player.Position; "
+                    "    $timeout++; "
+                    "  }; "
+                    "  $player.Close(); "
+                    "  exit 0; "
+                    "} catch { "
+                    "  exit 1; "
+                    "}"
+                )
+                
+                encoded_wpf = base64.b64encode(ps_cmd_wpf.encode('utf-16-le')).decode('ascii')
+                creationflags = subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0x08000000
+                res = subprocess.run(
+                    ["powershell", "-WindowStyle", "Hidden", "-EncodedCommand", encoded_wpf],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    creationflags=creationflags
+                )
+                
+                # Try to clean up local file immediately
+                try:
+                    if os.path.exists(local_path):
+                        os.remove(local_path)
+                except Exception:
+                    pass
+                    
+                if res.returncode == 0:
+                    return # Successfully played online native audio!
+                    
+        except Exception:
+            pass
+            
+        # Clean up local file if download succeeded but play/loop threw an exception before delete
+        try:
+            local_path = os.path.join(BASE_DIR, "temp_tts.mp3")
+            if os.path.exists(local_path):
+                os.remove(local_path)
+        except Exception:
+            pass
+            
+        # 2. Fallback: Offline SAPI voice synthesizer
+        try:
+            import base64
+            import subprocess
+            clean_text = text.replace("'", "").replace('"', "")
+            
+            # SAPI synthesizer speed rate command
+            rate_cmd = "$synth.Rate = -3; " if slow else ""
+            
+            ps_cmd_sapi = (
+                "$ProgressPreference = 'SilentlyContinue'; "
+                "Add-Type -AssemblyName System.Speech; "
+                "$synth = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
+                f"{rate_cmd}"
+                "$voice = $synth.GetInstalledVoices() | Where-Object { $_.VoiceInfo.Culture.Name -like '*ja*' -or $_.VoiceInfo.Name -like '*Japanese*' } | Select-Object -First 1; "
+                "if ($voice) { $synth.SelectVoice($voice.VoiceInfo.Name) }; "
+                f"$synth.Speak('{clean_text}')"
+            )
+            encoded_sapi = base64.b64encode(ps_cmd_sapi.encode('utf-16-le')).decode('ascii')
+            creationflags = subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0x08000000
+            subprocess.run(
+                ["powershell", "-WindowStyle", "Hidden", "-EncodedCommand", encoded_sapi],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=creationflags
+            )
+        except Exception:
+            pass
+            
+    import threading
+    threading.Thread(target=run_speech, daemon=True).start()
+
+def register_startup_shortcut(enable=True):
+    """Registers or removes the Kanji Widget startup shortcut in the native Windows Startup directory."""
+    if os.name != "nt":
+        return False
+        
+    try:
+        import base64
+        import subprocess
+        
+        startup_dir = os.path.join(os.environ["APPDATA"], "Microsoft", "Windows", "Start Menu", "Programs", "Startup")
+        shortcut_path = os.path.join(startup_dir, "KanjiWidget.lnk")
+        
+        if not enable:
+            if os.path.exists(shortcut_path):
+                os.remove(shortcut_path)
+            return True
+            
+        # Resolve pythonw.exe path for completely windowless background application boot
+        python_exe = sys.executable
+        pythonw_exe = python_exe.replace("python.exe", "pythonw.exe")
+        if not os.path.exists(pythonw_exe):
+            pythonw_exe = python_exe  # Fallback to sys.executable if pythonw.exe is not found
+            
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        script_path = os.path.join(base_dir, "kanji_widget.py")
+        
+        # PowerShell COM script to create the link
+        ps_cmd = (
+            f"$WshShell = New-Object -ComObject WScript.Shell; "
+            f"$Shortcut = $WshShell.CreateShortcut('{shortcut_path}'); "
+            f"$Shortcut.TargetPath = '{pythonw_exe}'; "
+            f"$Shortcut.Arguments = '\"{script_path}\"'; "
+            f"$Shortcut.WorkingDirectory = '\"{base_dir}\"'; "
+            f"$Shortcut.Save()"
+        )
+        
+        encoded_cmd = base64.b64encode(ps_cmd.encode('utf-16-le')).decode('ascii')
+        creationflags = subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0x08000000
+        res = subprocess.run(
+            ["powershell", "-WindowStyle", "Hidden", "-EncodedCommand", encoded_cmd],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=creationflags
+        )
+        return res.returncode == 0
+    except Exception:
+        return False
+
+def get_gemini_kanji_card(api_key, jlpt_level="N5", excluded_list=None):
+    """Queries Gemini 2.5 API to generate a progressive Japanese Kanji card. Falls back to local database if offline."""
+    if excluded_list is None:
+        excluded_list = []
+        
+    # Beautiful structured fallback pool of Japanese N5 Kanji cards
+    fallback_cards = [
+        {
+            "kanji": "日",
+            "meaning": "day, sun, Japan",
+            "onyomi": "ニチ, ジツ",
+            "kunyomi": "ひ, び, か",
+            "stroke_count": 4,
+            "example_ja": "日本にいきたいです。",
+            "example_en": "I want to go to Japan.",
+            "kanji_yomi": "ひ",
+            "kanji_romaji": "hi",
+            "example_yomi": "にほん に いきたい です。",
+            "example_romaji": "nihon ni ikitai desu."
+        },
+        {
+            "kanji": "本",
+            "meaning": "book, origin, main",
+            "onyomi": "ホン",
+            "kunyomi": "もと",
+            "stroke_count": 5,
+            "example_ja": "日本語をべんきょうします。",
+            "example_en": "I study Japanese.",
+            "kanji_yomi": "ほん",
+            "kanji_romaji": "hon",
+            "example_yomi": "にほんご を べんきょう します。",
+            "example_romaji": "nihongo o benkyou shimasu."
+        },
+        {
+            "kanji": "人",
+            "meaning": "person, human",
+            "onyomi": "ジン, ニン",
+            "kunyomi": "ひと",
+            "stroke_count": 2,
+            "example_ja": "あの人はだれですか。",
+            "example_en": "Who is that person?",
+            "kanji_yomi": "ひと",
+            "kanji_romaji": "hito",
+            "example_yomi": "あの ひと は だれ です か。",
+            "example_romaji": "ano hito wa dare desu ka."
+        },
+        {
+            "kanji": "学",
+            "meaning": "study, learning, science",
+            "onyomi": "ガク",
+            "kunyomi": "まな-ぶ",
+            "stroke_count": 8,
+            "example_ja": "学生ですか。",
+            "example_en": "Are you a student?",
+            "kanji_yomi": "まなぶ",
+            "kanji_romaji": "manabu",
+            "example_yomi": "がくせい です か。",
+            "example_romaji": "gakusei desu ka."
+        },
+        {
+            "kanji": "生",
+            "meaning": "life, birth, genuine",
+            "onyomi": "セイ, ショウ",
+            "kunyomi": "い-きる, う-む, なま",
+            "stroke_count": 5,
+            "example_ja": "先生、こんにちは。",
+            "example_en": "Hello, teacher.",
+            "kanji_yomi": "なま",
+            "kanji_romaji": "nama",
+            "example_yomi": "せんせい、こんにちは。",
+            "example_romaji": "sensei, konnichiwa."
+        },
+        {
+            "kanji": "先",
+            "meaning": "ahead, previous, future",
+            "onyomi": "セン",
+            "kunyomi": "さき",
+            "stroke_count": 6,
+            "example_ja": "先月、日本にいきました。",
+            "example_en": "I went to Japan last month.",
+            "kanji_yomi": "さき",
+            "kanji_romaji": "saki",
+            "example_yomi": "せんげつ、にほん に いきました。",
+            "example_romaji": "sengetsu, nihon ni ikimashita."
+        },
+        {
+            "kanji": "国",
+            "meaning": "country",
+            "onyomi": "コク",
+            "kunyomi": "くに",
+            "stroke_count": 8,
+            "example_ja": "お国はどちらですか。",
+            "example_en": "Which country are you from?",
+            "kanji_yomi": "くに",
+            "kanji_romaji": "kuni",
+            "example_yomi": "おくに は どちら です か。",
+            "example_romaji": "okuni wa dochira desu ka."
+        },
+        {
+            "kanji": "車",
+            "meaning": "car, vehicle, wheel",
+            "onyomi": "シャ",
+            "kunyomi": "くるま",
+            "stroke_count": 7,
+            "example_ja": "新しい車を買いました。",
+            "example_en": "I bought a new car.",
+            "kanji_yomi": "くるま",
+            "kanji_romaji": "kuruma",
+            "example_yomi": "あたらしい くるま を かいました。",
+            "example_romaji": "atarashii kuruma o kaimashita."
+        },
+        {
+            "kanji": "水",
+            "meaning": "water",
+            "onyomi": "スイ",
+            "kunyomi": "みず",
+            "stroke_count": 4,
+            "example_ja": "お水をください。",
+            "example_en": "Please give me water.",
+            "kanji_yomi": "みず",
+            "kanji_romaji": "mizu",
+            "example_yomi": "おみず を ください。",
+            "example_romaji": "omizu o kudasai."
+        },
+        {
+            "kanji": "金",
+            "meaning": "gold, money",
+            "onyomi": "キン, コン",
+            "kunyomi": "かね, かな",
+            "stroke_count": 8,
+            "example_ja": "お金がありません。",
+            "example_en": "I have no money.",
+            "kanji_yomi": "かね",
+            "kanji_romaji": "kane",
+            "example_yomi": "おかね が ありません。",
+            "example_romaji": "okane ga arimasen."
+        },
+        {
+            "kanji": "子",
+            "meaning": "child, young",
+            "onyomi": "シ, ス",
+            "kunyomi": "こ",
+            "stroke_count": 3,
+            "example_ja": "子どもがすきです。",
+            "example_en": "I like children.",
+            "kanji_yomi": "こ",
+            "kanji_romaji": "ko",
+            "example_yomi": "こども が すき です。",
+            "example_romaji": "kodomo ga suki desu."
+        },
+        {
+            "kanji": "大",
+            "meaning": "large, big, grand",
+            "onyomi": "ダイ, タイ",
+            "kunyomi": "おお-きい",
+            "stroke_count": 3,
+            "example_ja": "大学でべんきょうします。",
+            "example_en": "I study at university.",
+            "kanji_yomi": "おおきい",
+            "kanji_romaji": "ookii",
+            "example_yomi": "だいがく で べんきょう します。",
+            "example_romaji": "daigaku de benkyou shimasu."
+        },
+        {
+            "kanji": "中",
+            "meaning": "in, inside, middle",
+            "onyomi": "チュウ",
+            "kunyomi": "なか",
+            "stroke_count": 4,
+            "example_ja": "かばんの中に本があります。",
+            "example_en": "There is a book inside the bag.",
+            "kanji_yomi": "なか",
+            "kanji_romaji": "naka",
+            "example_yomi": "かばん の なか に ほん が あります。",
+            "example_romaji": "kaban no naka ni hon ga arimasu."
+        },
+        {
+            "kanji": "小",
+            "meaning": "small, little",
+            "onyomi": "ショウ",
+            "kunyomi": "ちい-さい",
+            "stroke_count": 3,
+            "example_ja": "小さいねこがいます。",
+            "example_en": "There is a small cat.",
+            "kanji_yomi": "ちいさい",
+            "kanji_romaji": "chiisai",
+            "example_yomi": "ちいさい ねこ が います。",
+            "example_romaji": "chiisai neko ga imasu."
+        },
+        {
+            "kanji": "何",
+            "meaning": "what",
+            "onyomi": "カ",
+            "kunyomi": "なに, なん",
+            "stroke_count": 7,
+            "example_ja": "これは何ですか。",
+            "example_en": "What is this?",
+            "kanji_yomi": "なに",
+            "kanji_romaji": "nani",
+            "example_yomi": "これ は なん です か。",
+            "example_romaji": "kore wa nan desu ka."
+        }
+    ]
+    
+    if api_key and api_key != "YOUR_GEMINI_API_KEY" and api_key.strip():
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        headers = {"Content-Type": "application/json"}
+        
+        excluded_text = ", ".join(excluded_list) if excluded_list else "None"
+        prompt = (
+            f"You are a native Japanese language teacher and career upscaling coach. Generate a single highly practical Japanese Kanji study card for level {jlpt_level}.\n"
+            f"The Kanji must NOT be one of the following already learned characters: {excluded_text}.\n\n"
+            "You MUST return a raw JSON object with the following keys. Do NOT wrap in markdown code blocks or add any extra conversational text. Return only the raw JSON string:\n"
+            "{\n"
+            '  "kanji": "A single Kanji character (e.g. 漢)",\n'
+            '  "meaning": "The English meanings (e.g. Sino-, China, Han)",\n'
+            '  "onyomi": "The katakana onyomi readings, comma separated (e.g. カン)",\n'
+            '  "kunyomi": "The hiragana kunyomi readings, comma separated (e.g. おとこ, -お)",\n'
+            '  "stroke_count": 13,\n'
+            '  "example_ja": "A simple practical Japanese example sentence using this Kanji (e.g. 漢字は面白いです。)",\n'
+            '  "example_en": "The English translation of the example sentence (e.g. Kanji is interesting.)",\n'
+            '  "kanji_yomi": "The hiragana reading of the kanji character (e.g. かん)",\n'
+            '  "kanji_romaji": "The romaji reading of the kanji character, all lowercase (e.g. kan)",\n'
+            '  "example_yomi": "The hiragana/furigana representation of the example sentence, with spaces separating words for readability (e.g. かんじ は おもしろい です。)",\n'
+            '  "example_romaji": "The romaji reading of the example sentence, with spaces separating words, all lowercase (e.g. kanji wa omoshiroi desu.)"\n'
+            "}"
+        )
+        
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt}
+                    ]
+                }
+            ]
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=8)
+            if response.status_code == 200:
+                res_json = response.json()
+                text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+                if text.startswith("```json"):
+                    text = text[7:]
+                if text.startswith("```"):
+                    text = text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
+                text = text.strip()
+                parsed = json.loads(text)
+                if "kanji" in parsed and "meaning" in parsed:
+                    # Clean Onyomi / Kunyomi fields
+                    parsed["onyomi"] = parsed.get("onyomi", "").strip()
+                    parsed["kunyomi"] = parsed.get("kunyomi", "").strip()
+                    return parsed
+        except Exception as e:
+            print(f"Gemini Kanji Fetch failed: {e}. Using fallback.")
+            
+    available_fallbacks = [c for c in fallback_cards if c["kanji"] not in excluded_list]
+    if not available_fallbacks:
+        available_fallbacks = fallback_cards
+        
+    import random
+    return random.choice(available_fallbacks)
+
+
+def get_gemini_example_sentence(api_key, kanji):
+    """Queries Gemini to generate a new, unique Japanese example sentence and English translation
+    for a given Kanji character, along with its Hiragana and Romaji readings.
+    """
+    fallback_sentences = [
+        {
+            "example_ja": f"{kanji}を使ってみましょう。",
+            "example_en": f"Let's try using the kanji {kanji}.",
+            "example_yomi": f"{kanji} を つかって みましょう。",
+            "example_romaji": f"{kanji} o tsukatte mimashou."
+        },
+        {
+            "example_ja": f"この{kanji}はとてもきれいです。",
+            "example_en": f"This kanji {kanji} is very beautiful.",
+            "example_yomi": f"この {kanji} は とても きれい です。",
+            "example_romaji": f"kono {kanji} wa totemo kirei desu."
+        }
+    ]
+    if api_key and api_key != "YOUR_GEMINI_API_KEY" and api_key.strip():
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        headers = {"Content-Type": "application/json"}
+        prompt = (
+            f"You are a native Japanese language teacher. Generate a single highly practical Japanese example sentence for the Kanji character: '{kanji}'.\n"
+            "You MUST return a raw JSON object with the following keys. Do NOT wrap in markdown code blocks or add any extra conversational text. Return only the raw JSON string:\n"
+            "{\n"
+            '  "example_ja": "A simple practical Japanese example sentence using the Kanji (e.g. 漢字は面白いです。)",\n'
+            '  "example_en": "The English translation of the example sentence (e.g. Kanji is interesting.)",\n'
+            '  "example_yomi": "The hiragana/furigana representation of the example sentence, with spaces separating words for readability (e.g. かんじ は おもしろい です。)",\n'
+            '  "example_romaji": "The romaji reading of the example sentence, with spaces separating words, all lowercase (e.g. kanji wa omoshiroi desu.)"\n'
+            "}"
+        )
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt}
+                    ]
+                }
+            ]
+        }
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=8)
+            if response.status_code == 200:
+                res_json = response.json()
+                text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+                if text.startswith("```json"):
+                    text = text[7:]
+                if text.startswith("```"):
+                    text = text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
+                text = text.strip()
+                parsed = json.loads(text)
+                if "example_ja" in parsed and "example_en" in parsed:
+                    return parsed
+        except Exception as e:
+            print(f"Gemini Example Sentence Fetch failed: {e}. Using fallback.")
+            
+    import random
+    return random.choice(fallback_sentences)
+
 
 def initialize_today(data, date_str, tracked_tasks):
     """Ensures today's date exists in the database with all manual tasks set to false."""
@@ -314,18 +857,23 @@ def generate_gemini_task_via_api(api_key, history):
     prompt = (
         "You are an expert career coach and senior staff engineer specializing in helping software developers land elite engineering roles "
         "at major Multi-National Corporations (MNCs) in Tokyo, Japan (such as Rakuten, Mercari, LINE, Yahoo Japan, PayPay, Sony, and Woven by Toyota).\n\n"
-        "Your task is to generate a highly actionable, high-impact weekend study/preparation micro-task for the user. "
-        "The micro-task should take between 1 to 2 hours to complete and should cover one of the following key areas in a progressive, structured manner:\n"
-        "1. Drafting and polishing Japanese-format resumes (Rirekisho 履歴書) and detailed work history sheets (Shokumukeirekisho 職務経歴書).\n"
-        "2. Practicing standard Japanese business manners, self-introductions (Jikoshoukai 自己紹介), behavioral answers, and Keigo (敬語) basics for interviews.\n"
-        "3. Reviewing system design patterns, distributed caching, database scaling, microservices architectures, and technical stacks utilized by high-scale companies in Japan.\n"
-        "4. Researching target Japanese tech company engineering cultures, tech blogs, open-source initiatives, and interview patterns.\n\n"
+        "Your task is to generate a comprehensive, high-impact weekend study and upscaling guide for the user. "
+        "The guide must contain highly actionable tasks to help the user upscale both technically (to hit standard MNC coding and system architecture expectations) "
+        "and personality-wise (for Japanese interviews, Keigo, manners, and workplace integration).\n\n"
         f"{history_summary}\n"
-        "Analyze the user's progress. Based on what they have done (or if they are just starting), generate the next logical, progressive, and highly effective task. "
-        "IMPORTANT rules:\n"
-        "- The task must be extremely concrete, specific, and actionable. Do not give generic advice.\n"
-        "- Keep the task description short, punchy, and compelling (maximum 1-2 sentences).\n"
-        "- Reply ONLY with the task description. Do not include any introductory remarks, markdown formatting (like bolding or backticks), or extra conversational text. Just output the task text itself."
+        "Based on the user's progress, generate the next logical, progressive, and highly effective week of study. "
+        "You must also suggest specific high-quality search terms or YouTube video recommendations that align with these topics, targeting the latest tech and interview trends.\n\n"
+        "You MUST return a raw JSON object with the following keys. Do NOT wrap in markdown code blocks or add any extra conversational text. Return only the raw JSON string:\n"
+        "{\n"
+        '  "task_title": "A short, punchy title for this weekend\'s goal (e.g., Microservices Scalability & Jikoshoukai)",\n'
+        '  "tech_upscaling": "Concrete instructions on what technical topic to study/build, focused on Tokyo MNC requirements (Go, microservices, system design, cloud, Kubernetes, LeetCode style prep, etc.)",\n'
+        '  "personality_upscaling": "Specific instructions on upscaling communication, Keigo (敬語), Ho-Ren-So, Japanese manners, self-introductions, or behavioral questions",\n'
+        '  "youtube_suggestions": [\n'
+        '     {"title": "Descriptive title of YouTube video/channel search, e.g. ByteByteGo - System Design Microservices", "search_query": "ByteByteGo microservices system design"},\n'
+        '     {"title": "E.g. Nihongo Dekita - Business Japanese and Keigo", "search_query": "Nihongo Dekita Keigo business manners"},\n'
+        '     {"title": "E.g. Tokyo Dev - Tech Careers and Life in Japan", "search_query": "Tokyo software engineer jobs life"}\n'
+        '  ]\n'
+        "}"
     )
     
     payload = {
@@ -342,13 +890,92 @@ def generate_gemini_task_via_api(api_key, history):
     if response.status_code == 200:
         res_json = response.json()
         try:
-            task_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
-            task_text = task_text.replace("`", "").replace('"', '').strip()
-            return task_text
-        except (KeyError, IndexError) as e:
-            raise Exception(f"Failed to parse Gemini response: {e}")
+            text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+            # Clean up markdown code block wrapping if generated
+            if text.startswith("```json"):
+                text = text[7:]
+            if text.startswith("```"):
+                text = text[3:]
+            if text.endswith("```"):
+                text = text[:-3]
+            text = text.strip()
+            
+            parsed = json.loads(text)
+            return parsed
+        except Exception as e:
+            raise Exception(f"Failed to parse Gemini JSON response: {e}. Raw: {text[:200]}")
     else:
         raise Exception(f"Gemini API returned status code {response.status_code}: {response.text}")
+
+def get_rich_fallback_task(week_idx):
+    """Generates a rich, structured prep task from the curated roadmap with upscaling and YouTube suggestions."""
+    title = JAPAN_MNC_ROADMAP[week_idx]
+    
+    # Defaults
+    tech = "Focus on building out your current backend/frontend project, review high-concurrency architectures, and practice explaining your code in simple terms."
+    personality = "Rehearse self-introductions, basic politeness, and professional posture for online/offline interviews."
+    yt = [
+        {"title": "ByteByteGo - System Design Fundamentals", "search_query": "ByteByteGo system design architecture"},
+        {"title": "Nihongo Dekita - Japanese Interview Tips", "search_query": "Nihongo Dekita Japanese interview"},
+        {"title": "Tokyo Dev - Software Engineer in Japan", "search_query": "Tokyo software engineer life salary"}
+    ]
+    
+    title_lower = title.lower()
+    if "resume" in title_lower or "rirekisho" in title_lower or "shokumukeirekisho" in title_lower:
+        tech = "Review and catalog your technical stack, projects list, metrics (e.g. system throughput, cost savings), and open-source contributions."
+        personality = "Learn how to write professional Japanese resume sections, clean formatting, and write short, compelling descriptions of your contributions."
+        yt = [
+            {"title": "Tokyodev - Writing a Japanese Resume for Software Engineers", "search_query": "Tokyodev Japanese software engineer resume"},
+            {"title": "Japan Dev - Tech Resume Tips", "search_query": "Japan Dev software engineer tech resume guide"},
+            {"title": "Keigo Basics - Business Self Introduction", "search_query": "Business Japanese self introduction tips"}
+        ]
+    elif "jikoshoukai" in title_lower or "self-introduction" in title_lower:
+        tech = "Prepare a list of your top 3 technical projects. Practice describing their architectures in 30 seconds."
+        personality = "Craft and practice your 2-minute Japanese Self-Introduction (自己紹介 - Jikoshoukai). Ensure you cover name, background, core tech stack, and your eagerness to join the company."
+        yt = [
+            {"title": "Japanese interview Jikoshoukai self introduction guide", "search_query": "Japanese interview self introduction software engineer"},
+            {"title": "Speak Natural Japanese in Interviews", "search_query": "Japanese self introduction Jikoshoukai pronunciation"},
+            {"title": "Japan Dev - Tech Interviews in Tokyo", "search_query": "Japan Dev software engineer interview tips"}
+        ]
+    elif "keigo" in title_lower or "business manners" in title_lower or "etiquette" in title_lower or "email" in title_lower:
+        tech = "Review technical correspondence terms (e.g. Server down, API update, deployment schedule) in business Japanese."
+        personality = "Practice basic Japanese business Keigo (敬語) - Teineigo, Sonkeigo, Kenjougo. Rehearse standard phrases like 'Yoroshiku onegai itashimasu' and interview entry manners."
+        yt = [
+            {"title": "Nihongo Dekita - Keigo Made Simple for Business", "search_query": "Nihongo Dekita business Japanese Keigo"},
+            {"title": "Learn Japanese Business Manners & Interview Etiquette", "search_query": "Japanese interview etiquette entry exit manners"},
+            {"title": "Japan Tech Jobs - Cultural expectations", "search_query": "Japanese business manners international tech company"}
+        ]
+    elif "microservices" in title_lower or "distributed" in title_lower or "system design" in title_lower or "concurrency" in title_lower or "caching" in title_lower:
+        tech = "Practice design questions: scalable database schemas, high-throughput caching strategies (Redis), message queues (Kafka), and Go/Kubernetes microservices architecture."
+        personality = "Practice technical system design presentation skills: clearly explain engineering trade-offs (e.g. CAP theorem, read/write ratios) and why you chose certain tech."
+        yt = [
+            {"title": "ByteByteGo - Microservices & Scaling Systems", "search_query": "ByteByteGo microservices distributed caching Redis"},
+            {"title": "System Design Interview - Scalable Architecture", "search_query": "System design interview chat app microservices"},
+            {"title": "ArjanCodes - Software Architecture Trends", "search_query": "ArjanCodes software architecture microservices patterns"}
+        ]
+    elif "mercari" in title_lower or "rakuten" in title_lower or "line" in title_lower or "paypay" in title_lower or "sony" in title_lower or "toyota" in title_lower:
+        tech = "Analyze the engineering blogs of top Tokyo tech giants: Mercari (Go/Kubernetes), LINE (Java/Kafka), Rakuten (Java/Kotlin/Node), PayPay (Java/Scale payments)."
+        personality = "Understand corporate engineering values in Japan: Rakuten's English-first culture, Mercari's 'Go Bold / All for One / Be a Pro', PayPay's rapid speed."
+        yt = [
+            {"title": "Mercari Engineering culture and Go backend", "search_query": "Mercari tech stack software engineer"},
+            {"title": "PayPay / LINE Engineering - Scale and Architecture", "search_query": "PayPay backend microservices LINE Java"},
+            {"title": "Rakuten Tech Ecosystem and Global Workplace", "search_query": "Rakuten software engineer interview english"}
+        ]
+    elif "behavioral" in title_lower or "star method" in title_lower or "shiboudouki" in title_lower or "ho-ren-so" in title_lower or "kaizen" in title_lower:
+        tech = "Review and catalog challenging project incidents: outages, difficult bugs, or technical debt you proactively refactored."
+        personality = "Master the STAR method in Japanese. Formulate answers for 'Why Japan?', 'Why our company?', and demonstrate familiarity with Japanese business practices like Ho-Ren-So and Kaizen."
+        yt = [
+            {"title": "Japanese Behavioral Interview Prep (Shiboudouki)", "search_query": "Japanese interview Shiboudouki why Japan software engineer"},
+            {"title": "Understanding Ho-Ren-So & Kaizen Workplace Culture", "search_query": "Horenso Kaizen Japanese business culture explained"},
+            {"title": "Tech Interview Pro - Behavioral Questions", "search_query": "Tech Interview Pro behavioral questions STAR method"}
+        ]
+        
+    return {
+        "task_title": title,
+        "tech_upscaling": tech,
+        "personality_upscaling": personality,
+        "youtube_suggestions": yt
+    }
 
 def get_or_create_weekend_task(reference_date=None):
     """Gets the weekend task for the current weekend. If none exists, creates one and saves it."""
@@ -363,6 +990,22 @@ def get_or_create_weekend_task(reference_date=None):
     # Check if we already have an entry for this Saturday
     for entry in data["weekend_history"]:
         if entry.get("date") == sat_date_str:
+            # Backfill missing rich fields for older database schema
+            modified = False
+            if "tech_upscaling" not in entry or "personality_upscaling" not in entry or "youtube_suggestions" not in entry:
+                week_idx = data["weekend_history"].index(entry) % 52
+                rich_fallback = get_rich_fallback_task(week_idx)
+                if "tech_upscaling" not in entry:
+                    entry["tech_upscaling"] = rich_fallback["tech_upscaling"]
+                    modified = True
+                if "personality_upscaling" not in entry:
+                    entry["personality_upscaling"] = rich_fallback["personality_upscaling"]
+                    modified = True
+                if "youtube_suggestions" not in entry:
+                    entry["youtube_suggestions"] = rich_fallback["youtube_suggestions"]
+                    modified = True
+                if modified:
+                    save_data(data)
             return entry
 
     # Create a new task!
@@ -374,23 +1017,37 @@ def get_or_create_weekend_task(reference_date=None):
         return None
 
     task_title = ""
+    tech_upscaling = ""
+    personality_upscaling = ""
+    youtube_suggestions = []
     source = "Curated Roadmap"
     
     if api_key and api_key != "YOUR_GEMINI_API_KEY":
         try:
-            task_title = generate_gemini_task_via_api(api_key, data["weekend_history"])
+            parsed = generate_gemini_task_via_api(api_key, data["weekend_history"])
+            task_title = parsed.get("task_title", "")
+            tech_upscaling = parsed.get("tech_upscaling", "")
+            personality_upscaling = parsed.get("personality_upscaling", "")
+            youtube_suggestions = parsed.get("youtube_suggestions", [])
             source = "Gemini AI"
         except Exception as e:
             print(f"{YELLOW}⚠️ Gemini API generation failed ({e}). Falling back to Curated Roadmap.{RESET}")
     
     if not task_title:
         week_idx = len(data["weekend_history"]) % 52
-        task_title = JAPAN_MNC_ROADMAP[week_idx]
+        rich_fallback = get_rich_fallback_task(week_idx)
+        task_title = rich_fallback["task_title"]
+        tech_upscaling = rich_fallback["tech_upscaling"]
+        personality_upscaling = rich_fallback["personality_upscaling"]
+        youtube_suggestions = rich_fallback["youtube_suggestions"]
         source = "Curated Roadmap"
 
     new_entry = {
         "date": sat_date_str,
         "task_title": task_title,
+        "tech_upscaling": tech_upscaling,
+        "personality_upscaling": personality_upscaling,
+        "youtube_suggestions": youtube_suggestions,
         "source": source,
         "notes": "",
         "completed": False
@@ -418,6 +1075,22 @@ def show_weekend_status():
     print(f"🎯 Target Task  : {BOLD}{CYAN}{entry.get('task_title')}{RESET}")
     print(f"💡 Task Source  : {YELLOW}{entry.get('source')}{RESET}")
     print(f"📊 Status       : {status}")
+    print("-" * 51)
+    print(f"{BOLD}{GREEN}💻 TECHNICAL UPSCALING:{RESET}")
+    print(f"{WHITE}{entry.get('tech_upscaling', '(No technical goals defined)')}{RESET}")
+    print("-" * 51)
+    print(f"{BOLD}{MAGENTA}🧠 PERSONALITY & CULTURE:{RESET}")
+    print(f"{WHITE}{entry.get('personality_upscaling', '(No personality goals defined)')}{RESET}")
+    print("-" * 51)
+    print(f"{BOLD}{CYAN}🎥 LATEST YOUTUBE TREND SEARCHES:{RESET}")
+    yt_suggestions = entry.get("youtube_suggestions", [])
+    if yt_suggestions:
+        for idx, item in enumerate(yt_suggestions, 1):
+            print(f"  {idx}. {BOLD}{item.get('title')}{RESET}")
+            print(f"     🔍 Search Query: {YELLOW}https://www.youtube.com/results?search_query={urllib.parse.quote(item.get('search_query'))}{RESET}")
+    else:
+        print(f"  (No YouTube trends recommended for this week)")
+    print("-" * 51)
     print(f"📝 Study Notes  : {WHITE}{entry.get('notes') if entry.get('notes') else '(No notes recorded yet)'}{RESET}")
     print("-" * 51)
     print("Commands:")
