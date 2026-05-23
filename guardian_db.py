@@ -141,7 +141,10 @@ def check_and_heal_system():
                 "example_romaji": "TEXT",
                 "level": "TEXT",
                 "srs_stage": "INTEGER DEFAULT 1",
-                "next_review": "TEXT"
+                "next_review": "TEXT",
+                "repetition_count": "INTEGER DEFAULT 0",
+                "easiness_factor": "REAL DEFAULT 2.5",
+                "interval_days": "INTEGER DEFAULT 0"
             }
             
             modified = False
@@ -240,6 +243,9 @@ def init_db():
         example_romaji TEXT,
         level TEXT, -- N5, N4, N3, N2, N1
         srs_stage INTEGER DEFAULT 1,
+        repetition_count INTEGER DEFAULT 0,
+        easiness_factor REAL DEFAULT 2.5,
+        interval_days INTEGER DEFAULT 0,
         next_review TEXT,
         added_at TEXT NOT NULL
     );
@@ -643,6 +649,9 @@ def get_studied_kanji(level=None):
                 "example_romaji": r['example_romaji'] or "",
                 "level": r['level'],
                 "srs_stage": r['srs_stage'],
+                "repetition_count": r['repetition_count'] if 'repetition_count' in r.keys() else 0,
+                "easiness_factor": r['easiness_factor'] if 'easiness_factor' in r.keys() else 2.5,
+                "interval_days": r['interval_days'] if 'interval_days' in r.keys() else 0,
                 "next_review": r['next_review'],
                 "history": history
             }
@@ -681,47 +690,71 @@ def save_studied_kanji(kanji, meaning, onyomi, kunyomi, stroke_count, example_ja
     finally:
         conn.close()
 
-def log_kanji_review(kanji, correct):
-    """Records a new SRS review evaluation, dynamically calculating next interval."""
+def log_kanji_review(kanji, correct, quality=4):
+    """Records a new SRS review evaluation, dynamically calculating next interval using standard SM-2 logic."""
     vocab = get_studied_kanji()
     if kanji not in vocab:
         return
         
     card = vocab[kanji]
-    current_stage = card["srs_stage"]
     
-    # Calculate next stage and interval
-    if correct:
-        next_stage = min(current_stage + 1, 5)
-    else:
-        next_stage = 1
-        
-    intervals = {1: 1, 2: 3, 3: 7, 4: 14, 5: 30} # days
-    delay_days = intervals[next_stage]
-    next_time = datetime.now() + timedelta(days=delay_days)
-    next_review_str = next_time.strftime("%Y-%m-%d %H:%M:%S")
-    
+    # Connect and compute SM-2 values
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # Get Kanji ID
-        cursor.execute("SELECT id FROM studied_kanji WHERE kanji = ?", (kanji,))
+        cursor.execute("SELECT id, repetition_count, easiness_factor, interval_days FROM studied_kanji WHERE kanji = ?", (kanji,))
         row = cursor.fetchone()
-        if row:
-            k_id = row['id']
-            # Update Kanji stage and timing
-            cursor.execute("""
-            UPDATE studied_kanji
-            SET srs_stage = ?, next_review = ?
-            WHERE id = ?
-            """, (next_stage, next_review_str, k_id))
+        if not row:
+            return
             
-            # Log history
-            cursor.execute("""
-            INSERT INTO kanji_review_history (kanji_id, review_date, correct)
-            VALUES (?, ?, ?)
-            """, (k_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 1 if correct else 0))
-            conn.commit()
+        k_id = row['id']
+        n = row['repetition_count'] or 0
+        ef = row['easiness_factor'] or 2.5
+        interval = row['interval_days'] or 0
+        
+        # Enforce quality bounds based on correct parameter
+        if not correct and quality >= 3:
+            quality = 1
+        elif correct and quality < 3:
+            quality = 4
+            
+        # 1. Update Easiness Factor (EF)
+        ef_new = ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
+        if ef_new < 1.3:
+            ef_new = 1.3
+            
+        # 2. Update Repetition Count (n) and Interval (I)
+        if quality < 3:
+            n_new = 0
+            interval_new = 1
+            next_stage = 1
+        else:
+            if n == 0:
+                interval_new = 1
+            elif n == 1:
+                interval_new = 6
+            else:
+                interval_new = int(round(interval * ef_new))
+            n_new = n + 1
+            next_stage = min(5, n_new)
+            
+        next_time = datetime.now() + timedelta(days=interval_new)
+        next_review_str = next_time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Update studied_kanji
+        cursor.execute("""
+        UPDATE studied_kanji
+        SET srs_stage = ?, repetition_count = ?, easiness_factor = ?, interval_days = ?, next_review = ?
+        WHERE id = ?
+        """, (next_stage, n_new, ef_new, interval_new, next_review_str, k_id))
+        
+        # Log review history
+        cursor.execute("""
+        INSERT INTO kanji_review_history (kanji_id, review_date, correct)
+        VALUES (?, ?, ?)
+        """, (k_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 1 if correct else 0))
+        
+        conn.commit()
     except Exception as e:
         print(f"Error logging review for {kanji}: {e}")
     finally:

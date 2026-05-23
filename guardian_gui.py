@@ -575,6 +575,16 @@ class GuardianWorkspaceSuite:
         self.k_kunyomi = tk.Label(readings_frame, text="訓: おとこ", fg=ACCENT_GREEN, bg=BG_CARD, font=(FONT_FAMILY, 8, "bold"))
         self.k_kunyomi.pack(anchor="w")
         
+        # Radicals and Mnemonic Panel
+        meta_frame = tk.Frame(card_container, bg=BG_CARD)
+        meta_frame.pack(fill="x", pady=4)
+        
+        self.k_radicals = tk.Label(meta_frame, text="部首: -", fg=ACCENT_PURPLE, bg=BG_CARD, font=(FONT_FAMILY, 8, "bold"), anchor="w")
+        self.k_radicals.pack(fill="x")
+        
+        self.k_mnemonic = tk.Label(card_container, text="Mnemonic: -", fg=FG_SECONDARY, bg=BG_INNER, font=(FONT_FAMILY, 8, "italic"), wraplength=420, justify="left", bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=10, pady=8)
+        self.k_mnemonic.pack(fill="x", pady=4)
+        
         # Example Sentence
         example_frame = tk.Frame(card_container, bg=BG_CARD)
         example_frame.pack(fill="x", pady=6)
@@ -674,6 +684,12 @@ class GuardianWorkspaceSuite:
         
         kun = card_dict.get("kunyomi", "")
         self.k_kunyomi.config(text=f"訓: {kun}" if kun else "訓: (なし)")
+        
+        rads = card_dict.get("radicals", "")
+        self.k_radicals.config(text=f"部首: {rads}" if rads else "部首: (なし)")
+        
+        mnem = card_dict.get("mnemonic", "")
+        self.k_mnemonic.config(text=f"Mnemonic: {mnem}" if mnem else "Mnemonic: (No mnemonic story loaded)")
         
         self.k_ex_ja.config(text=card_dict.get("example_ja", ""))
         self.k_ex_en.config(text=card_dict.get("example_en", ""))
