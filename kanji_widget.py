@@ -1,5 +1,20 @@
 import os
 import sys
+
+# Ensure UTF-8 output encoding for standard streams to prevent Windows Console UnicodeEncodeErrors
+if sys.stdout is not None and getattr(sys.stdout, 'encoding', None) != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+if sys.stderr is not None and getattr(sys.stderr, 'encoding', None) != 'utf-8':
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
+    except AttributeError:
+        import io
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 import json
 import random
 import tkinter as tk
@@ -10,6 +25,27 @@ from datetime import datetime, timedelta
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 import guardian
+
+# Override report_callback_exception globally to capture asynchronous and callback crashes
+def report_callback_exception(self, exc, val, tb):
+    import traceback
+    try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        crash_log_path = os.path.join(base_dir, "gui_crash_log.txt")
+        with open(crash_log_path, "a", encoding="utf-8") as f:
+            f.write(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Widget Callback Exception:\n")
+            traceback.print_exception(exc, val, tb, file=f)
+    except Exception:
+        pass
+    try:
+        messagebox.showerror(
+            "Kanji Widget Callback Error", 
+            f"An unexpected runtime error occurred:\n\n{val}\n\nTraceback has been saved to gui_crash_log.txt."
+        )
+    except Exception:
+        pass
+
+tk.Tk.report_callback_exception = report_callback_exception
 
 # ==================== THEME & STYLE CONSTANTS (APPLE PREMIUM DARK MODE) ====================
 BG_DARK = "#09090B"          # Pure deep charcoal/black (Midnight)
@@ -711,7 +747,10 @@ class KanjiWidget:
     def schedule_next_quiz(self):
         """Registers a recurring .after timer to trigger the random Pop Quiz focus popups."""
         if self.quiz_timer_id is not None:
-            self.root.after_cancel(self.quiz_timer_id)
+            try:
+                self.root.after_cancel(self.quiz_timer_id)
+            except Exception:
+                pass
             self.quiz_timer_id = None
             
         if self.quiz_enabled.get():
@@ -727,7 +766,10 @@ class KanjiWidget:
             self.schedule_next_quiz()
         else:
             if self.quiz_timer_id is not None:
-                self.root.after_cancel(self.quiz_timer_id)
+                try:
+                    self.root.after_cancel(self.quiz_timer_id)
+                except Exception:
+                    pass
                 self.quiz_timer_id = None
             self.quiz_target_time = None
 
@@ -988,5 +1030,24 @@ if __name__ == "__main__":
         app = KanjiWidget(root)
         root.mainloop()
     except Exception as e:
-        # Graceful diagnostic terminal log
-        print(f"Kanji widget crash: {e}")
+        import traceback
+        try:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            crash_log_path = os.path.join(base_dir, "gui_crash_log.txt")
+            with open(crash_log_path, "a", encoding="utf-8") as f:
+                f.write(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Standalone Kanji Widget Startup Crash:\n")
+                traceback.print_exc(file=f)
+        except Exception:
+            pass
+        try:
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror(
+                "Kanji Widget Startup Error",
+                f"Failed to start standalone Kanji Widget:\n\n{e}\n\nTraceback has been saved to gui_crash_log.txt."
+            )
+        except Exception:
+            pass
+        sys.exit(1)

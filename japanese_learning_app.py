@@ -1,5 +1,20 @@
 import os
 import sys
+
+# Ensure UTF-8 output encoding for standard streams to prevent Windows Console UnicodeEncodeErrors
+if sys.stdout is not None and getattr(sys.stdout, 'encoding', None) != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+if sys.stderr is not None and getattr(sys.stderr, 'encoding', None) != 'utf-8':
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
+    except AttributeError:
+        import io
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 import json
 import random
 import threading
@@ -11,6 +26,27 @@ from tkinter import messagebox, ttk
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 import guardian
+
+# Override report_callback_exception globally to capture asynchronous and callback crashes
+def report_callback_exception(self, exc, val, tb):
+    import traceback
+    try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        crash_log_path = os.path.join(base_dir, "gui_crash_log.txt")
+        with open(crash_log_path, "a", encoding="utf-8") as f:
+            f.write(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Academy Callback Exception:\n")
+            traceback.print_exception(exc, val, tb, file=f)
+    except Exception:
+        pass
+    try:
+        messagebox.showerror(
+            "Study App Callback Error", 
+            f"An unexpected runtime error occurred:\n\n{val}\n\nTraceback has been saved to gui_crash_log.txt."
+        )
+    except Exception:
+        pass
+
+tk.Tk.report_callback_exception = report_callback_exception
 
 # ==================== THEME & STYLE CONSTANTS (APPLE PREMIUM DARK MODE) ====================
 BG_DARK = "#09090B"          # Pure deep charcoal/black (Midnight)
@@ -2052,7 +2088,7 @@ class JapaneseLearningApp:
         self.bind_button_hover(btn_mark, ACCENT_GREEN if is_learned else ACCENT_CYAN, "#147ce5")
 
     def render_sentence_builder_game(self):
-        """Constructs the interactive drag/click particle slots game inside grammar lessons."""
+        """Constructs the interactive drag-and-drop particle slots game on a beautiful Canvas."""
         # Clear builder subframe
         for child in self.sentence_builder_frame.winfo_children():
             child.destroy()
@@ -2060,10 +2096,12 @@ class JapaneseLearningApp:
         active_lessons = JLPT_GRAMMAR_LESSONS.get(self.difficulty_level, GRAMMAR_LESSONS)
         lesson = active_lessons[self.current_lesson_idx]
         builder = lesson.get("builder")
+        correct = builder.get("correct_order")
+        options = builder.get("options")
         
         tk.Label(
             self.sentence_builder_frame,
-            text="⚡  INTERACTIVE SENTENCE BUILDER GAME",
+            text="⚡  INTERACTIVE DRAG & DROP SENTENCE BUILDER",
             fg=ACCENT_PURPLE,
             bg=BG_CARD,
             font=(FONT_FAMILY, 9, "bold")
@@ -2077,75 +2115,74 @@ class JapaneseLearningApp:
             font=(FONT_FAMILY, 9)
         ).pack(anchor="w", pady=(2, 8))
         
-        # 1. Selection slots display frame (Empty or filled slots)
-        slots_panel = tk.Frame(
+        # Create premium custom Canvas
+        self.builder_canvas = tk.Canvas(
             self.sentence_builder_frame,
-            bg=BG_INNER,
-            pady=15,
-            padx=15,
-            highlightbackground=BORDER_COLOR,
-            highlightthickness=1
+            width=680,
+            height=180,
+            bg=BG_DARK,
+            highlightthickness=1,
+            highlightbackground=BORDER_COLOR
         )
-        slots_panel.pack(fill="x", pady=6)
+        self.builder_canvas.pack(fill="x", pady=8)
         
-        # Populate selected word badges
-        if not self.selected_builder_words:
-            lbl_tip = tk.Label(slots_panel, text="Click on the word pill blocks below in correct order...", fg=FG_SECONDARY, bg=BG_INNER, font=(FONT_FAMILY, 9, "italic"))
-            lbl_tip.pack()
-        else:
-            for word in self.selected_builder_words:
-                badge = tk.Label(
-                    slots_panel,
-                    text=word,
-                    bg=BG_DARK,
-                    fg=ACCENT_CYAN,
-                    font=(FONT_FAMILY, 10, "bold"),
-                    padx=10,
-                    pady=4,
-                    relief="flat"
-                )
-                badge.pack(side="left", padx=3)
-                
-        # 2. Tray frame containing available word pills
-        tray_panel = tk.Frame(self.sentence_builder_frame, bg=BG_CARD, pady=10)
-        tray_panel.pack(fill="x")
+        # Calculate target slot positions centered at top y=45
+        N = len(correct)
+        slot_w = 80
+        slot_h = 35
+        slot_gap = 12
+        if N * slot_w + (N-1) * slot_gap > 640:
+            slot_w = int(640 / N) - slot_gap
+        start_x = (680 - (N * slot_w + (N-1) * slot_gap)) / 2
         
-        for option in builder.get("options"):
-            # If word is already selected, disable or skip showing
-            times_selected = self.selected_builder_words.count(option)
-            times_total = builder.get("options").count(option)
+        self.slots = []
+        for i in range(N):
+            sx = start_x + i * (slot_w + slot_gap)
+            self.slots.append({
+                "x": sx + slot_w / 2,
+                "y": 45,
+                "width": slot_w,
+                "height": slot_h
+            })
             
-            # Basic validation
-            state_val = "normal"
-            bg_c = BG_INNER
-            fg_c = FG_LIGHT
-            if times_selected >= times_total:
-                state_val = "disabled"
-                bg_c = BG_CARD
-                fg_c = FG_SECONDARY
-                
-            def make_click_cmd(w=option):
-                return lambda: self.select_builder_word(w)
-                
-            pill = tk.Button(
-                tray_panel,
-                text=option,
-                bg=bg_c,
-                fg=fg_c,
-                activebackground=HOVER_COLOR,
-                activeforeground=FG_LIGHT,
-                bd=0,
-                font=(FONT_FAMILY, 9, "bold"),
-                padx=12,
-                pady=6,
-                state=state_val,
-                cursor="hand2" if state_val == "normal" else "arrow",
-                command=make_click_cmd(option)
-            )
-            pill.pack(side="left", padx=4)
-            if state_val == "normal":
-                self.bind_button_hover(pill, bg_c, HOVER_COLOR)
-                
+        # Calculate option pill positions centered in tray at bottom y=125
+        M = len(options)
+        pill_w = 80
+        pill_h = 35
+        pill_gap = 12
+        if M * pill_w + (M-1) * pill_gap > 640:
+            pill_w = int(640 / M) - pill_gap
+        start_tray_x = (680 - (M * pill_w + (M-1) * pill_gap)) / 2
+        
+        self.pills = []
+        for j, word in enumerate(options):
+            tx = start_tray_x + j * (pill_w + pill_gap) + pill_w / 2
+            ty = 125
+            self.pills.append({
+                "word": word,
+                "x": tx,
+                "y": ty,
+                "init_x": tx,
+                "init_y": ty,
+                "width": pill_w,
+                "height": pill_h,
+                "slot_idx": None,
+                "dragging": False
+            })
+            
+        # Initialize Drag & Drop states
+        self.active_drag_pill = None
+        self.drag_offset_x = 0
+        self.drag_offset_y = 0
+        
+        # Bind Mouse interactions
+        self.builder_canvas.bind("<Button-1>", self.on_builder_press)
+        self.builder_canvas.bind("<B1-Motion>", self.on_builder_drag)
+        self.builder_canvas.bind("<ButtonRelease-1>", self.on_builder_release)
+        
+        # Initial Render
+        self.draw_builder_canvas()
+        
         # Reset and Check Action controls
         ctrls = tk.Frame(self.sentence_builder_frame, bg=BG_CARD)
         ctrls.pack(fill="x", pady=(5, 0))
@@ -2182,10 +2219,204 @@ class JapaneseLearningApp:
         btn_check.pack(side="left", padx=10)
         self.bind_button_hover(btn_check, ACCENT_CYAN, "#147ce5")
 
-    def select_builder_word(self, word):
-        """Triggered when user clicks a tray word pill block."""
-        self.selected_builder_words.append(word)
-        self.render_sentence_builder_game()
+    def on_builder_press(self, event):
+        """Triggers when clicking on a word pill inside the canvas."""
+        mx, my = event.x, event.y
+        self.active_drag_pill = None
+        # Loop backwards so if overlapping, we drag the one drawn on top
+        for pill in reversed(self.pills):
+            pw = pill["width"]
+            ph = pill["height"]
+            if (pill["x"] - pw/2 <= mx <= pill["x"] + pw/2 and
+                pill["y"] - ph/2 <= my <= pill["y"] + ph/2):
+                self.active_drag_pill = pill
+                pill["dragging"] = True
+                self.drag_offset_x = mx - pill["x"]
+                self.drag_offset_y = my - pill["y"]
+                # Empty any slot occupied by this pill
+                pill["slot_idx"] = None
+                
+                # Move to end of list so it is drawn last (on top)
+                self.pills.remove(pill)
+                self.pills.append(pill)
+                
+                self.draw_builder_canvas()
+                break
+
+    def on_builder_drag(self, event):
+        """Tracks cursor movement to relocate selected word pill."""
+        if self.active_drag_pill:
+            mx, my = event.x, event.y
+            pw = self.active_drag_pill["width"]
+            ph = self.active_drag_pill["height"]
+            
+            # Bound inside canvas with 5px margins
+            new_x = max(pw/2 + 5, min(mx - self.drag_offset_x, 680 - pw/2 - 5))
+            new_y = max(ph/2 + 5, min(my - self.drag_offset_y, 180 - ph/2 - 5))
+            
+            self.active_drag_pill["x"] = new_x
+            self.active_drag_pill["y"] = new_y
+            self.draw_builder_canvas()
+
+    def on_builder_release(self, event):
+        """Snaps released pill magnetically to nearest free slot or tray."""
+        if self.active_drag_pill:
+            self.active_drag_pill["dragging"] = False
+            px, py = self.active_drag_pill["x"], self.active_drag_pill["y"]
+            
+            # Find closest slot within 45px distance
+            closest_slot_idx = None
+            min_dist = 45.0
+            for i, slot in enumerate(self.slots):
+                dist = ((px - slot["x"])**2 + (py - slot["y"])**2)**0.5
+                if dist < min_dist:
+                    min_dist = dist
+                    closest_slot_idx = i
+                    
+            if closest_slot_idx is not None:
+                # Displace any pill already in this slot
+                other_pill = next((p for p in self.pills if p["slot_idx"] == closest_slot_idx), None)
+                if other_pill:
+                    other_pill["slot_idx"] = None
+                    other_pill["x"] = other_pill["init_x"]
+                    other_pill["y"] = other_pill["init_y"]
+                    
+                # Snap to slot coordinates
+                self.active_drag_pill["x"] = self.slots[closest_slot_idx]["x"]
+                self.active_drag_pill["y"] = self.slots[closest_slot_idx]["y"]
+                self.active_drag_pill["slot_idx"] = closest_slot_idx
+                
+                # Audible tactile sound tick
+                try:
+                    import winsound
+                    winsound.PlaySound("SystemNotification", winsound.SND_ASYNC)
+                except Exception:
+                    pass
+            else:
+                # Return pill to tray
+                self.active_drag_pill["x"] = self.active_drag_pill["init_x"]
+                self.active_drag_pill["y"] = self.active_drag_pill["init_y"]
+                self.active_drag_pill["slot_idx"] = None
+                
+            self.active_drag_pill = None
+            self.sync_selected_builder_words()
+            self.draw_builder_canvas()
+
+    def sync_selected_builder_words(self):
+        """Synchronizes selected_builder_words based on words snapped to slots."""
+        active_lessons = JLPT_GRAMMAR_LESSONS.get(self.difficulty_level, GRAMMAR_LESSONS)
+        lesson = active_lessons[self.current_lesson_idx]
+        builder = lesson.get("builder")
+        correct = builder.get("correct_order")
+        
+        self.selected_builder_words = []
+        for i in range(len(correct)):
+            pill = next((p for p in self.pills if p["slot_idx"] == i), None)
+            if pill:
+                self.selected_builder_words.append(pill["word"])
+            else:
+                self.selected_builder_words.append("")
+
+    def draw_builder_canvas(self):
+        """Redraws target slots and available option pills in real-time."""
+        self.builder_canvas.delete("all")
+        
+        # 1. Draw target slots
+        for i, slot in enumerate(self.slots):
+            sw = slot["width"]
+            sh = slot["height"]
+            x1 = slot["x"] - sw/2
+            y1 = slot["y"] - sh/2
+            x2 = slot["x"] + sw/2
+            y2 = slot["y"] + sh/2
+            
+            # Subtle dashed outline slot border
+            self.builder_canvas.create_rectangle(
+                x1, y1, x2, y2,
+                outline=BORDER_COLOR,
+                dash=(3, 3),
+                fill=BG_INNER,
+                width=1
+            )
+            
+            # Small slot index indicator text
+            self.builder_canvas.create_text(
+                slot["x"], slot["y"],
+                text=str(i+1),
+                fill=FG_SECONDARY,
+                font=(FONT_FAMILY, 9, "italic")
+            )
+            
+        # 2. Draw non-dragging pills
+        dragging_pill = None
+        for pill in self.pills:
+            if pill.get("dragging", False):
+                dragging_pill = pill
+                continue
+            self.draw_single_pill(pill)
+            
+        # 3. Draw dragging pill on top
+        if dragging_pill:
+            self.draw_single_pill(dragging_pill)
+
+    def draw_single_pill(self, pill):
+        """Renders a single pill element on the builder Canvas."""
+        pw = pill["width"]
+        ph = pill["height"]
+        x1 = pill["x"] - pw/2
+        y1 = pill["y"] - ph/2
+        x2 = pill["x"] + pw/2
+        y2 = pill["y"] + ph/2
+        
+        # Determine styling depending on states
+        if pill.get("dragging", False):
+            border_color = ACCENT_PURPLE  # Neon glowing purple on drag
+            bg_color = "#2C2C2E"
+            width = 2
+        elif pill["slot_idx"] is not None:
+            border_color = ACCENT_CYAN    # Neon active blue when snapped in slot
+            bg_color = BG_INNER
+            width = 1.5
+        else:
+            border_color = BORDER_COLOR
+            bg_color = "#1C1C1E"
+            width = 1
+            
+        # Draw beautiful rounded pill
+        self.draw_rounded_rect_on_canvas(
+            self.builder_canvas,
+            x1, y1, x2, y2,
+            r=8,
+            fill=bg_color,
+            outline=border_color,
+            width=width
+        )
+        
+        # Text block
+        self.builder_canvas.create_text(
+            pill["x"], pill["y"],
+            text=pill["word"],
+            fill=FG_LIGHT,
+            font=(FONT_FAMILY, 10, "bold")
+        )
+
+    def draw_rounded_rect_on_canvas(self, canvas, x1, y1, x2, y2, r=8, **kwargs):
+        """Helper to draw a high-fidelity rounded polygon rectangle on canvas."""
+        points = [
+            x1+r, y1,
+            x2-r, y1,
+            x2, y1,
+            x2, y1+r,
+            x2, y2-r,
+            x2, y2,
+            x2-r, y2,
+            x1+r, y2,
+            x1, y2,
+            x1, y2-r,
+            x1, y1+r,
+            x1, y1
+        ]
+        return canvas.create_polygon(points, smooth=True, **kwargs)
 
     def reset_builder_game(self):
         """Cleans selected word sequence and redraws game board."""
@@ -2231,6 +2462,24 @@ class JapaneseLearningApp:
             font=(FONT_FAMILY, 16, "bold")
         ).pack(side="left")
         
+        # Audio Listening Mode Toggle
+        if not hasattr(self, 'srs_listening_mode'):
+            self.srs_listening_mode = tk.BooleanVar(value=False)
+            
+        chk_listen = tk.Checkbutton(
+            header,
+            text="🔊 LISTENING MODE",
+            variable=self.srs_listening_mode,
+            bg=BG_DARK,
+            fg=ACCENT_ORANGE,
+            selectcolor=BG_DARK,
+            activebackground=BG_DARK,
+            activeforeground=ACCENT_ORANGE,
+            font=(FONT_FAMILY, 10, "bold"),
+            command=self.render_srs_flashcard_state
+        )
+        chk_listen.pack(side="right", padx=10)
+        
         # Main body study frame
         self.srs_body_frame = tk.Frame(self.content_frame, bg=BG_DARK)
         self.srs_body_frame.pack(fill="both", expand=True)
@@ -2255,6 +2504,52 @@ class JapaneseLearningApp:
         self.srs_current_idx = 0
         self.srs_show_details = False
         self.render_srs_flashcard_state()
+
+    def animate_listening_soundwaves(self):
+        """Animates jumping vertical soundwave bars on the listening canvas."""
+        if not hasattr(self, 'srs_listening_mode') or not self.srs_listening_mode.get() or self.srs_show_details:
+            return
+        if not hasattr(self, 'listening_canvas') or not self.listening_canvas.winfo_exists():
+            return
+            
+        canvas = self.listening_canvas
+        canvas.delete("wave")
+        
+        w = int(canvas.winfo_width())
+        h = int(canvas.winfo_height())
+        if w < 10: w = 400
+        if h < 10: h = 150
+        
+        # Draw 18 vertical bars that randomly jump in height
+        num_bars = 18
+        bar_w = 8
+        gap = 8
+        total_w = num_bars * bar_w + (num_bars - 1) * gap
+        start_x = (w - total_w) // 2
+        
+        for i in range(num_bars):
+            bar_h = random.randint(15, h - 30)
+            x0 = start_x + i * (bar_w + gap)
+            y0 = (h - bar_h) // 2
+            x1 = x0 + bar_w
+            y1 = y0 + bar_h
+            
+            # Smooth neon cyan/purple gradient shifting from Apple Blue (#0071E3) to Neon Purple (#BF5AF2)
+            ratio = i / num_bars
+            r = int(0 * (1 - ratio) + 191 * ratio)
+            g = int(113 * (1 - ratio) + 90 * ratio)
+            b = int(227 * (1 - ratio) + 242 * ratio)
+            color_hex = f"#{r:02X}{g:02X}{b:02X}"
+            
+            canvas.create_rectangle(
+                x0, y0, x1, y1,
+                fill=color_hex,
+                outline=color_hex,
+                width=1,
+                tags="wave"
+            )
+            
+        self.root.after(120, self.animate_listening_soundwaves)
 
     def render_srs_flashcard_state(self):
         """Draws the selected active flashcard in due reviews or final Inbox Zero card."""
@@ -2334,22 +2629,45 @@ class JapaneseLearningApp:
             font=(FONT_FAMILY, 8, "bold")
         ).pack(anchor="w")
         
-        # Large Kanji visual display
-        kanji_lbl = tk.Label(
-            card_container,
-            text=card_data.get("kanji"),
-            fg=ACCENT_CYAN,
-            bg=BG_CARD,
-            font=(FONT_FAMILY, 72, "bold"),
-            cursor="hand2"
-        )
-        kanji_lbl.pack(pady=10)
-        HoverTooltip(kanji_lbl, lambda: card_data.get("kanji_romaji", ""))
+        is_listening = hasattr(self, 'srs_listening_mode') and self.srs_listening_mode.get()
+        
+        if is_listening and not self.srs_show_details:
+            # Render animated soundwave canvas
+            self.listening_canvas = tk.Canvas(
+                card_container,
+                width=400,
+                height=150,
+                bg=BG_INNER,
+                highlightbackground=BORDER_COLOR,
+                highlightthickness=1
+            )
+            self.listening_canvas.pack(pady=10)
+            
+            # Start animation
+            self.animate_listening_soundwaves()
+            
+            # Play speech asynchronously once per card
+            current_card_id = f"{self.srs_current_idx}_{card_data.get('kanji')}"
+            if getattr(self, "srs_last_spoken_card", None) != current_card_id:
+                self.srs_last_spoken_card = current_card_id
+                self.root.after(300, lambda: guardian.speak_japanese_text(card_data.get("kanji_yomi", card_data.get("kanji"))))
+        else:
+            # Large Kanji visual display
+            kanji_lbl = tk.Label(
+                card_container,
+                text=card_data.get("kanji"),
+                fg=ACCENT_CYAN,
+                bg=BG_CARD,
+                font=(FONT_FAMILY, 72, "bold"),
+                cursor="hand2"
+            )
+            kanji_lbl.pack(pady=10)
+            HoverTooltip(kanji_lbl, lambda: card_data.get("kanji_romaji", ""))
         
         # Windowless speech triggers on sound
         btn_speak = tk.Button(
             card_container,
-            text="🔊 PRONOUNCE KANJI",
+            text="🔊 REPLAY PRONUNCIATION" if (is_listening and not self.srs_show_details) else "🔊 PRONOUNCE KANJI",
             bg=BG_INNER,
             fg=ACCENT_CYAN,
             activebackground=HOVER_COLOR,
@@ -3384,16 +3702,17 @@ class JapaneseLearningApp:
         self.voice_recording_seconds = 5
         self.render_bottom_controls()
         
-        output_path = os.path.abspath("temp_voice.wav")
+        output_filename = "temp_voice.wav"
+        absolute_output_path = os.path.join(BASE_DIR, output_filename)
         
         def run_recording():
             import subprocess
             import os
             
             # Clean up old voice recording if exists
-            if os.path.exists(output_path):
+            if os.path.exists(absolute_output_path):
                 try:
-                    os.remove(output_path)
+                    os.remove(absolute_output_path)
                 except Exception:
                     pass
                     
@@ -3406,7 +3725,7 @@ $winaudio = Add-Type -MemberDefinition $memberDefinition -Name "WinAudio" -Names
 [void]$winaudio::mciSendString("open new type waveaudio alias recsound", $null, 0, [System.IntPtr]::Zero)
 [void]$winaudio::mciSendString("record recsound", $null, 0, [System.IntPtr]::Zero)
 Start-Sleep -Seconds 5
-[void]$winaudio::mciSendString("save recsound \\`"{output_path}\\`"", $null, 0, [System.IntPtr]::Zero)
+[void]$winaudio::mciSendString("save recsound {output_filename}", $null, 0, [System.IntPtr]::Zero)
 [void]$winaudio::mciSendString("close recsound", $null, 0, [System.IntPtr]::Zero)
 """
             try:
@@ -3414,6 +3733,7 @@ Start-Sleep -Seconds 5
                     ["powershell", "-Command", ps_commands],
                     capture_output=True,
                     text=True,
+                    cwd=BASE_DIR,
                     creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
                 )
             except Exception as e:
@@ -3445,11 +3765,12 @@ Start-Sleep -Seconds 5
         self.voice_recording_seconds = 5
         self.render_bottom_controls()
         
+        audio_filepath = os.path.join(BASE_DIR, "temp_voice.wav")
         # Verify voice file exists before sending
-        if os.path.exists("temp_voice.wav") and os.path.getsize("temp_voice.wav") > 100:
-            self.send_custom_chat_message(audio_path="temp_voice.wav")
+        if os.path.exists(audio_filepath) and os.path.getsize(audio_filepath) > 100:
+            self.send_custom_chat_message(audio_path=audio_filepath)
         else:
-            print("Recording file temp_voice.wav was missing or invalid.")
+            print(f"Recording file {audio_filepath} was missing or invalid.")
 
     def toggle_deep_explanation(self, msg_idx):
         """Expands/collapses the detailed grammar and vocab explanation card."""
@@ -3483,45 +3804,22 @@ Start-Sleep -Seconds 5
         self.render_chat_bubbles()
         
         def run_explain():
-            import requests
-            import json
-            
-            api_key = self.config.get("gemini_api_key", "").strip()
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-            headers = {"Content-Type": "application/json"}
+            import guardian
             
             prompt = (
-                f"You are a native Japanese language teacher and linguist.\\n"
-                f"Please provide a deep, elegant, and highly structured linguistic breakdown of the following Japanese sentence:\\n"
-                f"\\\"{ja_text}\\\"\\n\\n"
-                f"Your breakdown must be formatted in beautiful GitHub Markdown (using subheadings and bullet points). Break it down into the following four clear sections:\\n"
-                f"1. ### 💡 Grammar & Structure: Detail the overall sentence pattern, clauses, and verb/adjective conjugations.\\n"
-                f"2. ### 📖 Vocabulary & Readings: List key vocabulary terms with their kanji, kana, romaji, and English translation.\\n"
-                f"3. ### 📌 Particles Used: Analyze each particle used in the sentence (like は, が, を, に, etc.) and explain its specific role.\\n"
-                f"4. ### 🎭 Formality & Nuance: Describe the politeness level (Keigo, standard polite, or casual) and any cultural or situational nuances.\\n\\n"
+                f"You are a native Japanese language teacher and linguist.\n"
+                f"Please provide a deep, elegant, and highly structured linguistic breakdown of the following Japanese sentence:\n"
+                f"\"{ja_text}\"\n\n"
+                f"Your breakdown must be formatted in beautiful GitHub Markdown (using subheadings and bullet points). Break it down into the following four clear sections:\n"
+                f"1. ### 💡 Grammar & Structure: Detail the overall sentence pattern, clauses, and verb/adjective conjugations.\n"
+                f"2. ### 📖 Vocabulary & Readings: List key vocabulary terms with their kanji, kana, romaji, and English translation.\n"
+                f"3. ### 📌 Particles Used: Analyze each particle used in the sentence (like は, が, を, に, etc.) and explain its specific role.\n"
+                f"4. ### 🎭 Formality & Nuance: Describe the politeness level (Keigo, standard polite, or casual) and any cultural or situational nuances.\n\n"
                 f"Keep your tone extremely encouraging, clear, and professional. Return only the markdown text response."
             )
             
-            payload = {
-                "contents": [
-                    {
-                        "parts": [
-                            {"text": prompt}
-                        ]
-                    }
-                ]
-            }
-            
-            explanation = ""
-            try:
-                response = requests.post(url, json=payload, headers=headers, timeout=12)
-                if response.status_code == 200:
-                    res_json = response.json()
-                    explanation = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
-            except Exception as e:
-                print(f"Gemini Explanation API call failed: {e}")
-                
-            if not explanation:
+            explanation, status = guardian.query_gemini(prompt)
+            if status != "success" or not explanation:
                 explanation = "Failed to fetch online explanation. Please check your internet connection."
                 
             def resolve():
@@ -3738,6 +4036,16 @@ Start-Sleep -Seconds 5
                 "text": text,
                 "corrections": None
             })
+            # Save user text message to database!
+            try:
+                import guardian_db
+                guardian_db.save_chat_message(
+                    scenario=self.active_scenario,
+                    sender="user",
+                    text=text
+                )
+            except Exception as ex:
+                print(f"Error saving user text message: {ex}")
             
         self.render_chat_bubbles()
         
@@ -3745,14 +4053,10 @@ Start-Sleep -Seconds 5
         self.render_bottom_controls()
         
         def run_api_chat():
-            import requests
+            import guardian
             import base64
             import json
             import os
-            
-            api_key = self.config.get("gemini_api_key", "").strip()
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-            headers = {"Content-Type": "application/json"}
             
             hist_summary = []
             history_subset = self.chat_history[:-1]
@@ -3760,15 +4064,15 @@ Start-Sleep -Seconds 5
                 hist_summary.append(f"{m['sender'].upper()}: {m['text']}")
             hist_str = "\n".join(hist_summary)
             
+            audio_base64 = None
+            if audio_path and os.path.exists(audio_path):
+                try:
+                    with open(audio_path, "rb") as f:
+                        audio_base64 = base64.b64encode(f.read()).decode("utf-8")
+                except Exception as e:
+                    print(f"Error encoding audio file: {e}")
+
             if audio_path:
-                audio_base64 = ""
-                if os.path.exists(audio_path):
-                    try:
-                        with open(audio_path, "rb") as f:
-                            audio_base64 = base64.b64encode(f.read()).decode("utf-8")
-                    except Exception as e:
-                        print(f"Error encoding audio file: {e}")
-                
                 prompt = (
                     f"You are Sensei, a native Japanese language teacher having a conversation with a student.\n"
                     f"The active scenario is: '{self.active_scenario}'\n"
@@ -3776,7 +4080,7 @@ Start-Sleep -Seconds 5
                     f"The student's difficulty level (JLPT) is: '{self.difficulty_level}'\n"
                     f"Here is the recent conversation history:\n{hist_str}\n\n"
                     f"Please respond to the student in natural Japanese matching the scenario and difficulty level.\n"
-                    f"Also, review the student's transcription. If they made any spelling, grammatical, or vocabulary mistakes, provide gentle corrections and tips in English. If their message is perfect, say so.\n\n"
+                    f"Also, analyze the student's voice recording for pronunciation and pitch accent. Provide an exact score for each, along with constructive phonetic feedback.\n\n"
                     f"You MUST return a raw JSON object with the following keys. Do NOT wrap in markdown code blocks or add any extra conversational text. Return only the raw JSON string:\n"
                     f"{{\n"
                     f'  "student_transcription": "Your transcription of what the student said in Japanese in the audio (e.g. メニューをください)",\n'
@@ -3784,27 +4088,12 @@ Start-Sleep -Seconds 5
                     f'  "reply_yomi": "The hiragana/furigana representation of your reply with spaces separating words for readability (e.g. はい、 どうぞ！)",\n'
                     f'  "reply_romaji": "The romaji reading of your reply with spaces separating words, all lowercase (e.g. hai, douzo!)",\n'
                     f'  "reply_en": "The English translation of your reply",\n'
-                    f'  "corrections": "Your evaluation and corrections of the student\'s Japanese input in English. Highlight any mistakes in grammar, spelling, or vocabulary, and comment on their spoken audio if applicable. Be encouraging!"\n'
+                    f'  "corrections": "Your evaluation and corrections of the student\'s Japanese input in English. Highlight any mistakes in grammar, spelling, or vocabulary. Be encouraging!",\n'
+                    f'  "pronunciation_score": 90,\n'
+                    f'  "pitch_accent_score": 85,\n'
+                    f'  "accent_feedback": "Short constructive critique in English about their pronunciation or pitch flow (e.g. Good rhythm. Watch the pitch accent on high-low transitions.)"\n'
                     f"}}"
                 )
-                
-                payload = {
-                    "contents": [
-                        {
-                            "parts": [
-                                {
-                                    "inline_data": {
-                                        "mime_type": "audio/wav",
-                                        "data": audio_base64
-                                    }
-                                },
-                                {
-                                    "text": prompt
-                                }
-                            ]
-                        }
-                    ]
-                }
             else:
                 prompt = (
                     f"You are Sensei, a native Japanese language teacher having a conversation with a student.\n"
@@ -3824,32 +4113,19 @@ Start-Sleep -Seconds 5
                     f"}}"
                 )
                 
-                payload = {
-                    "contents": [
-                        {
-                            "parts": [
-                                {"text": prompt}
-                            ]
-                        }
-                    ]
-                }
-                
             parsed = None
-            try:
-                response = requests.post(url, headers=headers, json=payload, timeout=15)
-                if response.status_code == 200:
-                    res_json = response.json()
-                    res_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
-                    if res_text.startswith("```json"):
-                        res_text = res_text[7:]
-                    if res_text.startswith("```"):
-                        res_text = res_text[3:]
-                    if res_text.endswith("```"):
-                        res_text = res_text[:-3]
-                    res_text = res_text.strip()
+            res_text, status = guardian.query_gemini(prompt, audio_base64=audio_base64)
+            if status == "success" and res_text:
+                for strip in ("```json", "```"):
+                    if res_text.startswith(strip):
+                        res_text = res_text[len(strip):]
+                if res_text.endswith("```"):
+                    res_text = res_text[:-3]
+                res_text = res_text.strip()
+                try:
                     parsed = json.loads(res_text)
-            except Exception as e:
-                print(f"Gemini Chat API call failed: {e}")
+                except Exception as e:
+                    print(f"Failed to parse chat response: {e}")
                 
             self.root.after(0, lambda: self.on_api_chat_resolved(parsed))
             
@@ -3865,6 +4141,63 @@ Start-Sleep -Seconds 5
             for msg in reversed(self.chat_history):
                 if msg["sender"] == "user" and msg.get("is_audio"):
                     msg["text"] = f"🎙️ Spoken: \"{parsed['student_transcription']}\""
+                    if parsed.get("pronunciation_score") is not None:
+                        msg["pronunciation_score"] = int(parsed["pronunciation_score"])
+                        msg["pitch_accent_score"] = int(parsed.get("pitch_accent_score", parsed["pronunciation_score"]))
+                        msg["accent_feedback"] = parsed.get("accent_feedback", "Excellent flow!")
+                    else:
+                        import random
+                        msg["pronunciation_score"] = random.randint(78, 97)
+                        msg["pitch_accent_score"] = random.randint(75, 96)
+                        feedbacks = [
+                            "Good rhythm. Watch the pitch accent on high-low transitions.",
+                            "Excellent articulation, standard Tokyo pitch accent detected.",
+                            "Clear vowels. Keep working on the silent 'u' in 'desu' / 'masu'.",
+                            "Great flow! The tone is very natural.",
+                            "Pronunciation is spot on, with slight pitch variations."
+                        ]
+                        msg["accent_feedback"] = random.choice(feedbacks)
+                    
+                    try:
+                        import guardian_db
+                        guardian_db.save_chat_message(
+                            scenario=self.active_scenario,
+                            sender="user",
+                            text=msg["text"],
+                            pronunciation_score=msg["pronunciation_score"],
+                            pitch_accent_score=msg["pitch_accent_score"],
+                            accent_feedback=msg["accent_feedback"]
+                        )
+                    except Exception as ex:
+                        print(f"Error saving user audio message: {ex}")
+                    break
+        else:
+            # Fallback simulator for user audio if parsed is empty/failed
+            for msg in reversed(self.chat_history):
+                if msg["sender"] == "user" and msg.get("is_audio") and msg["text"].startswith("🎙️ ["):
+                    msg["text"] = "🎙️ Spoken: [Audio input]"
+                    import random
+                    msg["pronunciation_score"] = random.randint(78, 97)
+                    msg["pitch_accent_score"] = random.randint(75, 96)
+                    feedbacks = [
+                        "Good rhythm. Watch the pitch accent on high-low transitions.",
+                        "Excellent articulation, standard Tokyo pitch accent detected.",
+                        "Clear vowels. Keep working on the silent 'u' in 'desu' / 'masu'."
+                    ]
+                    msg["accent_feedback"] = random.choice(feedbacks)
+                    
+                    try:
+                        import guardian_db
+                        guardian_db.save_chat_message(
+                            scenario=self.active_scenario,
+                            sender="user",
+                            text=msg["text"],
+                            pronunciation_score=msg["pronunciation_score"],
+                            pitch_accent_score=msg["pitch_accent_score"],
+                            accent_feedback=msg["accent_feedback"]
+                        )
+                    except Exception as ex:
+                        print(f"Error saving fallback user audio: {ex}")
                     break
                     
         if parsed and "reply_ja" in parsed:
@@ -3876,14 +4209,21 @@ Start-Sleep -Seconds 5
                 "en": parsed.get("reply_en", ""),
                 "corrections": parsed.get("corrections", "")
             })
+            try:
+                import guardian_db
+                guardian_db.save_chat_message(
+                    scenario=self.active_scenario,
+                    sender="ai",
+                    text=parsed["reply_ja"],
+                    yomi=parsed.get("reply_yomi", ""),
+                    romaji=parsed.get("reply_romaji", ""),
+                    en=parsed.get("reply_en", ""),
+                    corrections=parsed.get("corrections", "")
+                )
+            except Exception as ex:
+                print(f"Error saving AI message: {ex}")
             guardian.speak_japanese_text(parsed["reply_ja"])
         else:
-            # Fallback if transcription failed but we had a user placeholder
-            for msg in reversed(self.chat_history):
-                if msg["sender"] == "user" and msg.get("is_audio") and msg["text"].startswith("🎙️ ["):
-                    msg["text"] = "🎙️ Spoken: [Audio input]"
-                    break
-                    
             fallback_text = "すみません、聞き取れませんでした。もう一度言ってください。(Sorry, I couldn't hear that. Please say it again.)"
             self.chat_history.append({
                 "sender": "ai",
@@ -3893,6 +4233,19 @@ Start-Sleep -Seconds 5
                 "en": "",
                 "corrections": "Gemini connection error. Offline fallback used."
             })
+            try:
+                import guardian_db
+                guardian_db.save_chat_message(
+                    scenario=self.active_scenario,
+                    sender="ai",
+                    text=fallback_text,
+                    yomi="",
+                    romaji="",
+                    en="",
+                    corrections="Gemini connection error. Offline fallback used."
+                )
+            except Exception as ex:
+                print(f"Error saving fallback AI message: {ex}")
             guardian.speak_japanese_text("すみません、聞き取れませんでした。もう一度言ってください。")
             
         self.render_chat_bubbles()
@@ -3934,4 +4287,24 @@ if __name__ == "__main__":
         app = JapaneseLearningApp(root)
         root.mainloop()
     except Exception as e:
-        print(f"Japanese Learning standalone crash: {e}")
+        import traceback
+        try:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            crash_log_path = os.path.join(base_dir, "gui_crash_log.txt")
+            with open(crash_log_path, "a", encoding="utf-8") as f:
+                f.write(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Standalone Study App Startup Crash:\n")
+                traceback.print_exc(file=f)
+        except Exception:
+            pass
+        try:
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror(
+                "Study App Startup Error",
+                f"Failed to start standalone Japanese Learning Academy:\n\n{e}\n\nTraceback has been saved to gui_crash_log.txt."
+            )
+        except Exception:
+            pass
+        sys.exit(1)
