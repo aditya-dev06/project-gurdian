@@ -124,7 +124,7 @@ class GuardianWorkspaceSuite:
         self.active_tab = "dashboard"
         self.generating_weekend_task = False
         self.srs_deck_idx = 0
-        self.cached_next_kanji = None
+        self.prefetched_kanji_queue = []
         self.kanji_prefetch_in_progress = False
         
         # Pop Quiz State
@@ -282,17 +282,79 @@ class GuardianWorkspaceSuite:
         self.streak_tip = tk.Label(streak_card, text="Streaks synced with GitHub", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 7, "italic"))
         self.streak_tip.pack()
         
+        # 14-Day Activity Heatmap Container Card
+        self.heatmap_card = tk.Frame(frame, bg=BG_CARD, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=10)
+        self.heatmap_card.pack(fill="x", pady=5)
+        
+        tk.Label(self.heatmap_card, text="📊 14-DAY ACTIVITY INDEX", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8, "bold")).pack(anchor="w")
+        
+        self.squares_frame = tk.Frame(self.heatmap_card, bg=BG_CARD)
+        self.squares_frame.pack(pady=(6, 0))
+        
         # Checklist Container
         checklist_card = tk.Frame(frame, bg=BG_CARD, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=20, pady=15)
         checklist_card.pack(fill="both", expand=True, pady=10)
         
-        tk.Label(checklist_card, text="TODAY'S UPSCALE MILESTONES", bg=BG_CARD, fg=ACCENT_CYAN, font=(FONT_FAMILY, 9, "bold")).pack(anchor="w", pady=(0, 10))
+        # Checklist Header Row with Manage Button
+        chk_header = tk.Frame(checklist_card, bg=BG_CARD)
+        chk_header.pack(fill="x", pady=(0, 10))
+        
+        tk.Label(chk_header, text="TODAY'S UPSCALE MILESTONES", bg=BG_CARD, fg=ACCENT_CYAN, font=(FONT_FAMILY, 9, "bold")).pack(side="left")
+        
+        btn_manage = tk.Button(
+            chk_header, text="⚙️ MANAGE", bg=BG_INNER, fg=ACCENT_CYAN, bd=0, padx=10, pady=2,
+            font=(FONT_FAMILY, 7, "bold"), cursor="hand2", command=self.open_manage_habits_dialog
+        )
+        btn_manage.pack(side="right")
+        
+        # Add Habit Row Entry & Button directly on Dashboard
+        add_habit_frame = tk.Frame(checklist_card, bg=BG_CARD)
+        add_habit_frame.pack(fill="x", pady=(0, 10))
+        
+        self.ent_habit_dash = tk.Entry(add_habit_frame, bg=BG_INNER, fg=FG_LIGHT, insertbackground=FG_LIGHT, bd=1, relief="solid", highlightthickness=0, font=(FONT_FAMILY, 9))
+        self.ent_habit_dash.pack(side="left", fill="x", expand=True, ipady=4)
+        self.ent_habit_dash.insert(0, "Add daily habit to track...")
+        self.ent_habit_dash.bind("<FocusIn>", lambda e: self.ent_habit_dash.delete(0, tk.END) if self.ent_habit_dash.get() == "Add daily habit to track..." else None)
+        
+        btn_add_habit_dash = tk.Button(
+            add_habit_frame, text="➕ ADD HABIT", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=12, pady=4,
+            cursor="hand2", command=self.add_habit_from_dash
+        )
+        btn_add_habit_dash.pack(side="right", padx=(5, 0))
         
         self.habits_frame = tk.Frame(checklist_card, bg=BG_CARD)
         self.habits_frame.pack(fill="both", expand=True)
+        
+        # One-off To-Do Tasks Container
+        self.todo_card = tk.Frame(frame, bg=BG_CARD, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=20, pady=15)
+        self.todo_card.pack(fill="both", expand=True, pady=10)
+        
+        # Header Row
+        todo_header = tk.Frame(self.todo_card, bg=BG_CARD)
+        todo_header.pack(fill="x", pady=(0, 8))
+        
+        tk.Label(todo_header, text="📌 TODAY'S ONE-OFF TASKS", bg=BG_CARD, fg=ACCENT_ORANGE, font=(FONT_FAMILY, 9, "bold")).pack(side="left")
+        
+        # Add Todo Row Entry & Button
+        add_todo_frame = tk.Frame(self.todo_card, bg=BG_CARD)
+        add_todo_frame.pack(fill="x", pady=(0, 10))
+        
+        self.ent_todo = tk.Entry(add_todo_frame, bg=BG_INNER, fg=FG_LIGHT, insertbackground=FG_LIGHT, bd=1, relief="solid", highlightthickness=0, font=(FONT_FAMILY, 9))
+        self.ent_todo.pack(side="left", fill="x", expand=True, ipady=4)
+        self.ent_todo.insert(0, "Add task to complete today...")
+        self.ent_todo.bind("<FocusIn>", lambda e: self.ent_todo.delete(0, tk.END) if self.ent_todo.get() == "Add task to complete today..." else None)
+        
+        btn_add_todo = tk.Button(
+            add_todo_frame, text="➕ ADD", bg=ACCENT_ORANGE, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=12, pady=4,
+            cursor="hand2", command=self.add_todo_task_from_gui
+        )
+        btn_add_todo.pack(side="right", padx=(5, 0))
+        
+        self.todo_list_frame = tk.Frame(self.todo_card, bg=BG_CARD)
+        self.todo_list_frame.pack(fill="both", expand=True)
 
-    def refresh_dashboard_progress(self):
-        """Queries SQLite and dynamically draws/animates the dashboard progress dial."""
+    def refresh_dashboard_progress(self, sync_active=False):
+        """Queries SQLite and dynamically draws/animates the dashboard progress dial and activity heatmap."""
         try:
             today_str = datetime.now().strftime("%Y-%m-%d")
             data = guardian_db.get_habit_history(days=1)
@@ -333,6 +395,57 @@ class GuardianWorkspaceSuite:
                 color = ACCENT_GREEN if pct == 1.0 else ACCENT_CYAN
                 self.dial_canvas.create_arc(10, 10, 110, 110, start=225, extent=-270*pct, style="arc", outline=color, width=8)
                 
+            # Render visual 14-day contribution heatmap grid
+            for child in self.squares_frame.winfo_children():
+                child.destroy()
+                
+            today = datetime.now()
+            # Generate 14 days sorted from 13 days ago to today
+            dates_list = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(13, -1, -1)]
+            
+            # Fetch active habits history for past 14 days
+            hist_data = guardian_db.get_habit_history(days=14)
+            active_habits = guardian_db.get_all_habit_names()
+            if not active_habits:
+                active_habits = habits
+            
+            for d_str in dates_list:
+                day_state = hist_data.get(d_str, {})
+                total_habits = len(active_habits)
+                
+                completed_habits = 0
+                for h in active_habits:
+                    if day_state.get(h, False):
+                        completed_habits += 1
+                        
+                day_pct = (completed_habits / total_habits) if total_habits > 0 else 0.0
+                
+                # Determine colors based on compliance percentage
+                border_color = BORDER_COLOR
+                border_thickness = 1
+                
+                if day_pct == 0.0:
+                    bg_color = "#18181B"          # Pure charcoal
+                elif day_pct <= 0.34:
+                    bg_color = "#064e3b"          # Muted Forest
+                elif day_pct <= 0.67:
+                    bg_color = "#059669"          # Emerald Green
+                else:
+                    bg_color = "#10B981"          # Radiant Neon
+                    if day_pct == 1.0:
+                        border_color = ACCENT_CYAN
+                        border_thickness = 1
+                
+                sq = tk.Frame(self.squares_frame, width=18, height=18, bg=bg_color, highlightbackground=border_color, highlightthickness=border_thickness)
+                sq.pack_propagate(False)
+                sq.pack(side="left", padx=3)
+                
+                # Dynamic Hover Tooltip showing date and stats
+                def make_tip_text(date_val=d_str, done=completed_habits, tot=total_habits, compl=day_pct):
+                    return lambda: f"{date_val}\nMilestones: {done}/{tot} done ({compl*100:.0f}%)"
+                    
+                HoverTooltip(sq, make_tip_text(d_str, completed_habits, total_habits, day_pct))
+
             # Render checklist checkbuttons
             for child in self.habits_frame.winfo_children():
                 child.destroy()
@@ -344,13 +457,48 @@ class GuardianWorkspaceSuite:
                 
                 def make_toggle(task_name=h, bool_var=var):
                     return lambda: self.toggle_habit_db(task_name, bool_var.get())
+                
+                is_github = (h == "github-commit")
+                
+                if is_github:
+                    # Special container frame for GitHub Sync row
+                    row_frame = tk.Frame(self.habits_frame, bg=BG_CARD)
+                    row_frame.pack(fill="x", anchor="w", pady=3)
                     
-                chk = tk.Checkbutton(
-                    self.habits_frame, text=f"Practice / Complete: {task_name.upper()}", variable=var,
-                    bg=BG_CARD, fg=FG_LIGHT, selectcolor=BG_INNER, activebackground=BG_CARD, activeforeground=FG_LIGHT,
-                    font=(FONT_FAMILY, 9), command=make_toggle(h, var)
-                )
-                chk.pack(anchor="w", pady=5)
+                    chk = tk.Checkbutton(
+                        row_frame, text="Practice / Complete: GITHUB-COMMIT", variable=var,
+                        bg=BG_CARD, fg=FG_LIGHT, selectcolor=BG_INNER, activebackground=BG_CARD, activeforeground=FG_LIGHT,
+                        font=(FONT_FAMILY, 9), command=make_toggle(h, var)
+                    )
+                    chk.pack(side="left", anchor="w")
+                    
+                    sync_text = "LOADING..." if sync_active else "⚡ SYNC"
+                    sync_state = "disabled" if sync_active else "normal"
+                    
+                    btn_sync = tk.Button(
+                        row_frame, text=sync_text, state=sync_state, bg=ACCENT_CYAN, fg=FG_LIGHT, bd=0, padx=8, pady=2,
+                        font=(FONT_FAMILY, 7, "bold"), cursor="hand2", command=self.asynchronously_sync_github
+                    )
+                    btn_sync.pack(side="left", padx=10)
+                else:
+                    row_frame = tk.Frame(self.habits_frame, bg=BG_CARD)
+                    row_frame.pack(fill="x", anchor="w", pady=3)
+                    
+                    chk = tk.Checkbutton(
+                        row_frame, text=f"Practice / Complete: {h.upper()}", variable=var,
+                        bg=BG_CARD, fg=FG_LIGHT, selectcolor=BG_INNER, activebackground=BG_CARD, activeforeground=FG_LIGHT,
+                        font=(FONT_FAMILY, 9), command=make_toggle(h, var)
+                    )
+                    chk.pack(side="left", anchor="w")
+                    
+                    def make_del_habit(h_name=h):
+                        return lambda: self.delete_habit_from_dash(h_name)
+                        
+                    btn_del = tk.Button(
+                        row_frame, text="🗑️", bg=BG_CARD, fg=ACCENT_RED, activebackground=BG_CARD, activeforeground=FG_LIGHT,
+                        bd=0, cursor="hand2", font=(FONT_FAMILY, 8), command=make_del_habit(h)
+                    )
+                    btn_del.pack(side="right", padx=5)
                 
             # Render weekend prep checkbutton if applicable
             if is_weekend and is_prep_active:
@@ -379,9 +527,49 @@ class GuardianWorkspaceSuite:
                 )
                 chk.pack(anchor="w", pady=5)
                 
-            # Render sync streak
-            streak_cnt = guardian_db.get_db_connection().execute("SELECT count(*) FROM daily_habits").fetchone()[0]
-            self.streak_num.config(text=f"{streak_cnt} DAYS")
+            # Render Todo Tasks Checklist
+            for child in self.todo_list_frame.winfo_children():
+                child.destroy()
+                
+            todo_tasks = guardian_db.get_todo_tasks(today_str)
+            if not todo_tasks:
+                tk.Label(
+                    self.todo_list_frame, text="✨ No tasks added for today! Add some to upscale.",
+                    bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 9, "italic")
+                ).pack(anchor="w", pady=5)
+            else:
+                for t in todo_tasks:
+                    row_frame = tk.Frame(self.todo_list_frame, bg=BG_CARD)
+                    row_frame.pack(fill="x", pady=2)
+                    
+                    t_var = tk.BooleanVar(value=t["completed"])
+                    
+                    def make_todo_toggle(task_id=t["id"], var_ref=t_var):
+                        return lambda: self.toggle_todo_task_db(task_id, var_ref.get())
+                        
+                    # Strikeout if completed (Dracula premium visual cue!)
+                    lbl_color = FG_SECONDARY if t["completed"] else FG_LIGHT
+                    lbl_font = (FONT_FAMILY, 9, "overstrike") if t["completed"] else (FONT_FAMILY, 9)
+                    
+                    chk = tk.Checkbutton(
+                        row_frame, text=t["task_text"], variable=t_var,
+                        bg=BG_CARD, fg=lbl_color, selectcolor=BG_INNER, activebackground=BG_CARD, activeforeground=lbl_color,
+                        font=lbl_font, command=make_todo_toggle(t["id"], t_var)
+                    )
+                    chk.pack(side="left", anchor="w")
+                    
+                    def make_todo_del(task_id=t["id"]):
+                        return lambda: self.delete_todo_task_db(task_id)
+                        
+                    btn_del = tk.Button(
+                        row_frame, text="🗑️", bg=BG_CARD, fg=ACCENT_RED, activebackground=BG_CARD, activeforeground=FG_LIGHT,
+                        bd=0, cursor="hand2", font=(FONT_FAMILY, 8), command=make_todo_del(t["id"])
+                    )
+                    btn_del.pack(side="right", padx=5)
+
+            # Recompute streaks and stats using core adapter safely
+            stats = guardian.calculate_stats()
+            self.streak_num.config(text=f"{stats['current_streak']} DAYS")
         except Exception as ex:
             print(f"Error refreshing dashboard: {ex}")
 
@@ -392,6 +580,354 @@ class GuardianWorkspaceSuite:
         except Exception as e:
             print(e)
         self.refresh_dashboard_progress()
+
+    def add_habit_from_dash(self):
+        """Adds a custom daily habit directly from dashboard entry."""
+        name = self.ent_habit_dash.get().strip().lower().replace(" ", "-")
+        if not name or name == "add-daily-habit-to-track...":
+            messagebox.showwarning("Validation Error", "Please enter a valid habit name.")
+            return
+        if name in guardian_db.get_all_habit_names():
+            messagebox.showwarning("Validation Error", "This habit already exists.")
+            return
+            
+        # Log in SQLite
+        guardian_db.add_custom_habit(name)
+        
+        # Update config
+        self.config["tracked_tasks"] = guardian_db.get_all_habit_names()
+        guardian.save_config(self.config)
+        
+        self.ent_habit_dash.delete(0, tk.END)
+        self.ent_habit_dash.insert(0, "Add daily habit to track...")
+        self.refresh_dashboard_progress()
+
+    def delete_habit_from_dash(self, name):
+        """Deletes a custom daily habit directly from dashboard."""
+        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to deactivate and remove habit '{name.upper()}'?"):
+            guardian_db.remove_custom_habit(name)
+            self.config["tracked_tasks"] = guardian_db.get_all_habit_names()
+            guardian.save_config(self.config)
+            self.refresh_dashboard_progress()
+
+    def add_todo_task_from_gui(self):
+        """Adds a custom daily one-off todo task from entry input."""
+        text = self.ent_todo.get().strip()
+        if not text or text == "Add task to complete today...":
+            messagebox.showwarning("Validation Error", "Please enter a valid task description.")
+            return
+            
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        guardian_db.add_todo_task(text, today_str)
+        self.ent_todo.delete(0, tk.END)
+        self.ent_todo.insert(0, "Add task to complete today...")
+        self.refresh_dashboard_progress()
+        
+    def toggle_todo_task_db(self, task_id, completed):
+        """Toggles a todo task status inside SQLite and plays sounds on completion."""
+        guardian_db.toggle_todo_task(task_id, completed)
+        if completed:
+            try:
+                import winsound
+                winsound.Beep(880, 100) # Quick confirmation high beep
+            except Exception:
+                pass
+        self.refresh_dashboard_progress()
+        
+    def delete_todo_task_db(self, task_id):
+        """Removes a todo task from SQLite database."""
+        guardian_db.delete_todo_task(task_id)
+        self.refresh_dashboard_progress()
+
+    def open_manage_habits_dialog(self):
+        """Opens a premium Space-Black modal dialog to manage habits dynamically."""
+        if hasattr(self, "active_habits_window") and self.active_habits_window and self.active_habits_window.winfo_exists():
+            self.active_habits_window.lift()
+            self.active_habits_window.focus_force()
+            return
+            
+        modal = tk.Toplevel(self.root)
+        self.active_habits_window = modal
+        modal.title("Manage Milestones & Habits")
+        modal.configure(bg=BG_DARK)
+        modal.geometry("380x420")
+        modal.resizable(False, False)
+        modal.attributes("-topmost", True)
+        
+        # Center the window
+        modal.update_idletasks()
+        w = modal.winfo_width()
+        h = modal.winfo_height()
+        extra_x = (self.root.winfo_screenwidth() - w) // 2
+        extra_y = (self.root.winfo_screenheight() - h) // 2
+        modal.geometry(f"+{extra_x}+{extra_y}")
+        
+        # Title Header
+        tk.Label(modal, text="⚙️ MANAGE DAILY HABITS", bg=BG_DARK, fg=ACCENT_CYAN, font=(FONT_FAMILY, 10, "bold"), pady=15).pack()
+        
+        # Add Habit Frame
+        add_frame = tk.Frame(modal, bg=BG_DARK, padx=20, pady=10)
+        add_frame.pack(fill="x")
+        
+        tk.Label(add_frame, text="Add New Habit Name:", bg=BG_DARK, fg=FG_SECONDARY, font=(FONT_FAMILY, 8, "bold")).pack(anchor="w")
+        ent_habit = tk.Entry(add_frame, bg=BG_INNER, fg=FG_LIGHT, insertbackground=FG_LIGHT, bd=1, relief="solid", highlightthickness=0, font=(FONT_FAMILY, 9))
+        ent_habit.pack(fill="x", side="left", expand=True, ipady=4, pady=5)
+        
+        # List Container
+        list_frame = tk.Frame(modal, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1)
+        list_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        canvas = tk.Canvas(list_frame, bg=BG_INNER, highlightthickness=0)
+        scrollbar = tk.Scrollbar(list_frame, orient="vertical", command=canvas.yview)
+        scroll_content = tk.Frame(canvas, bg=BG_INNER)
+        
+        scroll_content.bind(
+            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        canvas.create_window((0, 0), window=scroll_content, anchor="nw", width=310)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        def refresh_list():
+            for child in scroll_content.winfo_children():
+                child.destroy()
+                
+            habits = guardian_db.get_all_habit_names()
+            for h in habits:
+                h_frame = tk.Frame(scroll_content, bg=BG_INNER, pady=4)
+                h_frame.pack(fill="x", expand=True)
+                
+                # Check for github-commit, make it undeletable to preserve core sync feature
+                is_github = (h == "github-commit")
+                
+                lbl = tk.Label(h_frame, text=h.upper(), bg=BG_INNER, fg=FG_LIGHT, font=(FONT_FAMILY, 9, "bold"))
+                lbl.pack(side="left", padx=5)
+                
+                if not is_github:
+                    def make_del(habit_name=h):
+                        return lambda: delete_habit(habit_name)
+                        
+                    btn_del = tk.Button(h_frame, text="🗑️", bg=BG_INNER, fg=ACCENT_RED, activebackground=BG_INNER, activeforeground=FG_LIGHT, bd=0, cursor="hand2", font=(FONT_FAMILY, 9), command=make_del(h))
+                    btn_del.pack(side="right", padx=5)
+                    
+        def add_habit():
+            name = ent_habit.get().strip().lower().replace(" ", "-")
+            if not name:
+                messagebox.showwarning("Validation Error", "Habit name cannot be empty.")
+                return
+            if name in guardian_db.get_all_habit_names():
+                messagebox.showwarning("Validation Error", "This habit already exists.")
+                return
+            
+            # Log in SQLite
+            guardian_db.add_custom_habit(name)
+            
+            # Update Python configuration tracked_tasks
+            self.config["tracked_tasks"] = guardian_db.get_all_habit_names()
+            guardian.save_config(self.config)
+            
+            ent_habit.delete(0, tk.END)
+            refresh_list()
+            self.refresh_dashboard_progress()
+            
+        def delete_habit(name):
+            if messagebox.askyesno("Confirm Delete", f"Are you sure you want to deactivate and remove habit '{name.upper()}'?"):
+                guardian_db.remove_custom_habit(name)
+                self.config["tracked_tasks"] = guardian_db.get_all_habit_names()
+                guardian.save_config(self.config)
+                refresh_list()
+                self.refresh_dashboard_progress()
+
+        btn_add = tk.Button(add_frame, text="➕ ADD", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=12, pady=4, cursor="hand2", command=add_habit)
+        btn_add.pack(side="right", padx=(5, 0))
+        
+        refresh_list()
+
+    def asynchronously_sync_github(self):
+        """Asynchronously triggers live public GitHub commit verification."""
+        username = self.config.get("github_username", "").strip()
+        if not username or username == "YOUR_GITHUB_USERNAME":
+            messagebox.showwarning("Sync Configuration Required", "Please configure your public GitHub Username in the Settings tab first.")
+            return
+            
+        # Temporarily update checklist button status to display sync active
+        self.refresh_dashboard_progress(sync_active=True)
+        
+        def run_bg_sync():
+            import guardian
+            commit_ok = guardian.check_github_commit_today(username)
+            
+            def resolve():
+                if commit_ok:
+                    today_str = datetime.now().strftime("%Y-%m-%d")
+                    # Log in SQLite
+                    guardian_db.log_habit(today_str, "github-commit", 1)
+                    
+                    # Play pleasant confirmation chime
+                    try:
+                        import winsound
+                        winsound.Beep(988, 150) # B5 pitch chime
+                        winsound.Beep(1318, 250) # E6 pitch chime
+                    except Exception:
+                        pass
+                    
+                    messagebox.showinfo("Git Commit Synced", f"Outstanding! Found today's commits for GitHub user '{username}'.")
+                else:
+                    messagebox.showwarning("No Commits Found", f"No public push events or commits found today on GitHub for '{username}'. Push your code and sync again!")
+                    
+                self.refresh_dashboard_progress(sync_active=False)
+                
+            self.root.after(0, resolve)
+            
+        threading.Thread(target=run_bg_sync, daemon=True).start()
+
+    def open_grammar_sandbox_dialog(self):
+        """Opens a Duolingo-style developer Japanese grammar particle & sentence builder sandbox."""
+        if hasattr(self, "active_grammar_window") and self.active_grammar_window and self.active_grammar_window.winfo_exists():
+            self.active_grammar_window.lift()
+            self.active_grammar_window.focus_force()
+            return
+            
+        modal = tk.Toplevel(self.root)
+        self.active_grammar_window = modal
+        modal.title("Grammar Particle & Sentence Lab")
+        modal.configure(bg=BG_DARK)
+        modal.geometry("460x450")
+        modal.resizable(False, False)
+        modal.attributes("-topmost", True)
+        
+        # Center the window
+        modal.update_idletasks()
+        w = modal.winfo_width()
+        h = modal.winfo_height()
+        extra_x = (self.root.winfo_screenwidth() - w) // 2
+        extra_y = (self.root.winfo_screenheight() - h) // 2
+        modal.geometry(f"+{extra_x}+{extra_y}")
+        
+        # Game Data
+        puzzles = [
+            {"english": "I write code in Python.", "correct": ["私は", "Python", "で", "コード", "を", "書きます。"], "options": ["書きます。", "で", "を", "コード", "私は", "Python", "に", "は"]},
+            {"english": "Is the server database fast?", "correct": ["サーバー", "の", "データベース", "は", "速い", "ですか。"], "options": ["データベース", "の", "サーバー", "は", "速い", "ですか。", "に", "を"]},
+            {"english": "I will practice coding over the weekend.", "correct": ["週末", "に", "コーディング", "を", "練習します。"], "options": ["練習します。", "を", "コーディング", "に", "週末", "で", "は", "が"]},
+            {"english": "Today, I committed code to GitHub.", "correct": ["今日", "GitHub", "に", "コミット", "しました。"], "options": ["今日", "に", "GitHub", "しました。", "コミット", "で", "を", "は"]},
+            {"english": "Distributed databases are difficult.", "correct": ["分散", "データベース", "は", "難しい", "です。"], "options": ["難しい", "データベース", "は", "分散", "です。", "が", "に", "を"]}
+        ]
+        
+        # Pick a random puzzle
+        puzzle_idx = random.randint(0, len(puzzles)-1)
+        active_puzzle = puzzles[puzzle_idx]
+        
+        selected_words = []
+        available_options = list(active_puzzle["options"])
+        random.shuffle(available_options)
+        
+        # Title Header
+        tk.Label(modal, text="🎮 DEVELOPER GRAMMAR LAB", bg=BG_DARK, fg=ACCENT_PURPLE, font=(FONT_FAMILY, 10, "bold"), pady=15).pack()
+        
+        # Target Question Card
+        q_card = tk.Frame(modal, bg=BG_CARD, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
+        q_card.pack(fill="x", padx=20, pady=5)
+        
+        tk.Label(q_card, text="TRANSLATE THIS SENTENCE:", bg=BG_CARD, fg=ACCENT_ORANGE, font=(FONT_FAMILY, 8, "bold")).pack(anchor="w")
+        tk.Label(q_card, text=active_puzzle["english"], bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 10, "bold"), pady=4).pack(anchor="w")
+        
+        # Selected Slots Box
+        slots_card = tk.Frame(modal, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=15)
+        slots_card.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        tk.Label(slots_card, text="YOUR SENTENCE (Click word to remove):", bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold")).pack(anchor="w", pady=(0, 5))
+        
+        slots_tray = tk.Frame(slots_card, bg=BG_INNER)
+        slots_tray.pack(fill="both", expand=True, pady=5)
+        
+        # Options Box
+        options_tray = tk.Frame(modal, bg=BG_DARK, padx=20, pady=10)
+        options_tray.pack(fill="x")
+        
+        tk.Label(options_tray, text="AVAILABLE WORDS (Click word to add):", bg=BG_DARK, fg=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold")).pack(anchor="w", pady=(0, 5))
+        
+        pills_tray = tk.Frame(options_tray, bg=BG_DARK)
+        pills_tray.pack(fill="x")
+        
+        # Control Actions Row
+        actions_row = tk.Frame(modal, bg=BG_DARK, padx=20, pady=15)
+        actions_row.pack(fill="x")
+        
+        lbl_result = tk.Label(actions_row, text="", bg=BG_DARK, fg=ACCENT_GREEN, font=(FONT_FAMILY, 9, "bold"))
+        lbl_result.pack(side="left")
+        
+        def refresh_slots():
+            for child in slots_tray.winfo_children():
+                child.destroy()
+            for idx, word in enumerate(selected_words):
+                def make_remove(w=word):
+                    return lambda: remove_word(w)
+                btn = tk.Button(slots_tray, text=word, bg=BG_CARD, fg=FG_LIGHT, bd=1, relief="solid", highlightbackground=BORDER_COLOR, font=(FONT_FAMILY, 9), cursor="hand2", padx=8, pady=3, command=make_remove(word))
+                btn.pack(side="left", padx=3, pady=3)
+                
+        def refresh_options():
+            for child in pills_tray.winfo_children():
+                child.destroy()
+            for idx, word in enumerate(available_options):
+                def make_add(w=word):
+                    return lambda: add_word(w)
+                btn = tk.Button(pills_tray, text=word, bg=BG_INNER, fg=FG_LIGHT, bd=1, relief="solid", highlightbackground=BORDER_COLOR, font=(FONT_FAMILY, 9), cursor="hand2", padx=8, pady=3, command=make_add(word))
+                btn.pack(side="left", padx=3, pady=3)
+                
+        def add_word(word):
+            if word in available_options:
+                available_options.remove(word)
+                selected_words.append(word)
+                refresh_slots()
+                refresh_options()
+                lbl_result.config(text="")
+                
+        def remove_word(word):
+            if word in selected_words:
+                selected_words.remove(word)
+                available_options.append(word)
+                refresh_slots()
+                refresh_options()
+                lbl_result.config(text="")
+                
+        def evaluate_sentence():
+            correct_seq = active_puzzle["correct"]
+            if selected_words == correct_seq:
+                lbl_result.config(text="🏆 CORRECT! Excellent work!", fg=ACCENT_GREEN)
+                # Play pleasant chime
+                try:
+                    import winsound
+                    winsound.Beep(523, 100) # C5
+                    winsound.Beep(659, 100) # E5
+                    winsound.Beep(784, 150) # G5
+                except Exception:
+                    pass
+            else:
+                lbl_result.config(text="❌ INCORRECT. Try another sequence!", fg=ACCENT_RED)
+                try:
+                    import winsound
+                    winsound.Beep(261, 200) # C4 buzz
+                except Exception:
+                    pass
+                    
+        def reset_puzzle():
+            nonlocal selected_words, available_options
+            selected_words = []
+            available_options = list(active_puzzle["options"])
+            random.shuffle(available_options)
+            refresh_slots()
+            refresh_options()
+            lbl_result.config(text="")
+
+        btn_eval = tk.Button(actions_row, text="⚡ EVALUATE", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=12, pady=5, cursor="hand2", command=evaluate_sentence)
+        btn_eval.pack(side="right", padx=(5, 0))
+        
+        btn_reset = tk.Button(actions_row, text="↻ RESET", bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=12, pady=5, cursor="hand2", command=reset_puzzle)
+        btn_reset.pack(side="right", padx=5)
+        
+        refresh_slots()
+        refresh_options()
 
     # ==================== TAB 2: RESEARCH PANEL ====================
     def init_research_tab(self):
@@ -545,6 +1081,110 @@ class GuardianWorkspaceSuite:
                 padx=5, pady=2, command=make_open_res(s_query)
             )
             btn_lnk.pack(fill="x")
+            
+        # 5. Interactive arXiv Search Card (Master Research Console)
+        search_card = tk.Frame(self.intel_body, bg=BG_CARD, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
+        search_card.pack(fill="x", pady=5)
+        
+        tk.Label(search_card, text="🔍 LIVE CS PAPER SEARCH (arXiv API)", bg=BG_CARD, fg=ACCENT_CYAN, font=(FONT_FAMILY, 8, "bold")).pack(anchor="w")
+        
+        entry_frame = tk.Frame(search_card, bg=BG_CARD)
+        entry_frame.pack(fill="x", pady=5)
+        
+        self.ent_arxiv_query = tk.Entry(entry_frame, bg=BG_INNER, fg=FG_LIGHT, insertbackground=FG_LIGHT, bd=1, relief="solid", highlightthickness=0, font=(FONT_FAMILY, 9))
+        self.ent_arxiv_query.pack(side="left", fill="x", expand=True, ipady=4)
+        self.ent_arxiv_query.insert(0, "Distributed consensus")
+        
+        btn_search = tk.Button(entry_frame, text="🔍 SEARCH", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=12, pady=4, cursor="hand2", command=self.asynchronously_search_arxiv)
+        btn_search.pack(side="right", padx=(5, 0))
+        
+        self.lbl_arxiv_status = tk.Label(search_card, text="", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8, "italic"))
+        self.lbl_arxiv_status.pack(anchor="w", pady=(2, 0))
+        
+        self.arxiv_results_frame = tk.Frame(search_card, bg=BG_CARD)
+        self.arxiv_results_frame.pack(fill="both", expand=True, pady=5)
+
+    def asynchronously_search_arxiv(self):
+        """Asynchronously queries the live arXiv API for academic computer science research papers."""
+        query = self.ent_arxiv_query.get().strip()
+        if not query:
+            messagebox.showwarning("Search Required", "Please enter a search term or topic.")
+            return
+            
+        self.lbl_arxiv_status.config(text="🔍 Searching live arXiv API...")
+        for child in self.arxiv_results_frame.winfo_children():
+            child.destroy()
+            
+        def run_bg_search():
+            import urllib.request
+            import xml.etree.ElementTree as ET
+            import urllib.parse
+            
+            # Format query for arXiv CS category or all text
+            safe_query = urllib.parse.quote(f"all:\"{query}\" AND (cat:cs.DC OR cat:cs.SE OR cat:cs.AR OR cat:cs.LG)")
+            url = f"http://export.arxiv.org/api/query?search_query={safe_query}&sortBy=submittedDate&sortOrder=descending&max_results=3"
+            
+            papers = []
+            try:
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                response = urllib.request.urlopen(req, timeout=8)
+                xml_data = response.read()
+                root = ET.fromstring(xml_data)
+                
+                ns = {'atom': 'http://www.w3.org/2005/Atom'}
+                entries = root.findall('atom:entry', ns)
+                
+                for entry in entries:
+                    t = entry.find('atom:title', ns).text.strip().replace('\n', ' ')
+                    s = entry.find('atom:summary', ns).text.strip().replace('\n', ' ')
+                    id_url = entry.find('atom:id', ns).text.strip()
+                    arxiv_id = id_url.split('/abs/')[-1].split('v')[0]
+                    
+                    # Clean double spaces
+                    t = " ".join(t.split())
+                    s = " ".join(s.split())
+                    
+                    # Make short summary
+                    summary_sents = [sent.strip() for sent in s.split('.') if sent.strip()]
+                    short_s = ". ".join(summary_sents[:2]) + "."
+                    if len(short_s) > 180:
+                        short_s = short_s[:177] + "..."
+                        
+                    papers.append({
+                        "title": t,
+                        "summary": short_s,
+                        "id": arxiv_id
+                    })
+            except Exception as e:
+                print(f"Error searching arXiv: {e}")
+                
+            def resolve():
+                self.lbl_arxiv_status.config(text="")
+                if not papers:
+                    tk.Label(self.arxiv_results_frame, text="❌ No papers found. Try another query like 'Raft consensus' or 'LLM compiler'.", bg=BG_CARD, fg=ACCENT_ORANGE, font=(FONT_FAMILY, 8, "italic")).pack(anchor="w")
+                    return
+                    
+                for p in papers:
+                    p_frame = tk.Frame(self.arxiv_results_frame, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=10, pady=8)
+                    p_frame.pack(fill="x", pady=4)
+                    
+                    tk.Label(p_frame, text=p["title"], bg=BG_INNER, fg=FG_LIGHT, font=(FONT_FAMILY, 9, "bold"), wraplength=440, justify="left").pack(anchor="w")
+                    tk.Label(p_frame, text=p["summary"], bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 8), wraplength=440, justify="left", pady=3).pack(anchor="w")
+                    
+                    read_query = f"arXiv:{p['id']} {p['title']}"
+                    def make_open_paper(q=read_query):
+                        return lambda: webbrowser.open(f"https://www.google.com/search?q={urllib.parse.quote(q)}")
+                        
+                    btn = tk.Button(
+                        p_frame, text="READ PAPER ↗", bg=BG_CARD, fg=ACCENT_CYAN, bd=0, padx=8, pady=2,
+                        font=(FONT_FAMILY, 7, "bold"), cursor="hand2", command=make_open_paper(read_query)
+                    )
+                    btn.pack(anchor="w", pady=(4, 0))
+                    
+            self.root.after(0, resolve)
+            
+        threading.Thread(target=run_bg_search, daemon=True).start()
+
 
     # ==================== TAB 3: KANJI SRS EXPLORER ====================
     def init_kanji_tab(self):
@@ -625,21 +1265,27 @@ class GuardianWorkspaceSuite:
         )
         btn_audio_sentence.pack(side="left", padx=2)
         
-        # Next / Prev buttons
+        # Next / Prev buttons & Grammar drills
         nav_frame = tk.Frame(frame, bg=BG_DARK, pady=5)
         nav_frame.pack(fill="x")
         
         self.btn_kanji_prev = tk.Button(
-            nav_frame, text="⬅️ PREV HISTORY", bg=BG_CARD, fg=FG_LIGHT, bd=0, padx=15, pady=8,
+            nav_frame, text="⬅️ PREV", bg=BG_CARD, fg=FG_LIGHT, bd=0, padx=12, pady=8,
             font=(FONT_FAMILY, 8, "bold"), cursor="hand2", command=self.navigate_previous_kanji
         )
-        self.btn_kanji_prev.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        self.btn_kanji_prev.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        
+        self.btn_grammar_lab = tk.Button(
+            nav_frame, text="🎮 GRAMMAR LAB", bg=BG_INNER, fg=ACCENT_PURPLE, bd=0, padx=12, pady=8,
+            font=(FONT_FAMILY, 8, "bold"), cursor="hand2", command=self.open_grammar_sandbox_dialog
+        )
+        self.btn_grammar_lab.pack(side="left", fill="x", expand=True, padx=4)
         
         self.btn_kanji_next = tk.Button(
-            nav_frame, text="🧠 NEW CARD", bg=ACCENT_CYAN, fg=FG_LIGHT, bd=0, padx=15, pady=8,
+            nav_frame, text="🧠 NEW CARD", bg=ACCENT_CYAN, fg=FG_LIGHT, bd=0, padx=12, pady=8,
             font=(FONT_FAMILY, 8, "bold"), cursor="hand2", command=self.load_new_kanji_card
         )
-        self.btn_kanji_next.pack(side="right", fill="x", expand=True, padx=(5, 0))
+        self.btn_kanji_next.pack(side="right", fill="x", expand=True, padx=(4, 0))
         
         # Tooltip bounds
         HoverTooltip(self.k_display, lambda: self.current_kanji_card.get("kanji_romaji", "") if hasattr(self, "current_kanji_card") else "")
@@ -706,24 +1352,40 @@ class GuardianWorkspaceSuite:
             self.btn_kanji_next.config(text="🧠 NEW CARD", bg=ACCENT_CYAN)
 
     def load_new_kanji_card(self):
-        """Loads a newly fetched card instantly, or triggers background threaded generations."""
+        """Loads a newly fetched card instantly from the prefetch queue or local fallbacks, refilling queue in background."""
+        # 1. If we are browsing back in history, just navigate forward
         if self.srs_deck_idx < len(self.viewed_kanji_cards) - 1:
             self.srs_deck_idx += 1
             self.render_kanji_card(self.viewed_kanji_cards[self.srs_deck_idx])
             return
             
-        if self.cached_next_kanji:
-            new_c = self.cached_next_kanji
-            self.cached_next_kanji = None
+        # 2. Pop from prefetch queue if ready for INSTANT load (<1ms!)
+        if self.prefetched_kanji_queue:
+            new_c = self.prefetched_kanji_queue.pop(0)
             self.on_kanji_card_fetched_successfully(new_c)
             return
             
+        # 3. Queue empty fallback: Pull instantly from local JLPT fallback database
+        excluded = list(self.kanji_db.get("vocab", {}).keys())
+        for viewed in self.viewed_kanji_cards:
+            k = viewed.get("kanji")
+            if k and k not in excluded:
+                excluded.append(k)
+                
+        # Get instant local fallback card from pools
+        api_key = self.config.get("gemini_api_key", "").strip()
+        local_card = guardian.get_local_fallback_kanji_card(self.difficulty_level, excluded)
+        if local_card:
+            self.on_kanji_card_fetched_successfully(local_card)
+            # Run background thread to query Gemini and refill the prefetch queue
+            self.trigger_background_kanji_prefetch()
+            return
+            
+        # 4. Total fallback (if local cards exhausted): Fetch from Gemini live in background
         self.btn_kanji_next.config(text="LOADING...", state="disabled")
         
         def bg_fetch():
-            api_key = self.config.get("gemini_api_key", "").strip()
-            excluded = list(self.kanji_db.get("vocab", {}).keys())
-            new_card = guardian.get_gemini_kanji_card(api_key, "N5", excluded)
+            new_card = guardian.get_gemini_kanji_card(api_key, self.difficulty_level, excluded)
             self.root.after(0, lambda: self.on_kanji_card_fetched_successfully(new_card))
             
         threading.Thread(target=bg_fetch, daemon=True).start()
@@ -746,22 +1408,32 @@ class GuardianWorkspaceSuite:
 
     def trigger_background_kanji_prefetch(self):
         """Prefetches next card so the user experiences zero lag upon clicking Next."""
-        if self.cached_next_kanji or self.kanji_prefetch_in_progress:
+        # Limit queue to size 2
+        if len(self.prefetched_kanji_queue) >= 2 or self.kanji_prefetch_in_progress:
             return
             
         self.kanji_prefetch_in_progress = True
         def bg_pre():
             api_key = self.config.get("gemini_api_key", "").strip()
             excluded = list(self.kanji_db.get("vocab", {}).keys())
-            if hasattr(self, "current_kanji_card"):
-                k = self.current_kanji_card.get("kanji")
-                if k not in excluded:
+            for viewed in self.viewed_kanji_cards:
+                k = viewed.get("kanji")
+                if k and k not in excluded:
                     excluded.append(k)
-            new_c = guardian.get_gemini_kanji_card(api_key, "N5", excluded)
+            for cached in self.prefetched_kanji_queue:
+                k = cached.get("kanji")
+                if k and k not in excluded:
+                    excluded.append(k)
+                    
+            new_c = guardian.get_gemini_kanji_card(api_key, self.difficulty_level, excluded)
             
             def resolve(c=new_c):
-                self.cached_next_kanji = c
+                if c:
+                    self.prefetched_kanji_queue.append(c)
                 self.kanji_prefetch_in_progress = False
+                # Refill again if needed
+                if len(self.prefetched_kanji_queue) < 2:
+                    self.trigger_background_kanji_prefetch()
             self.root.after(0, resolve)
             
         threading.Thread(target=bg_pre, daemon=True).start()

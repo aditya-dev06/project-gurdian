@@ -467,7 +467,7 @@ def get_cache_key(prompt, system_instruction, model, audio_base64):
         hasher.update(audio_base64.encode('utf-8'))
     return hasher.hexdigest()
 
-def query_gemini(prompt, system_instruction=None, model="gemini-2.5-flash", audio_base64=None):
+def query_gemini(prompt, system_instruction=None, model="gemini-3.5-flash", audio_base64=None):
     """
     Unified, robust helper to query Google Gemini API.
     Supports standard API Key query parameters OR keyless Gmail system OAuth2 Bearer authentication.
@@ -547,9 +547,10 @@ def query_gemini(prompt, system_instruction=None, model="gemini-2.5-flash", audi
                 set_cached_response(cache_key, text)
                 return text, "success"
             elif code == 429:
-                sleep_time = (attempt + 1) * 3.0
-                print(f"Gemini API rate limited (429). Retrying in {sleep_time}s... (Attempt {attempt+1}/3)")
-                time.sleep(sleep_time)
+                print("Gemini API rate limited (429). Instantly falling back to offline pools.")
+                global _last_quota_status
+                _last_quota_status = ("exhausted", "Quota exhausted (429). You exceeded your current quota.")
+                return None, "rate_limit"
             elif code in (401, 403):
                 return None, "auth_error"
             else:
@@ -561,6 +562,69 @@ def query_gemini(prompt, system_instruction=None, model="gemini-2.5-flash", audi
             
     return None, "rate_limit"
 
+
+def get_local_fallback_kanji_card(jlpt_level="N5", excluded_list=None):
+    """Pulls a progressive Japanese Kanji card instantly from local offline pools."""
+    if excluded_list is None:
+        excluded_list = []
+        
+    fallback_pools = {
+        "N5": [
+            {"kanji": "日", "meaning": "day, sun, Japan", "onyomi": "ニチ, ジツ", "kunyomi": "ひ, び, か", "stroke_count": 4, "example_ja": "日本にいきたいです。", "example_en": "I want to go to Japan.", "kanji_yomi": "ひ", "kanji_romaji": "hi", "example_yomi": "にほん に いきたい です。", "example_romaji": "nihon ni ikitai desu.", "radicals": "日 (Sun)", "mnemonic": "A drawing of the sun with a horizontal line in the middle."},
+            {"kanji": "本", "meaning": "book, origin, main", "onyomi": "ホン", "kunyomi": "もと", "stroke_count": 5, "example_ja": "日本語をべんきょうします。", "example_en": "I study Japanese.", "kanji_yomi": "ほん", "kanji_romaji": "hon", "example_yomi": "にほんご を べんきょう します。", "example_romaji": "nihongo o benkyou shimasu.", "radicals": "木 (Tree) + 一 (Line)", "mnemonic": "A tree with a horizontal line indicating its roots, signifying origin."},
+            {"kanji": "人", "meaning": "person, human", "onyomi": "ジン, ニン", "kunyomi": "ひと", "stroke_count": 2, "example_ja": "あの人はだれですか。", "example_en": "Who is that person?", "kanji_yomi": "ひと", "kanji_romaji": "hito", "example_yomi": "あの ひと は だれ です か。", "example_romaji": "ano hito wa dare desu ka.", "radicals": "人 (Person)", "mnemonic": "A simple sketch of a walking person's two legs."},
+            {"kanji": "学", "meaning": "study, learning, science", "onyomi": "ガク", "kunyomi": "まな-ぶ", "stroke_count": 8, "example_ja": "学生ですか。", "example_en": "Are you a student?", "kanji_yomi": "まなぶ", "kanji_romaji": "manabu", "example_yomi": "がくせい です か。", "example_romaji": "gakusei desu ka.", "radicals": "𓎏 (Roof) + 子 (Child)", "mnemonic": "A child studying under a school roof space."},
+            {"kanji": "生", "meaning": "life, birth, genuine", "onyomi": "セイ, ショウ", "kunyomi": "い-きる, う-む, なま", "stroke_count": 5, "example_ja": "先生、こんにちは。", "example_en": "Hello, teacher.", "kanji_yomi": "なま", "kanji_romaji": "nama", "example_yomi": "せんせい、こんにちは。", "example_romaji": "sensei, konnichiwa.", "radicals": "生 (Sprout)", "mnemonic": "A green sprout emerging from the soil, representing birth and life."},
+            {"kanji": "先", "meaning": "ahead, previous, future", "onyomi": "セン", "kunyomi": "さき", "stroke_count": 6, "example_ja": "先月、日本にいきました。", "example_en": "I went to Japan last month.", "kanji_yomi": "さき", "kanji_romaji": "saki", "example_yomi": "せんげつ、にほん に いきました。", "example_romaji": "sengetsu, nihon ni ikimashita."},
+            {"kanji": "国", "meaning": "country", "onyomi": "コク", "kunyomi": "くに", "stroke_count": 8, "example_ja": "お国はどちらですか。", "example_en": "Which country are you from?", "kanji_yomi": "くに", "kanji_romaji": "kuni", "example_yomi": "おくに は どちら です か。", "example_romaji": "okuni wa dochira desu ka."},
+            {"kanji": "車", "meaning": "car, vehicle, wheel", "onyomi": "シャ", "kunyomi": "くるま", "stroke_count": 7, "example_ja": "新しい車を買いました。", "example_en": "I bought a new car.", "kanji_yomi": "くるま", "kanji_romaji": "kuruma", "example_yomi": "あたらしい くるま を かいました。", "example_romaji": "atarashii kuruma o kaimashita."},
+            {"kanji": "水", "meaning": "water", "onyomi": "スイ", "kunyomi": "みず", "stroke_count": 4, "example_ja": "お水をください。", "example_en": "Please give me water.", "kanji_yomi": "みず", "kanji_romaji": "mizu", "example_yomi": "おみず を ください。", "example_romaji": "omizu o kudasai."},
+            {"kanji": "金", "meaning": "gold, money", "onyomi": "キン, コン", "kunyomi": "かね, かな", "stroke_count": 8, "example_ja": "お金がありません。", "example_en": "I have no money.", "kanji_yomi": "かね", "kanji_romaji": "kane", "example_yomi": "おかね が ありません。", "example_romaji": "okane ga arimasen."}
+        ],
+        "N4": [
+            {"kanji": "会", "meaning": "meet, society", "onyomi": "カイ", "kunyomi": "あ-う", "stroke_count": 6, "example_ja": "今日、友達に会います。", "example_en": "I will meet my friend today.", "kanji_yomi": "あう", "kanji_romaji": "au", "example_yomi": "きょう、ともだち に あいます。", "example_romaji": "kyou, tomodachi ni aimasu."},
+            {"kanji": "同", "meaning": "same, agree", "onyomi": "ドウ", "kunyomi": "おな-じ", "stroke_count": 6, "example_ja": "彼と同じクラスです。", "example_en": "I am in the same class as him.", "kanji_yomi": "おなじ", "kanji_romaji": "onaji", "example_yomi": "かれ と おなじ くらす です。", "example_romaji": "kare to onaji kurasu desu."},
+            {"kanji": "事", "meaning": "thing, matter", "onyomi": "ジ", "kunyomi": "こと", "stroke_count": 8, "example_ja": "大事な仕事があります。", "example_en": "I have an important job.", "kanji_yomi": "こと", "kanji_romaji": "koto", "example_yomi": "だいじ な しごと が あります。", "example_romaji": "だいじ na shigoto ga arimasu."},
+            {"kanji": "自", "meaning": "oneself", "onyomi": "ジ, シ", "kunyomi": "みずか-ら", "stroke_count": 6, "example_ja": "自転車で行きます。", "example_en": "I will go by bicycle.", "kanji_yomi": "じ", "kanji_romaji": "ji", "example_yomi": "じてんしゃ で いきます。", "example_romaji": "jitensha de ikimasu."},
+            {"kanji": "社", "meaning": "company, shrine", "onyomi": "シャ", "kunyomi": "やしろ", "stroke_count": 7, "example_ja": "日本の会社で働きます。", "example_en": "I work at a Japanese company.", "kanji_yomi": "しゃ", "kanji_romaji": "sha", "example_yomi": "にほん の かいしゃ で はたらきます。", "example_romaji": "nihon no kaisha de hatarakimasu."},
+            {"kanji": "発", "meaning": "departure, emit", "onyomi": "ハツ, ホツ", "kunyomi": "", "stroke_count": 9, "example_ja": "新しい技術を開発します。", "example_en": "We will develop new technology.", "kanji_yomi": "はつ", "kanji_romaji": "hatsu", "example_yomi": "あたらしい ぎじゅつ を かいはつ します。", "example_romaji": "atarashii gijutsu o kaihatsu shimasu."},
+            {"kanji": "者", "meaning": "someone, person", "onyomi": "シャ", "kunyomi": "もの", "stroke_count": 8, "example_ja": "彼は有名な科学者です。", "example_en": "He is a famous scientist.", "kanji_yomi": "もの", "kanji_romaji": "mono", "example_yomi": "かれ は ゆうめい な かがくしゃ です。", "example_romaji": "かれ wa yuumei na kagakusha desu."},
+            {"kanji": "地", "meaning": "ground, earth", "onyomi": "チ, ジ", "kunyomi": "", "stroke_count": 6, "example_ja": "地図を見せてください。", "example_en": "Please show me the map.", "kanji_yomi": "ち", "kanji_romaji": "chi", "example_yomi": "ちず を miせて ください。", "example_romaji": "chizu o misete kudasai."},
+            {"kanji": "業", "meaning": "business, industry", "onyomi": "ギョウ, ゴウ", "kunyomi": "わざ", "stroke_count": 13, "example_ja": "東京でIT産業が盛んです。", "example_en": "The IT industry is thriving in Tokyo.", "kanji_yomi": "ぎょう", "kanji_romaji": "gyou", "example_yomi": "とうきょう で あいてぃ さんぎょう が さかん です。", "example_romaji": "toukyou de aitei sangyou wa sakan desu."},
+            {"kanji": "方", "meaning": "direction, person", "onyomi": "ホウ", "kunyomi": "かた", "stroke_count": 4, "example_ja": "この漢字の書き方を教えてください。", "example_en": "Please teach me how to write this kanji.", "kanji_yomi": "かた", "kanji_romaji": "kata", "example_yomi": "この かんじ の かきかた を おしえて ください。", "example_romaji": "kono kanji no kakikata o oshiete kudasai."}
+        ],
+        "N3": [
+            {"kanji": "政", "meaning": "politics, government", "onyomi": "セイ", "kunyomi": "まつりごと", "stroke_count": 9, "example_ja": "政治に関心があります。", "example_en": "I am interested in politics.", "kanji_yomi": "まつりごと", "kanji_romaji": "matsurigoto", "example_yomi": "せいじ に かんしん が あります。", "example_romaji": "seiji ni kanshin ga arimasu."},
+            {"kanji": "経", "meaning": "sutra, pass through", "onyomi": "ケイ, キョウ", "kunyomi": "へ-る", "stroke_count": 11, "example_ja": "日本で経済学を学びました。", "example_en": "I studied economics in Japan.", "kanji_yomi": "へる", "kanji_romaji": "heru", "example_yomi": "にほん で けいざいがく を まなびました。", "example_romaji": "nihon de keizaigaku o manabimashita."},
+            {"kanji": "現", "meaning": "present, appear", "onyomi": "ゲン", "kunyomi": "あらわ-れる", "stroke_count": 11, "example_ja": "現代 of 技術はすごいです。", "example_en": "Modern technology is amazing.", "kanji_yomi": "あらわれる", "kanji_romaji": "arawareru", "example_yomi": "げんだい の ぎじゅつ は すごい です。", "example_romaji": "gendai no gijutsu wa sugoi desu."},
+            {"kanji": "性", "meaning": "sex, gender, nature", "onyomi": "セイ, ショウ", "kunyomi": "さが", "stroke_count": 8, "example_ja": "プログラムの安全性を高めます。", "example_en": "We will improve the safety of the program.", "kanji_yomi": "せい", "kanji_romaji": "sei", "example_yomi": "ぷろぐらむ の あんぜんせい を たかめます。", "example_romaji": "puroguramu no anzensei o takamemasu."},
+            {"kanji": "制", "meaning": "system, control", "onyomi": "セイ", "kunyomi": "", "stroke_count": 8, "example_ja": "新しい制度が始まります。", "example_en": "A new system will start.", "kanji_yomi": "sei", "kanji_romaji": "sei", "example_yomi": "あたらしい せいど が はじまります。", "example_romaji": "atarashii seido ga hajimarimasu."}
+        ],
+        "N2": [
+            {"kanji": "党", "meaning": "political party", "onyomi": "トウ", "kunyomi": "", "stroke_count": 10, "example_ja": "与党が法案を提出しました。", "example_en": "The ruling party submitted the bill.", "kanji_yomi": "とう", "kanji_romaji": "tou", "example_yomi": "よとう が ほうあん を ていしゅつ しました。", "example_romaji": "yotou ga houan o teishutsu shimashita."},
+            {"kanji": "協", "meaning": "cooperation", "onyomi": "キョウ", "kunyomi": "", "stroke_count": 8, "example_ja": "チームで協力して開発します。", "example_en": "We will cooperate as a team to develop.", "kanji_yomi": "きょう", "kanji_romaji": "kyou", "example_yomi": "ちーむ で きょうりょく して かいはつ します。", "example_romaji": "chiimu de kyouryoku shite kaihatsu shimasu."},
+            {"kanji": "総", "meaning": "general, whole", "onyomi": "ソウ", "kunyomi": "", "stroke_count": 14, "example_ja": "総額はいくらですか。", "example_en": "What is the total amount?", "kanji_yomi": "そう", "kanji_romaji": "sou", "example_yomi": "そうがく は いくら です か。", "example_romaji": "sougaku wa ikura desu ka."},
+            {"kanji": "領", "meaning": "jurisdiction, dominion", "onyomi": "リョウ", "kunyomi": "", "stroke_count": 14, "example_ja": "領収書をください。", "example_en": "Please give me a receipt.", "kanji_yomi": "りょう", "kanji_romaji": "ryou", "example_yomi": "りょうしゅうしょ を ください。", "example_romaji": "ryoushuusho o kudasai."},
+            {"kanji": "設", "meaning": "establishment, provision", "onyomi": "セツ", "kunyomi": "もう-ける", "stroke_count": 11, "example_ja": "新しいサーバーを設置しました。", "example_en": "We set up a new server.", "kanji_yomi": "もうける", "kanji_romaji": "moukeru", "example_yomi": "あたらしい さーばー を せっち しました。", "example_romaji": "atarashii saabaa o secchi shimashita."}
+        ],
+        "N1": [
+            {"kanji": "憲", "meaning": "constitution, law", "onyomi": "ケン", "kunyomi": "", "stroke_count": 16, "example_ja": "憲法改正について議論します。", "example_en": "We will discuss constitutional reform.", "kanji_yomi": "けん", "kanji_romaji": "ken", "example_yomi": "けんぽうかいせい に ついて ぎろん します。", "example_romaji": "kenpoukaisei ni tsuite giron shimasu."},
+            {"kanji": "擁", "meaning": "hug, protect", "onyomi": "ヨウ", "kunyomi": "", "stroke_count": 16, "example_ja": "人権擁護を推進します。", "example_en": "We will promote the protection of human rights.", "kanji_yomi": "よう", "kanji_romaji": "you", "example_yomi": "じんけんようご を すいしん します。", "example_romaji": "jinkenyougo o suishin shimashita."},
+            {"kanji": "凝", "meaning": "congeal, absorb", "onyomi": "ギョウ", "kunyomi": "こ-る, こ-らす", "stroke_count": 16, "example_ja": "彼はデザインに凝っています。", "example_en": "He is very particular about design.", "kanji_yomi": "こる", "kanji_romaji": "koru", "example_yomi": "かれ は でざいん に こって います。", "example_romaji": "kare wa dezain ni kotte imasu."}
+        ]
+    }
+    
+    pool = fallback_pools.get(jlpt_level, fallback_pools["N5"])
+    for card in pool:
+        if card["kanji"] not in excluded_list:
+            return card
+    # If all local cards in this level are learned/excluded, reset and pick a random one to guarantee <1ms load!
+    if pool:
+        import random
+        selected = dict(random.choice(pool))
+        selected["is_fallback"] = True
+        return selected
+    return None
 
 def get_gemini_kanji_card(api_key, jlpt_level="N5", excluded_list=None):
     """Queries Gemini 2.5 API to generate a progressive Japanese Kanji card. Falls back to local database if offline."""
@@ -832,7 +896,7 @@ def check_gemini_quota_status(api_key):
         else:
             return ("no_key", "No Gemini API key configured in settings.")
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
     headers = {"Content-Type": "application/json"}
     # Smallest possible payload
     payload = {"contents": [{"parts": [{"text": "Hi"}]}]}

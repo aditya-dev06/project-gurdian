@@ -316,7 +316,18 @@ def init_db():
         timestamp TEXT NOT NULL
     );
     """)
-    
+
+    # 9. Todo Tasks Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS todo_tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_text TEXT NOT NULL,
+        completed INTEGER DEFAULT 0 CHECK (completed IN (0, 1)),
+        created_date TEXT NOT NULL,
+        completed_at TEXT
+    );
+    """)
+
     # Migration: Add intel_data column to weekend_prep if missing
     try:
         cursor.execute("SELECT intel_data FROM weekend_prep LIMIT 1")
@@ -576,6 +587,40 @@ def get_all_habit_names():
     finally:
         conn.close()
     return names
+
+def add_custom_habit(habit_name):
+    """Adds a custom daily habit, setting it to active in the database."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # Check if habit already exists
+        cursor.execute("SELECT id FROM habits WHERE name = ?", (habit_name,))
+        row = cursor.fetchone()
+        if row:
+            # Set active = 1
+            cursor.execute("UPDATE habits SET active = 1 WHERE id = ?", (row['id'],))
+        else:
+            # Insert new active habit
+            cursor.execute("INSERT INTO habits (name, active, created_at) VALUES (?, 1, ?)",
+                           (habit_name, datetime.now().strftime("%Y-%m-%d")))
+        conn.commit()
+    except Exception as e:
+        print(f"Error adding custom habit: {e}")
+    finally:
+        conn.close()
+
+def remove_custom_habit(habit_name):
+    """Deletes/deactivates a custom daily habit in the database (keeps historical logs)."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE habits SET active = 0 WHERE name = ?", (habit_name,))
+        conn.commit()
+    except Exception as e:
+        print(f"Error removing custom habit: {e}")
+    finally:
+        conn.close()
+
 
 def get_habit_history(days=30):
     """Returns a dictionary mapping date strings to habit states over the past N days."""
@@ -1154,6 +1199,68 @@ def delete_weekend_prep_task(date_str):
     finally:
         conn.close()
 
+# Helper Functions for Daily One-off To-Do Tasks
+def add_todo_task(task_text, date_str):
+    """Inserts a new daily one-off todo task into SQLite."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO todo_tasks (task_text, created_date, completed) VALUES (?, ?, 0)", (task_text, date_str))
+        conn.commit()
+    except Exception as e:
+        print(f"Error adding todo task: {e}")
+    finally:
+        conn.close()
+
+def get_todo_tasks(date_str):
+    """Returns a list of dictionaries of all todo tasks for a given date."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    tasks = []
+    try:
+        cursor.execute("SELECT id, task_text, completed, created_date, completed_at FROM todo_tasks WHERE created_date = ?", (date_str,))
+        rows = cursor.fetchall()
+        for r in rows:
+            tasks.append({
+                "id": r["id"],
+                "task_text": r["task_text"],
+                "completed": bool(r["completed"]),
+                "created_date": r["created_date"],
+                "completed_at": r["completed_at"]
+            })
+    except Exception as e:
+        print(f"Error fetching todo tasks: {e}")
+    finally:
+        conn.close()
+    return tasks
+
+def toggle_todo_task(task_id, completed):
+    """Toggles the completed status of a specific todo task in SQLite."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    comp_val = 1 if completed else 0
+    comp_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S") if completed else None
+    try:
+        cursor.execute("UPDATE todo_tasks SET completed = ?, completed_at = ? WHERE id = ?", (comp_val, comp_at, task_id))
+        conn.commit()
+    except Exception as e:
+        print(f"Error toggling todo task: {e}")
+    finally:
+        conn.close()
+
+def delete_todo_task(task_id):
+    """Deletes a specific todo task from SQLite database."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM todo_tasks WHERE id = ?", (task_id,))
+        conn.commit()
+    except Exception as e:
+        print(f"Error deleting todo task: {e}")
+    finally:
+        conn.close()
+
 # Auto-run table initialization on import
 init_db()
+
 

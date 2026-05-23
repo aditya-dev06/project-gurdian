@@ -59,10 +59,14 @@ class WeekendPipelineManager:
             "Analyze emerging trends in backend, cloud, distributed systems, recent CS research breakthroughs (arXiv, Google Research, DeepMind), "
             "and hiring signals in Tokyo to create a future-ready technical study plan.\n\n"
             f"{history_summary}\n\n"
-            f"This weekend's lesson topic is: '{baseline_topic}' (Week index: {week_idx}).\n\n"
+            "DO NOT use a pre-fetched static syllabus. Instead, dynamically evaluate the user's progress and history, "
+            "identify gaps in their backend/cloud/system design skills, and propose a completely customized next-step curriculum lesson "
+            f"topic for this weekend (Week index: {week_idx}). The generated curriculum must represent a natural, logical progression from "
+            "their past lessons, or target a new state-of-the-art 2026 tech area (e.g. LLM routing, high-throughput gRPC services, or Kubernetes "
+            "operator design) or professional corporate etiquette (Keigo).\n\n"
             "Generate a fully synthesized report. You MUST return ONLY a raw JSON object with the following keys — no markdown, no explanations:\n"
             "{\n"
-            '  "task_title": "A short, punchy study plan title (you can adopt or improve the lesson topic)",\n'
+            '  "task_title": "A short, punchy study plan title representing the custom topic you dynamically selected",\n'
             '  "tech_upscaling": "Detailed 3-4 sentence technical study plan detailing specific frameworks, libraries, patterns, and design trade-offs",\n'
             '  "personality_upscaling": "Detailed 3-4 sentence Japan cultural preparation, corporate business etiquette, Keigo terms, or technical interview strategies",\n'
             '  "weekly_intel_summary": "2-3 sentence punchy briefing on what is trending in tech this week and why it is critical for software engineers. Mention specific tools/frameworks.",\n'
