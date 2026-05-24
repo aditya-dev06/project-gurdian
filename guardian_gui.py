@@ -1,5 +1,18 @@
 import os
 import sys
+
+# Try to enable Windows DPI Awareness for crisp, high-resolution rendering
+if sys.platform.startswith("win"):
+    try:
+        import ctypes
+        # Use PROCESS_PER_MONITOR_DPI_AWARE (value 2) or PROCESS_SYSTEM_DPI_AWARE (value 1)
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    except Exception:
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+        except Exception:
+            pass
+
 import json
 import random
 import time
@@ -45,6 +58,29 @@ def report_callback_exception(self, exc, val, tb):
         pass
 
 tk.Tk.report_callback_exception = report_callback_exception
+
+def draw_rounded_rect(canvas, x1, y1, x2, y2, radius=4, **kwargs):
+    points = [x1+radius, y1,
+              x1+radius, y1,
+              x2-radius, y1,
+              x2-radius, y1,
+              x2, y1,
+              x2, y1+radius,
+              x2, y1+radius,
+              x2, y2-radius,
+              x2, y2-radius,
+              x2, y2,
+              x2-radius, y2,
+              x2-radius, y2,
+              x1+radius, y2,
+              x1+radius, y2,
+              x1, y2,
+              x1, y2-radius,
+              x1, y2-radius,
+              x1, y1+radius,
+              x1, y1+radius,
+              x1, y1]
+    return canvas.create_polygon(points, **kwargs, smooth=True)
 
 # ==================== DESIGN CONSTANTS & THEME TOKENS ====================
 FONT_FAMILY = "Segoe UI"
@@ -361,8 +397,8 @@ class GuardianWorkspaceSuite:
         btn_sync = tk.Button(hm_header, text="⚡ SYNC", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 7, "bold"), bd=0, padx=8, pady=2, cursor="hand2", command=self.asynchronously_sync_github)
         btn_sync.pack(side="right")
 
-        self.squares_frame = tk.Frame(self.heatmap_card, bg=BG_CARD)
-        self.squares_frame.pack(fill="x", pady=5)
+        self.heatmap_canvas = tk.Canvas(self.heatmap_card, bg=BG_CARD, highlightthickness=0, height=45)
+        self.heatmap_canvas.pack(fill="x", pady=5)
 
         # ===== CENTER COLUMN: DAILY ACTIVITY CHART =====
         activity_card = tk.Frame(center_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
@@ -372,6 +408,7 @@ class GuardianWorkspaceSuite:
 
         self.activity_canvas = tk.Canvas(activity_card, bg=BG_CARD, highlightthickness=0, height=200)
         self.activity_canvas.pack(fill="both", expand=True)
+        self.activity_canvas.bind("<Configure>", lambda e: self.draw_activity_chart())
 
         # ===== RIGHT COLUMN: TOKYO MNC PREP =====
         tokyo_card = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=15)
@@ -431,11 +468,11 @@ class GuardianWorkspaceSuite:
 
         tk.Label(compliance_card, text="COMPLIANCE INDEX", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8, "bold")).pack()
 
-        self.dial_canvas = tk.Canvas(compliance_card, width=100, height=100, bg=BG_CARD, highlightthickness=0)
+        self.dial_canvas = tk.Canvas(compliance_card, width=140, height=120, bg=BG_CARD, highlightthickness=0)
         self.dial_canvas.pack(pady=5)
 
-        self.dial_label = tk.Label(compliance_card, text="0.0%", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 14, "bold"))
-        self.dial_label.pack()
+        # self.dial_label is omitted from packing as we render dynamically inside dial_canvas for perfect centering
+        self.dial_label = None
 
 
     def refresh_dashboard_progress(self, sync_active=False):
@@ -470,20 +507,29 @@ class GuardianWorkspaceSuite:
                     
             pct = (completed / total) if total > 0 else 0.0
             
-            # Update labels
-            self.dial_label.config(text=f"{pct*100.0:.1f}%")
-            
-            # Draw dial
+            # Draw dial and compliance percentage inside the dial_canvas
             self.dial_canvas.delete("all")
-            self.dial_canvas.create_arc(10, 10, 110, 110, start=225, extent=-270, style="arc", outline=BORDER_COLOR, width=8)
+            # Center coordinates: canvas is width=140, height=120
+            # x1=20, y1=10, x2=120, y2=110 (diameter 100)
+            self.dial_canvas.create_arc(20, 10, 120, 110, start=225, extent=-270, style="arc", outline=BORDER_COLOR, width=8)
             if pct > 0:
                 color = ACCENT_GREEN if pct == 1.0 else ACCENT_CYAN
-                self.dial_canvas.create_arc(10, 10, 110, 110, start=225, extent=-270*pct, style="arc", outline=color, width=8)
+                self.dial_canvas.create_arc(20, 10, 120, 110, start=225, extent=-270*pct, style="arc", outline=color, width=8)
+            
+            # Draw percentage text in center of gauge
+            self.dial_canvas.create_text(70, 56, text=f"{pct*100.0:.1f}%", fill=FG_LIGHT, font=(FONT_FAMILY, 15, "bold"))
+            # Draw a subtle "COMPLIANCE" label below the percentage
+            self.dial_canvas.create_text(70, 78, text="COMPLIANCE", fill=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold"))
                 
-            # Render visual 14-day contribution heatmap grid
-            for child in self.squares_frame.winfo_children():
-                child.destroy()
-                
+            # Render visual 14-day contribution heatmap grid on heatmap_canvas
+            self.heatmap_canvas.delete("all")
+            hm_w = self.heatmap_canvas.winfo_width()
+            if hm_w < 100: hm_w = 340
+            
+            # 14 squares (size 18x18, gap 6). Total width = 14 * 24 - 6 = 330
+            start_x = (hm_w - 330) / 2
+            if start_x < 5: start_x = 10
+            
             today = datetime.now()
             # Generate 14 days sorted from 13 days ago to today
             dates_list = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(13, -1, -1)]
@@ -494,7 +540,7 @@ class GuardianWorkspaceSuite:
             if not active_habits:
                 active_habits = habits
             
-            for d_str in dates_list:
+            for i, d_str in enumerate(dates_list):
                 day_state = hist_data.get(d_str, {})
                 total_habits = len(active_habits)
                 
@@ -519,17 +565,19 @@ class GuardianWorkspaceSuite:
                     bg_color = "#10B981"          # Radiant Neon
                     if day_pct == 1.0:
                         border_color = ACCENT_CYAN
-                        border_thickness = 1
+                        border_thickness = 1.5
                 
-                sq = tk.Frame(self.squares_frame, width=18, height=18, bg=bg_color, highlightbackground=border_color, highlightthickness=border_thickness)
-                sq.pack_propagate(False)
-                sq.pack(side="left", padx=3)
+                x1 = start_x + i * 24
+                y1 = 18
+                x2 = x1 + 18
+                y2 = y1 + 18
                 
-                # Dynamic Hover Tooltip showing date and stats
-                def make_tip_text(date_val=d_str, done=completed_habits, tot=total_habits, compl=day_pct):
-                    return lambda: f"{date_val}\nMilestones: {done}/{tot} done ({compl*100:.0f}%)"
-                    
-                HoverTooltip(sq, make_tip_text(d_str, completed_habits, total_habits, day_pct))
+                # Draw rounded rectangle for square
+                draw_rounded_rect(self.heatmap_canvas, x1, y1, x2, y2, radius=4, fill=bg_color, outline=border_color, width=border_thickness)
+                
+                # Draw column headers above (1, 3, 5, 7, 8, 10, 12, 14)
+                if i in [0, 2, 4, 6, 7, 9, 11, 13]:
+                    self.heatmap_canvas.create_text((x1+x2)/2, 8, text=str(i+1), fill=FG_SECONDARY, font=(FONT_FAMILY, 6, "bold"))
 
             # Render checklist checkbuttons
             for child in self.habits_frame.winfo_children():
@@ -652,59 +700,13 @@ class GuardianWorkspaceSuite:
                     )
                     btn_del.pack(side="right", padx=5)
 
-            # Render Daily Activity Line Chart on self.activity_canvas
-            self.activity_canvas.delete("all")
-            width = self.activity_canvas.winfo_width()
-            if width < 100:
-                width = 340
-            height = self.activity_canvas.winfo_height()
-            if height < 100:
-                height = 200
-            
-            # Margins
-            padx, pady = 30, 20
-            graph_w = width - 2 * padx
-            graph_h = height - 2 * pady
-            
-            # Fetch last 14 days values
-            activity_values = []
-            for d_str in dates_list:
-                day_state = hist_data.get(d_str, {})
-                completed_habits = sum(1 for h in active_habits if day_state.get(h, False))
-                activity_values.append(completed_habits)
-                
-            max_val = max(activity_values) if activity_values else 0
-            if max_val == 0:
-                max_val = 5 # Avoid division by zero
-                
-            points = []
-            for i, val in enumerate(activity_values):
-                x = padx + (i / 13) * graph_w
-                y = height - pady - (val / max_val) * graph_h
-                points.append((x, y))
-                
-            # Draw grid lines and labels
-            for grid_y in range(4):
-                gly = height - pady - (grid_y / 3) * graph_h
-                self.activity_canvas.create_line(padx, gly, width - padx, gly, fill="#112830", dash=(2, 4))
-                lbl_val = int((grid_y / 3) * max_val)
-                self.activity_canvas.create_text(padx - 12, gly, text=str(lbl_val), fill=FG_SECONDARY, font=(FONT_FAMILY, 7))
-                
-            # Draw line and glow
-            if len(points) > 1:
-                # Draw shadow / filled area or line connecting points
-                for k in range(len(points) - 1):
-                    x1, y1 = points[k]
-                    x2, y2 = points[k+1]
-                    # Glow shadow lines
-                    self.activity_canvas.create_line(x1, y1, x2, y2, fill="#0a3d3d", width=4)
-                    self.activity_canvas.create_line(x1, y1, x2, y2, fill=ACCENT_GREEN, width=2)
-                    
-            # Draw point dots
-            for x, y in points:
-                self.activity_canvas.create_oval(x-3, y-3, x+3, y+3, fill=ACCENT_CYAN, outline=BG_CARD, width=1)
+            # Save state for responsive redraws and trigger draw_activity_chart
+            self.last_dates_list = dates_list
+            self.last_hist_data = hist_data
+            self.last_active_habits = active_habits
+            self.draw_activity_chart()
 
-            # Render Tokyo Prep progress bars in self.tokyo_bars_frame
+            # Render Tokyo Prep progress bars in self.tokyo_bars_frame with clean custom tracks
             for child in self.tokyo_bars_frame.winfo_children():
                 child.destroy()
                 
@@ -725,13 +727,13 @@ class GuardianWorkspaceSuite:
                 tk.Label(info_row, text=skill_name, fg=FG_LIGHT, bg=BG_CARD, font=(FONT_FAMILY, 8, "bold")).pack(side="left")
                 tk.Label(info_row, text=label_text, fg=ACCENT_CYAN, bg=BG_CARD, font=(FONT_FAMILY, 8, "bold")).pack(side="right")
                 
-                # Outer progress slot track
-                track = tk.Frame(item_frame, bg=BG_INNER, height=6, highlightbackground=BORDER_COLOR, highlightthickness=1)
-                track.pack(fill="x", pady=(2, 0))
+                # Outer progress slot track — premium borderless design
+                track = tk.Frame(item_frame, bg=BG_INNER, height=8)
+                track.pack(fill="x", pady=(3, 0))
                 track.pack_propagate(False)
                 
-                # Filled bar using place
-                fill_bar = tk.Frame(track, bg=ACCENT_CYAN, height=6)
+                # Filled bar
+                fill_bar = tk.Frame(track, bg=ACCENT_CYAN, height=8)
                 fill_bar.place(relx=0, rely=0, relwidth=ratio, relheight=1)
 
             # Recompute streaks and stats using core adapter safely
@@ -739,6 +741,63 @@ class GuardianWorkspaceSuite:
             self.streak_num.config(text=f"🔥 {stats['current_streak']} DAY\nSTREAK")
         except Exception as ex:
             print(f"Error refreshing dashboard: {ex}")
+
+    def draw_activity_chart(self, event=None):
+        """Renders the Daily Activity Line Chart with premium glow effect and grid coordinates dynamically."""
+        if not hasattr(self, "last_hist_data") or not self.last_hist_data:
+            return
+        self.activity_canvas.delete("all")
+        width = self.activity_canvas.winfo_width()
+        height = self.activity_canvas.winfo_height()
+        if width < 50: width = 340
+        if height < 50: height = 200
+        
+        # Margins
+        padx, pady = 35, 20
+        graph_w = width - 2 * padx
+        graph_h = height - 2 * pady
+        
+        # Fetch last 14 days values
+        activity_values = []
+        for d_str in self.last_dates_list:
+            day_state = self.last_hist_data.get(d_str, {})
+            completed_habits = sum(1 for h in self.last_active_habits if day_state.get(h, False))
+            activity_values.append(completed_habits)
+            
+        max_val = max(activity_values) if activity_values else 0
+        if max_val == 0:
+            max_val = 5 # Avoid division by zero
+            
+        points = []
+        for i, val in enumerate(activity_values):
+            x = padx + (i / 13) * graph_w
+            y = height - pady - (val / max_val) * graph_h
+            points.append((x, y))
+            
+        # Draw grid lines and labels
+        for grid_y in range(4):
+            gly = height - pady - (grid_y / 3) * graph_h
+            self.activity_canvas.create_line(padx, gly, width - padx, gly, fill="#112830", dash=(2, 4))
+            lbl_val = int((grid_y / 3) * max_val)
+            self.activity_canvas.create_text(padx - 15, gly, text=str(lbl_val), fill=FG_SECONDARY, font=(FONT_FAMILY, 7))
+            
+        # Draw line and glow
+        if len(points) > 1:
+            # Draw semi-transparent vertical lines under the chart points to simulate a gradient glow!
+            for k in range(len(points)):
+                x, y = points[k]
+                self.activity_canvas.create_line(x, y, x, height - pady, fill="#0c3535", width=2)
+                
+            # Draw thick glow line
+            for k in range(len(points) - 1):
+                x1, y1 = points[k]
+                x2, y2 = points[k+1]
+                self.activity_canvas.create_line(x1, y1, x2, y2, fill="#0a3d3d", width=5)
+                self.activity_canvas.create_line(x1, y1, x2, y2, fill=ACCENT_GREEN, width=2.5)
+                
+        # Draw point dots
+        for x, y in points:
+            self.activity_canvas.create_oval(x-3.5, y-3.5, x+3.5, y+3.5, fill=ACCENT_CYAN, outline=BG_CARD, width=1.5)
 
     def toggle_habit_db(self, name, completed):
         try:
