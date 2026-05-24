@@ -317,63 +317,76 @@ class GuardianWorkspaceSuite:
     def init_dashboard_tab(self):
         frame = self.tabs["dashboard"]
 
-        # 3-Column Grid Layout
+        # 2-Column Grid Layout matching Stitch spec
         columns = tk.Frame(frame, bg=BG_DARK)
         columns.pack(fill="both", expand=True)
-        columns.columnconfigure(0, weight=1, minsize=250)
-        columns.columnconfigure(1, weight=2, minsize=340)
-        columns.columnconfigure(2, weight=1, minsize=280)
+        columns.columnconfigure(0, weight=3, minsize=500)
+        columns.columnconfigure(1, weight=2, minsize=400)
         columns.rowconfigure(0, weight=1)
 
         left_col = tk.Frame(columns, bg=BG_DARK)
-        left_col.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
-
-        center_col = tk.Frame(columns, bg=BG_DARK)
-        center_col.grid(row=0, column=1, sticky="nsew", padx=8)
+        left_col.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 
         right_col = tk.Frame(columns, bg=BG_DARK)
-        right_col.grid(row=0, column=2, sticky="nsew", padx=(8, 0))
+        right_col.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
 
-        # ===== LEFT COLUMN: DAILY HABITS =====
-        habits_card = tk.Frame(left_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=15)
-        habits_card.pack(fill="x", pady=(0, 10))
+        # ===== LEFT COLUMN: SYSTEM STATUS HEADER =====
+        header_frame = tk.Frame(left_col, bg=BG_DARK)
+        header_frame.pack(fill="x", pady=(0, 12))
+        
+        tk.Label(header_frame, text="SYSTEM STATUS", bg=BG_DARK, fg=FG_LIGHT, font=(FONT_HEADLINE, 14, "bold"), anchor="w").pack(fill="x")
+        tk.Label(header_frame, text="Daily cognitive load and compliance metrics.", bg=BG_DARK, fg=FG_SECONDARY, font=(FONT_FAMILY, 9), anchor="w").pack(fill="x")
 
-        tk.Label(habits_card, text="DAILY HABITS", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 11, "bold")).pack(anchor="w", pady=(0, 10))
+        # ===== LEFT COLUMN: COMPLIANCE & PROTOCOLS ROW (SIDE-BY-SIDE) =====
+        status_row = tk.Frame(left_col, bg=BG_DARK)
+        status_row.pack(fill="x", pady=(0, 10))
+        status_row.columnconfigure(0, weight=1)
+        status_row.columnconfigure(1, weight=1)
+
+        # Compliance index card
+        compliance_card = tk.Frame(status_row, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=12, pady=12)
+        compliance_card.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+
+        tk.Label(compliance_card, text="DAILY COMPLIANCE", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_HEADLINE, 10, "bold")).pack()
+        
+        self.dial_canvas = tk.Canvas(compliance_card, width=140, height=120, bg=BG_CARD, highlightthickness=0)
+        self.dial_canvas.pack(pady=5)
+        self.dial_label = None
+
+        # Active Protocols (Daily Habits) Card
+        habits_card = tk.Frame(status_row, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=12, pady=12)
+        habits_card.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+
+        tk.Label(habits_card, text="ACTIVE PROTOCOLS", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_HEADLINE, 10, "bold")).pack(anchor="w", pady=(0, 4))
+
+        # Compact Streak Box
+        streak_frame = tk.Frame(habits_card, bg="#0a2e2e", highlightbackground=ACCENT_CYAN, highlightthickness=1, padx=10, pady=4)
+        streak_frame.pack(fill="x", pady=(0, 6))
+        self.streak_num = tk.Label(streak_frame, text="🔥 0 DAY\nSTREAK", bg="#0a2e2e", fg=ACCENT_CYAN, font=(FONT_FAMILY, 8, "bold"), justify="center")
+        self.streak_num.pack(fill="x")
 
         # Add Habit Row
         add_habit_frame = tk.Frame(habits_card, bg=BG_CARD)
-        add_habit_frame.pack(fill="x", pady=(0, 8))
+        add_habit_frame.pack(fill="x", pady=(0, 6))
 
-        self.ent_habit_dash = tk.Entry(add_habit_frame, bg=BG_INNER, fg=FG_LIGHT, insertbackground=FG_LIGHT, bd=0, highlightthickness=1, highlightbackground=BORDER_COLOR, font=(FONT_FAMILY, 9))
-        self.ent_habit_dash.pack(side="left", fill="x", expand=True, ipady=5, padx=(0, 5))
-        self.ent_habit_dash.insert(0, "Add daily habit to track...")
-        self.ent_habit_dash.bind("<FocusIn>", lambda e: self.ent_habit_dash.delete(0, tk.END) if self.ent_habit_dash.get() == "Add daily habit to track..." else None)
+        self.ent_habit_dash = tk.Entry(add_habit_frame, bg=BG_INNER, fg=FG_LIGHT, insertbackground=FG_LIGHT, bd=0, highlightthickness=1, highlightbackground=BORDER_COLOR, font=(FONT_FAMILY, 8))
+        self.ent_habit_dash.pack(side="left", fill="x", expand=True, ipady=4, padx=(0, 5))
+        self.ent_habit_dash.insert(0, "Add protocol...")
+        self.ent_habit_dash.bind("<FocusIn>", lambda e: self.ent_habit_dash.delete(0, tk.END) if self.ent_habit_dash.get() == "Add protocol..." else None)
 
-        btn_add = tk.Button(add_habit_frame, text="➕", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 9, "bold"), bd=0, padx=8, pady=3, cursor="hand2", command=self.add_habit_from_dash)
+        btn_add = tk.Button(add_habit_frame, text="➕", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=6, pady=2, cursor="hand2", command=self.add_habit_from_dash)
         btn_add.pack(side="right")
 
         self.habits_frame = tk.Frame(habits_card, bg=BG_CARD)
         self.habits_frame.pack(fill="both", expand=True)
 
-        # ===== LEFT COLUMN: HABIT STREAK =====
-        streak_card = tk.Frame(left_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=15)
-        streak_card.pack(fill="x", pady=(0, 10))
-
-        tk.Label(streak_card, text="HABIT STREAK", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 10, "bold")).pack(anchor="w", pady=(0, 5))
-
-        streak_inner = tk.Frame(streak_card, bg="#0a2e2e", highlightbackground=ACCENT_CYAN, highlightthickness=1, padx=20, pady=15)
-        streak_inner.pack(fill="x")
-
-        self.streak_num = tk.Label(streak_inner, text="🔥 0 DAY\nSTREAK", bg="#0a2e2e", fg=ACCENT_CYAN, font=(FONT_FAMILY, 22, "bold"), justify="center")
-        self.streak_num.pack()
-
-        # ===== LEFT COLUMN: ONE-OFF TASKS =====
+        # ===== LEFT COLUMN: TODAY'S TASKS CHECKLIST =====
         self.todo_card = tk.Frame(left_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
         self.todo_card.pack(fill="x", pady=(0, 10))
 
         todo_header = tk.Frame(self.todo_card, bg=BG_CARD)
         todo_header.pack(fill="x", pady=(0, 8))
-        tk.Label(todo_header, text="📌 TODAY'S TASKS", bg=BG_CARD, fg=ACCENT_ORANGE, font=(FONT_FAMILY, 9, "bold")).pack(side="left")
+        tk.Label(todo_header, text="📌 TODAY'S WORK checklist", bg=BG_CARD, fg=ACCENT_ORANGE, font=(FONT_HEADLINE, 10, "bold")).pack(side="left")
 
         add_todo_frame = tk.Frame(self.todo_card, bg=BG_CARD)
         add_todo_frame.pack(fill="x", pady=(0, 8))
@@ -389,13 +402,13 @@ class GuardianWorkspaceSuite:
         self.todo_list_frame = tk.Frame(self.todo_card, bg=BG_CARD)
         self.todo_list_frame.pack(fill="both", expand=True)
 
-        # ===== CENTER COLUMN: GITHUB CONTRIBUTION HEATMAP =====
-        self.heatmap_card = tk.Frame(center_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
+        # ===== LEFT COLUMN: CONTRIBUTION MATRIX =====
+        self.heatmap_card = tk.Frame(left_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
         self.heatmap_card.pack(fill="x", pady=(0, 10))
 
         hm_header = tk.Frame(self.heatmap_card, bg=BG_CARD)
         hm_header.pack(fill="x", pady=(0, 8))
-        tk.Label(hm_header, text="GITHUB CONTRIBUTION HEATMAP", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 10, "bold")).pack(side="left")
+        tk.Label(hm_header, text="CONTRIBUTION MATRIX", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_HEADLINE, 10, "bold")).pack(side="left")
 
         btn_sync = tk.Button(hm_header, text="⚡ SYNC", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 7, "bold"), bd=0, padx=8, pady=2, cursor="hand2", command=self.asynchronously_sync_github)
         btn_sync.pack(side="right")
@@ -403,31 +416,38 @@ class GuardianWorkspaceSuite:
         self.heatmap_canvas = tk.Canvas(self.heatmap_card, bg=BG_CARD, highlightthickness=0, height=45)
         self.heatmap_canvas.pack(fill="x", pady=5)
 
-        # ===== CENTER COLUMN: DAILY ACTIVITY CHART =====
-        activity_card = tk.Frame(center_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
+        # ===== LEFT COLUMN: DAILY ACTIVITY CHART =====
+        activity_card = tk.Frame(left_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
         activity_card.pack(fill="both", expand=True, pady=(0, 10))
 
-        tk.Label(activity_card, text="DAILY ACTIVITY", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 10, "bold")).pack(anchor="w", pady=(0, 5))
+        tk.Label(activity_card, text="DAILY ACTIVITY FLOW", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_HEADLINE, 10, "bold")).pack(anchor="w", pady=(0, 5))
 
-        self.activity_canvas = tk.Canvas(activity_card, bg=BG_CARD, highlightthickness=0, height=200)
+        self.activity_canvas = tk.Canvas(activity_card, bg=BG_CARD, highlightthickness=0, height=130)
         self.activity_canvas.pack(fill="both", expand=True)
         self.activity_canvas.bind("<Configure>", lambda e: self.draw_activity_chart())
 
-        # ===== RIGHT COLUMN: TOKYO MNC PREP =====
-        tokyo_card = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=15)
+        # ===== RIGHT COLUMN: KNOWLEDGE BASE HEADER =====
+        kb_header_frame = tk.Frame(right_col, bg=BG_DARK)
+        kb_header_frame.pack(fill="x", pady=(0, 12))
+        
+        tk.Label(kb_header_frame, text="KNOWLEDGE BASE", bg=BG_DARK, fg=FG_LIGHT, font=(FONT_HEADLINE, 14, "bold"), anchor="w").pack(fill="x")
+        tk.Label(kb_header_frame, text="Real-time CS research and Japanese SRS learning.", bg=BG_DARK, fg=FG_SECONDARY, font=(FONT_FAMILY, 9), anchor="w").pack(fill="x")
+
+        # ===== RIGHT COLUMN: TOKYO STUDY ROADMAP =====
+        tokyo_card = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=12, pady=12)
         tokyo_card.pack(fill="x", pady=(0, 10))
 
-        tk.Label(tokyo_card, text="TOKYO MNC PREP", bg=BG_CARD, fg=ACCENT_CYAN, font=(FONT_FAMILY, 11, "bold")).pack(anchor="w")
-        tk.Label(tokyo_card, text="TARGET: RAKUTEN | 6 MONTHS", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold")).pack(anchor="w", pady=(0, 12))
+        tk.Label(tokyo_card, text="TOKYO MNC STUDY PLAN", bg=BG_CARD, fg=ACCENT_CYAN, font=(FONT_HEADLINE, 10, "bold")).pack(anchor="w")
+        tk.Label(tokyo_card, text="TARGET: RAKUTEN | 6 MONTHS", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold")).pack(anchor="w", pady=(0, 8))
 
         self.tokyo_bars_frame = tk.Frame(tokyo_card, bg=BG_CARD)
         self.tokyo_bars_frame.pack(fill="x")
 
-        # ===== RIGHT COLUMN: JAPANESE FLASHCARD =====
-        kanji_card_frame = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
+        # ===== RIGHT COLUMN: JAPANESE SRS FLASHCARD =====
+        kanji_card_frame = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=12, pady=12)
         kanji_card_frame.pack(fill="x", pady=(0, 10))
 
-        tk.Label(kanji_card_frame, text="JAPANESE FLASHCARD", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 10, "bold")).pack(anchor="w", pady=(0, 5))
+        tk.Label(kanji_card_frame, text="JAPANESE FLASHCARD (SRS)", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_HEADLINE, 10, "bold")).pack(anchor="w", pady=(0, 5))
 
         # Kanji of the Day inner card with glow border
         kanji_inner = tk.Frame(kanji_card_frame, bg="#081820", highlightbackground=ACCENT_CYAN, highlightthickness=1, padx=15, pady=10)
@@ -435,7 +455,7 @@ class GuardianWorkspaceSuite:
 
         tk.Label(kanji_inner, text="KANJI OF THE DAY", bg="#081820", fg=ACCENT_CYAN, font=(FONT_FAMILY, 8, "bold")).pack()
 
-        self.dash_kanji_display = tk.Label(kanji_inner, text="漢", bg="#081820", fg=FG_LIGHT, font=(FONT_FAMILY, 42, "bold"), cursor="hand2")
+        self.dash_kanji_display = tk.Label(kanji_inner, text="夢", bg="#081820", fg=FG_LIGHT, font=(FONT_FAMILY, 42, "bold"), cursor="hand2")
         self.dash_kanji_display.pack(pady=5)
         self.dash_kanji_display.bind("<Button-1>", lambda e: self.play_kanji_narration(slow=False))
 
@@ -443,49 +463,68 @@ class GuardianWorkspaceSuite:
         rd_frame = tk.Frame(kanji_card_frame, bg=BG_CARD)
         rd_frame.pack(fill="x")
 
-        tk.Label(rd_frame, text="Readings:", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 9, "bold")).pack(anchor="w")
-        self.dash_onyomi = tk.Label(rd_frame, text="Onyomi: —", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8))
-        self.dash_onyomi.pack(anchor="w")
-        self.dash_kunyomi = tk.Label(rd_frame, text="Kunyomi: —", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8))
-        self.dash_kunyomi.pack(anchor="w")
+        # Two-column layout for Onyomi / Kunyomi matching Stitch
+        readings_row = tk.Frame(rd_frame, bg=BG_CARD)
+        readings_row.pack(fill="x", pady=2)
+        readings_row.columnconfigure(0, weight=1)
+        readings_row.columnconfigure(1, weight=1)
+
+        ony_box = tk.Frame(readings_row, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=6, pady=4)
+        ony_box.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        tk.Label(ony_box, text="ONYOMI", bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold")).pack()
+        self.dash_onyomi = tk.Label(ony_box, text="ム", bg=BG_INNER, fg=FG_LIGHT, font=(FONT_FAMILY, 10, "bold"))
+        self.dash_onyomi.pack()
+
+        kun_box = tk.Frame(readings_row, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=6, pady=4)
+        kun_box.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
+        tk.Label(kun_box, text="KUNYOMI", bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold")).pack()
+        self.dash_kunyomi = tk.Label(kun_box, text="ゆめ", bg=BG_INNER, fg=FG_LIGHT, font=(FONT_FAMILY, 10, "bold"))
+        self.dash_kunyomi.pack()
 
         tk.Frame(rd_frame, bg=BG_CARD, height=4).pack(fill="x")
+        
+        meaning_box = tk.Frame(rd_frame, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=8, pady=6)
+        meaning_box.pack(fill="x", pady=4)
+        self.dash_meaning = tk.Label(meaning_box, text='"Dream, vision, illusion"', bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 9, "italic"))
+        self.dash_meaning.pack()
 
-        tk.Label(rd_frame, text="Meaning:", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 9, "bold")).pack(anchor="w")
-        self.dash_meaning = tk.Label(rd_frame, text="—", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8))
-        self.dash_meaning.pack(anchor="w")
+        self.dash_examples = tk.Label(rd_frame, text="", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8), justify="left", wraplength=320)
+        self.dash_examples.pack(fill="x", pady=2)
 
-        tk.Frame(rd_frame, bg=BG_CARD, height=4).pack(fill="x")
-
-        tk.Label(rd_frame, text="Examples:", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_FAMILY, 9, "bold")).pack(anchor="w")
-        self.dash_examples = tk.Label(rd_frame, text="", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8), justify="left", wraplength=250)
-        self.dash_examples.pack(anchor="w")
-
-        # New Card button
-        btn_new_kanji = tk.Button(kanji_card_frame, text="🧠 NEW CARD", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=12, pady=5, cursor="hand2", command=self.load_new_kanji_card)
-        btn_new_kanji.pack(fill="x", pady=(8, 0))
-
-        # Floating Widget and Quiz Toggles Row
+        # Action Buttons row (New Card & Widget Toggles)
         options_row = tk.Frame(kanji_card_frame, bg=BG_CARD)
         options_row.pack(fill="x", pady=(8, 0))
         
+        btn_new_kanji = tk.Button(options_row, text="🧠 NEW CARD", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=12, pady=5, cursor="hand2", command=self.load_new_kanji_card)
+        btn_new_kanji.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        
         btn_widget = tk.Button(options_row, text="📌 WIDGET", bg=BG_INNER, fg=ACCENT_CYAN, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=8, pady=4, cursor="hand2", command=self.launch_floating_kanji_widget)
-        btn_widget.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        btn_widget.pack(side="left", fill="x", expand=True, padx=4)
         
         chk_quiz = tk.Checkbutton(options_row, text="⏰ QUIZ", variable=self.quiz_enabled, bg=BG_CARD, fg=FG_LIGHT, selectcolor=BG_INNER, activebackground=BG_CARD, activeforeground=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), command=self.toggle_quiz_from_chk)
         chk_quiz.pack(side="right", padx=(4, 0))
 
-        # ===== RIGHT COLUMN: COMPLIANCE INDEX =====
-        compliance_card = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
-        compliance_card.pack(fill="x", pady=(0, 10))
+        # ===== RIGHT COLUMN: ACTION BUTTONS (RECORD & EVALUATE) =====
+        action_row = tk.Frame(right_col, bg=BG_DARK)
+        action_row.pack(fill="x", pady=(0, 10))
+        action_row.columnconfigure(0, weight=1)
+        action_row.columnconfigure(1, weight=1)
 
-        tk.Label(compliance_card, text="COMPLIANCE INDEX", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8, "bold")).pack()
+        btn_rec = tk.Button(action_row, text="🎙️ RECORD SPEECH", bg=ACCENT_PURPLE, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, pady=10, cursor="hand2", command=self.open_grammar_sandbox_dialog)
+        btn_rec.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
+        
+        btn_eval = tk.Button(action_row, text="⚡ EVALUATE SENTENCE", bg=BG_CARD, fg=ACCENT_CYAN, bd=1, relief="solid", highlightthickness=0, font=(FONT_FAMILY, 8, "bold"), pady=10, cursor="hand2", command=self.open_grammar_sandbox_dialog)
+        btn_eval.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
 
-        self.dial_canvas = tk.Canvas(compliance_card, width=140, height=120, bg=BG_CARD, highlightthickness=0)
-        self.dial_canvas.pack(pady=5)
+        # ===== RIGHT COLUMN: RESEARCH STREAM =====
+        research_card = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=12, pady=12)
+        research_card.pack(fill="both", expand=True, pady=(0, 10))
 
-        # self.dial_label is omitted from packing as we render dynamically inside dial_canvas for perfect centering
-        self.dial_label = None
+        tk.Label(research_card, text="🔬 RESEARCH STREAM", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_HEADLINE, 10, "bold")).pack(anchor="w", pady=(0, 8))
+
+        self.dash_research_frame = tk.Frame(research_card, bg=BG_CARD)
+        self.dash_research_frame.pack(fill="both", expand=True)
+        self.root.after(100, self.load_dashboard_research_stream)
 
     def animate_fade(self, widget, start_hex, end_hex, steps=12, delay_ms=12, current_step=0):
         """Smoothly interpolates a label's foreground color between two hex values to create fluid transition animations."""
@@ -846,6 +885,57 @@ class GuardianWorkspaceSuite:
         # Draw point dots
         for x, y in points:
             self.activity_canvas.create_oval(x-3.5, y-3.5, x+3.5, y+3.5, fill=ACCENT_CYAN, outline=BG_CARD, width=1.5)
+
+    def load_dashboard_research_stream(self):
+        """Presents a custom high-fidelity academic research feed inside the dashboard right column."""
+        for child in self.dash_research_frame.winfo_children():
+            child.destroy()
+            
+        hist = guardian_db.get_weekend_prep_history()
+        papers = []
+        if hist:
+            for task in hist[:2]: # Show up to 2 papers from history
+                spot = task.get("research_spotlight", {})
+                title = spot.get("title")
+                summary = spot.get("summary")
+                if title and summary:
+                    papers.append({
+                        "category": "arXiv:CS" if "consensus" in title.lower() or "fault" in title.lower() else "arXiv:AI",
+                        "title": title,
+                        "summary": summary
+                    })
+        
+        # Fallbacks matching Google Stitch layout perfectly if history is empty
+        if not papers:
+            papers = [
+                {
+                    "category": "arXiv:CS",
+                    "title": "Byzantine Fault Tolerance in Asynchronous Consensus Systems",
+                    "summary": "An analysis of practical limits in partial synchrony models, proposing a novel reduction algorithm for leader election."
+                },
+                {
+                    "category": "arXiv:AI",
+                    "title": "Deep Learning for Manifold Approximations",
+                    "summary": "Using continuous normalizing flows to model complex topological structures in high-dimensional datasets."
+                }
+            ]
+            
+        for p in papers:
+            p_card = tk.Frame(self.dash_research_frame, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=10, pady=8)
+            p_card.pack(fill="x", pady=4)
+            
+            top_row = tk.Frame(p_card, bg=BG_INNER)
+            top_row.pack(fill="x")
+            
+            bg_col = ACCENT_GREEN if p["category"] == "arXiv:CS" else ACCENT_PURPLE
+            tk.Label(top_row, text=p["category"], bg=BG_INNER, fg=bg_col, font=(FONT_FAMILY, 7, "bold")).pack(side="left")
+            tk.Label(top_row, text="Live Feed", bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 7)).pack(side="right")
+            
+            lbl_title = tk.Label(p_card, text=p["title"], bg=BG_INNER, fg=FG_LIGHT, font=(FONT_FAMILY, 9, "bold"), justify="left", anchor="w", wraplength=300)
+            lbl_title.pack(fill="x", pady=2)
+            
+            lbl_sum = tk.Label(p_card, text=p["summary"], bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 8), justify="left", anchor="w", wraplength=300)
+            lbl_sum.pack(fill="x")
 
     def toggle_habit_db(self, name, completed):
         try:
