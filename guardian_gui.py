@@ -160,6 +160,7 @@ class GuardianWorkspaceSuite:
         # Interactive States
         self.active_tab = "dashboard"
         self.generating_weekend_task = False
+        self.weekend_auto_generation_attempted = False
         self.srs_deck_idx = 0
         self.prefetched_kanji_queue = []
         self.kanji_prefetch_in_progress = False
@@ -1262,8 +1263,13 @@ class GuardianWorkspaceSuite:
             
         # 3. If there is absolutely no history, dynamically trigger live AI generation in the background!
         if not task:
-            self.asynchronously_generate_weekend_research()
-            return
+            if not getattr(self, "weekend_auto_generation_attempted", False):
+                self.weekend_auto_generation_attempted = True
+                self.asynchronously_generate_weekend_research()
+                return
+            else:
+                print("Weekend task generation returned None or failed. Loading rich fallback task index 0.")
+                task = guardian.get_rich_fallback_task(0)
             
         # 1. Weekly intelligence Card
         intel_card = tk.Frame(self.intel_body, bg=BG_CARD, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
@@ -1684,12 +1690,12 @@ class GuardianWorkspaceSuite:
             new_c = guardian.get_gemini_kanji_card(api_key, self.difficulty_level, excluded)
             
             def resolve(c=new_c):
+                self.kanji_prefetch_in_progress = False
                 if c:
                     self.prefetched_kanji_queue.append(c)
-                self.kanji_prefetch_in_progress = False
-                # Refill again if needed
-                if len(self.prefetched_kanji_queue) < 2:
-                    self.trigger_background_kanji_prefetch()
+                    # Refill again if needed only if the fetch was successful to prevent infinite loops on connection/key failure
+                    if len(self.prefetched_kanji_queue) < 2:
+                        self.trigger_background_kanji_prefetch()
             self.root.after(0, resolve)
             
         threading.Thread(target=bg_pre, daemon=True).start()
