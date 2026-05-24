@@ -462,6 +462,16 @@ class GuardianWorkspaceSuite:
         btn_new_kanji = tk.Button(kanji_card_frame, text="🧠 NEW CARD", bg=ACCENT_CYAN, fg=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=12, pady=5, cursor="hand2", command=self.load_new_kanji_card)
         btn_new_kanji.pack(fill="x", pady=(8, 0))
 
+        # Floating Widget and Quiz Toggles Row
+        options_row = tk.Frame(kanji_card_frame, bg=BG_CARD)
+        options_row.pack(fill="x", pady=(8, 0))
+        
+        btn_widget = tk.Button(options_row, text="📌 WIDGET", bg=BG_INNER, fg=ACCENT_CYAN, font=(FONT_FAMILY, 8, "bold"), bd=0, padx=8, pady=4, cursor="hand2", command=self.launch_floating_kanji_widget)
+        btn_widget.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        
+        chk_quiz = tk.Checkbutton(options_row, text="⏰ QUIZ", variable=self.quiz_enabled, bg=BG_CARD, fg=FG_LIGHT, selectcolor=BG_INNER, activebackground=BG_CARD, activeforeground=FG_LIGHT, font=(FONT_FAMILY, 8, "bold"), command=self.toggle_quiz_from_chk)
+        chk_quiz.pack(side="right", padx=(4, 0))
+
         # ===== RIGHT COLUMN: COMPLIANCE INDEX =====
         compliance_card = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
         compliance_card.pack(fill="x", pady=(0, 10))
@@ -2257,7 +2267,33 @@ Start-Sleep -Seconds 5
             bg=BG_DARK, fg=FG_LIGHT, selectcolor=BG_INNER, activebackground=BG_DARK, activeforeground=FG_LIGHT,
             font=(FONT_FAMILY, 9)
         )
-        chk_mnc.pack(anchor="w", pady=10)
+        chk_mnc.pack(anchor="w", pady=5)
+        
+        # Pop quiz toggle in settings
+        chk_quiz_settings = tk.Checkbutton(
+            form, text="Enable Periodic Pop Quizzes on desktop", variable=self.quiz_enabled,
+            bg=BG_DARK, fg=FG_LIGHT, selectcolor=BG_INNER, activebackground=BG_DARK, activeforeground=FG_LIGHT,
+            font=(FONT_FAMILY, 9), command=self.schedule_next_pop_quiz
+        )
+        chk_quiz_settings.pack(anchor="w", pady=5)
+        
+        # Quiz interval spinbox
+        interval_frame = tk.Frame(form, bg=BG_DARK)
+        interval_frame.pack(fill="x", pady=5)
+        tk.Label(interval_frame, text="Quiz Interval (Minutes):", bg=BG_DARK, fg=FG_SECONDARY, font=(FONT_FAMILY, 9)).pack(side="left", padx=(0, 5))
+        
+        # Spinbox
+        self.spin_interval = tk.Spinbox(interval_frame, from_=1, to=120, width=5, bg=BG_CARD, fg=FG_LIGHT, bd=1, relief="solid", highlightthickness=0, font=(FONT_FAMILY, 9))
+        self.spin_interval.pack(side="left")
+        self.spin_interval.delete(0, tk.END)
+        self.spin_interval.insert(0, str(self.quiz_interval_min))
+        
+        # Launch widget button in settings
+        btn_launch_widget = tk.Button(
+            form, text="📌 LAUNCH FLOATING KANJI WIDGET", bg=BG_INNER, fg=ACCENT_CYAN, bd=1, relief="solid", highlightthickness=0, pady=6,
+            font=(FONT_FAMILY, 8, "bold"), cursor="hand2", command=self.launch_floating_kanji_widget
+        )
+        btn_launch_widget.pack(fill="x", pady=10)
         
         # Save Button
         btn_save = tk.Button(
@@ -2436,11 +2472,43 @@ Start-Sleep -Seconds 5
             self.config["end_date"] = self.ent_end.get().strip()
             self.config["japan_mnc_prep_active"] = self.var_mnc.get()
             
+            # Read and save pop quiz interval settings
+            try:
+                self.quiz_interval_min = int(self.spin_interval.get())
+                self.schedule_next_pop_quiz()
+            except Exception:
+                pass
+            
             guardian.save_config(self.config)
             messagebox.showinfo("Settings Saved", "Workspace configuration successfully updated and saved locally.", parent=self.root)
             self.refresh_dashboard_progress()
         except Exception as e:
             messagebox.showerror("Error Saving", f"Failed to save settings: {e}", parent=self.root)
+
+    def launch_floating_kanji_widget(self):
+        """Spawns the frameless always-on-top Kanji Desktop Widget in a separate process."""
+        try:
+            python_exe = sys.executable
+            # Try using pythonw.exe to prevent terminal window popup
+            pythonw_exe = python_exe.replace("python.exe", "pythonw.exe")
+            if not os.path.exists(pythonw_exe):
+                pythonw_exe = python_exe
+                
+            widget_script = os.path.join(BASE_DIR, "kanji_widget.py")
+            if os.path.exists(widget_script):
+                import subprocess
+                subprocess.Popen([pythonw_exe, widget_script], creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+                messagebox.showinfo("Widget Launched", "Kanji Desktop Widget has been launched! Drag or pin it anywhere on your desktop.", parent=self.root)
+            else:
+                messagebox.showerror("Error", f"Could not find kanji_widget.py at {widget_script}", parent=self.root)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to launch floating kanji widget: {e}", parent=self.root)
+
+    def toggle_quiz_from_chk(self):
+        """Enables or disables scheduled periodic pop quizzes."""
+        self.schedule_next_pop_quiz()
+        status = "enabled" if self.quiz_enabled.get() else "disabled"
+        messagebox.showinfo("Pop Quiz Updated", f"Periodic pop quizzes are now {status}! They will trigger every {self.quiz_interval_min} minutes.", parent=self.root)
 
     # ==================== GEMINI badging & connection details ====================
     def _bg_check_quota(self):
