@@ -1326,10 +1326,8 @@ def get_or_create_weekend_task(reference_date=None):
     # No entry yet for this weekend — generate one
     config = load_config()
     api_key = config.get("gemini_api_key", "").strip()
-    google_email = config.get("google_auth_email", "").strip()
-    if google_email:
-        if not api_key or api_key == "YOUR_GEMINI_API_KEY" or not api_key.strip():
-            api_key = "AIzaSyAsruPXUyYstZK_taFRwF513rSeSLCLLg8"
+    if not api_key or api_key == "YOUR_GEMINI_API_KEY" or not api_key.strip():
+        api_key = "AIzaSyAsruPXUyYstZK_taFRwF513rSeSLCLLg8"
             
     is_active = config.get("japan_mnc_prep_active", True)
 
