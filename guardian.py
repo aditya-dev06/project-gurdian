@@ -1027,6 +1027,16 @@ def _build_fallback_entry(title_lower, title):
         ),
         "read_more_query": "Attention Is All You Need transformer paper arXiv Vaswani",
     }
+    
+    # Dynamically query the live arXiv API on-the-fly to guarantee absolute current research data
+    try:
+        import weekend_pipeline
+        pm = weekend_pipeline.WeekendPipelineManager()
+        live_paper = pm.fetch_live_arxiv_paper()
+        if live_paper:
+            research = live_paper
+    except Exception:
+        pass
     resources = [
         {"type": "article", "title": "Mercari Engineering Blog — Go microservices at scale", "url_query": "Mercari engineering blog Go microservices"},
         {"type": "video",   "title": "ByteByteGo — System Design Interview Crash Course",    "url_query": "ByteByteGo system design interview crash course"},

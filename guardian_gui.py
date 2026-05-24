@@ -1253,11 +1253,17 @@ class GuardianWorkspaceSuite:
         sat_date_str = "2026-05-23" if self.mock_weekend else (guardian.get_current_weekend_saturday_date() or today_str)
         
         hist = guardian_db.get_weekend_prep_history()
+        # 1. Try to find the task for this weekend
         task = next((t for t in hist if t.get("date") == sat_date_str), None)
         
+        # 2. If no task for this weekend, fall back to the absolute latest generated task in history (actual current data)
+        if not task and hist:
+            task = sorted(hist, key=lambda x: x.get("date", ""))[-1]
+            
+        # 3. If there is absolutely no history, dynamically trigger live AI generation in the background!
         if not task:
-            # Fall back to Week 0
-            task = guardian.get_rich_fallback_task(0)
+            self.asynchronously_generate_weekend_research()
+            return
             
         # 1. Weekly intelligence Card
         intel_card = tk.Frame(self.intel_body, bg=BG_CARD, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
