@@ -485,6 +485,52 @@ class GuardianWorkspaceSuite:
         # self.dial_label is omitted from packing as we render dynamically inside dial_canvas for perfect centering
         self.dial_label = None
 
+    def animate_fade(self, widget, start_hex, end_hex, steps=12, delay_ms=12, current_step=0):
+        """Smoothly interpolates a label's foreground color between two hex values to create fluid transition animations."""
+        if not widget.winfo_exists():
+            return
+            
+        def hex_to_rgb(hex_str):
+            hex_str = hex_str.lstrip('#')
+            return tuple(int(hex_str[i:i+2], 16) for i in (0, 2, 4))
+            
+        def rgb_to_hex(rgb):
+            return f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
+            
+        c1 = hex_to_rgb(start_hex)
+        c2 = hex_to_rgb(end_hex)
+        
+        t = current_step / steps
+        r = int(c1[0] + (c2[0] - c1[0]) * t)
+        g = int(c1[1] + (c2[1] - c1[1]) * t)
+        b = int(c1[2] + (c2[2] - c1[2]) * t)
+        
+        widget.config(fg=rgb_to_hex((r, g, b)))
+        
+        if current_step < steps:
+            self.root.after(delay_ms, lambda: self.animate_fade(widget, start_hex, end_hex, steps, delay_ms, current_step + 1))
+
+    def animate_dial(self, target_pct, current_step=0, max_steps=18):
+        """Smoothly sweeps the compliance index dial from 0 to the target percentage."""
+        if not self.dial_canvas.winfo_exists():
+            return
+            
+        t = current_step / max_steps
+        pct = target_pct * t
+        
+        self.dial_canvas.delete("all")
+        self.dial_canvas.create_arc(20, 10, 120, 110, start=225, extent=-270, style="arc", outline=BORDER_COLOR, width=8)
+        if pct > 0:
+            color = ACCENT_GREEN if target_pct == 1.0 else ACCENT_CYAN
+            self.dial_canvas.create_arc(20, 10, 120, 110, start=225, extent=-270*pct, style="arc", outline=color, width=8)
+            
+        # Draw percentage text in center of gauge
+        self.dial_canvas.create_text(70, 56, text=f"{pct*100.0:.1f}%", fill=FG_LIGHT, font=(FONT_FAMILY, 15, "bold"))
+        # Draw a subtle "COMPLIANCE" label below the percentage
+        self.dial_canvas.create_text(70, 78, text="COMPLIANCE", fill=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold"))
+        
+        if current_step < max_steps:
+            self.root.after(12, lambda: self.animate_dial(target_pct, current_step + 1, max_steps))
 
     def refresh_dashboard_progress(self, sync_active=False):
         """Queries SQLite and dynamically draws/animates the dashboard progress dial and activity heatmap."""
@@ -518,19 +564,8 @@ class GuardianWorkspaceSuite:
                     
             pct = (completed / total) if total > 0 else 0.0
             
-            # Draw dial and compliance percentage inside the dial_canvas
-            self.dial_canvas.delete("all")
-            # Center coordinates: canvas is width=140, height=120
-            # x1=20, y1=10, x2=120, y2=110 (diameter 100)
-            self.dial_canvas.create_arc(20, 10, 120, 110, start=225, extent=-270, style="arc", outline=BORDER_COLOR, width=8)
-            if pct > 0:
-                color = ACCENT_GREEN if pct == 1.0 else ACCENT_CYAN
-                self.dial_canvas.create_arc(20, 10, 120, 110, start=225, extent=-270*pct, style="arc", outline=color, width=8)
-            
-            # Draw percentage text in center of gauge
-            self.dial_canvas.create_text(70, 56, text=f"{pct*100.0:.1f}%", fill=FG_LIGHT, font=(FONT_FAMILY, 15, "bold"))
-            # Draw a subtle "COMPLIANCE" label below the percentage
-            self.dial_canvas.create_text(70, 78, text="COMPLIANCE", fill=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold"))
+            # Smoothly animate dial compliance sweep
+            self.animate_dial(pct)
                 
             # Render visual 14-day contribution heatmap grid on heatmap_canvas
             self.heatmap_canvas.delete("all")
@@ -1587,6 +1622,17 @@ class GuardianWorkspaceSuite:
         
         self.k_ex_ja.config(text=card_dict.get("example_ja", ""))
         self.k_ex_en.config(text=card_dict.get("example_en", ""))
+
+        # Trigger smooth fluid fade-in animations on all elements
+        self.animate_fade(self.k_display, BG_CARD, ACCENT_CYAN, steps=10, delay_ms=10)
+        self.animate_fade(self.k_meaning, BG_CARD, FG_LIGHT, steps=10, delay_ms=10)
+        self.animate_fade(self.k_yomi, BG_CARD, FG_SECONDARY, steps=10, delay_ms=10)
+        self.animate_fade(self.k_onyomi, BG_CARD, ACCENT_ORANGE, steps=10, delay_ms=10)
+        self.animate_fade(self.k_kunyomi, BG_CARD, ACCENT_GREEN, steps=10, delay_ms=10)
+        self.animate_fade(self.k_radicals, BG_CARD, ACCENT_PURPLE, steps=10, delay_ms=10)
+        self.animate_fade(self.k_mnemonic, BG_INNER, FG_SECONDARY, steps=10, delay_ms=10)
+        self.animate_fade(self.k_ex_ja, BG_CARD, FG_LIGHT, steps=10, delay_ms=10)
+        self.animate_fade(self.k_ex_en, BG_CARD, FG_SECONDARY, steps=10, delay_ms=10)
 
         # Mirror update to the main dashboard Japanese card widgets
         if hasattr(self, "dash_kanji_display") and self.dash_kanji_display:
