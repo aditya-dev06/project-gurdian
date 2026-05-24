@@ -444,20 +444,31 @@ class GuardianWorkspaceSuite:
         self.tokyo_bars_frame.pack(fill="x")
 
         # ===== RIGHT COLUMN: JAPANESE SRS FLASHCARD =====
-        kanji_card_frame = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=12, pady=12)
+        kanji_card_frame = tk.Frame(right_col, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=15)
         kanji_card_frame.pack(fill="x", pady=(0, 10))
 
-        tk.Label(kanji_card_frame, text="JAPANESE FLASHCARD (SRS)", bg=BG_CARD, fg=FG_LIGHT, font=(FONT_HEADLINE, 10, "bold")).pack(anchor="w", pady=(0, 5))
+        # Top Header Row matching Stitch Image exactly
+        top_card_row = tk.Frame(kanji_card_frame, bg=BG_CARD)
+        top_card_row.pack(fill="x", pady=(0, 8))
+        
+        # "SRS ACTIVE" badge on the top left
+        badge_lbl = tk.Label(top_card_row, text="SRS ACTIVE", bg=BG_CARD, fg=ACCENT_CYAN, bd=1, relief="solid", highlightthickness=0, font=(FONT_FAMILY, 7, "bold"), padx=8, pady=2)
+        badge_lbl.pack(side="left")
+        
+        # "..." menu button on the top right
+        menu_lbl = tk.Label(top_card_row, text="•••", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 9, "bold"), cursor="hand2")
+        menu_lbl.pack(side="right")
+        menu_lbl.bind("<Button-1>", lambda e: self.open_manage_habits_dialog()) 
+        HoverTooltip(menu_lbl, lambda: "Workspace options")
 
         # Kanji of the Day inner card with glow border
-        kanji_inner = tk.Frame(kanji_card_frame, bg="#081820", highlightbackground=ACCENT_CYAN, highlightthickness=1, padx=15, pady=10)
+        kanji_inner = tk.Frame(kanji_card_frame, bg="#081820", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=15, pady=12)
         kanji_inner.pack(fill="x", pady=(0, 8))
 
-        tk.Label(kanji_inner, text="KANJI OF THE DAY", bg="#081820", fg=ACCENT_CYAN, font=(FONT_FAMILY, 8, "bold")).pack()
-
-        self.dash_kanji_display = tk.Label(kanji_inner, text="夢", bg="#081820", fg=FG_LIGHT, font=(FONT_FAMILY, 42, "bold"), cursor="hand2")
-        self.dash_kanji_display.pack(pady=5)
+        self.dash_kanji_display = tk.Label(kanji_inner, text="夢", bg="#081820", fg=ACCENT_CYAN, font=(FONT_FAMILY, 56, "bold"), cursor="hand2")
+        self.dash_kanji_display.pack(pady=10)
         self.dash_kanji_display.bind("<Button-1>", lambda e: self.play_kanji_narration(slow=False))
+        HoverTooltip(self.dash_kanji_display, lambda: "Click to play Kanji sound")
 
         # Readings section
         rd_frame = tk.Frame(kanji_card_frame, bg=BG_CARD)
@@ -469,27 +480,37 @@ class GuardianWorkspaceSuite:
         readings_row.columnconfigure(0, weight=1)
         readings_row.columnconfigure(1, weight=1)
 
-        ony_box = tk.Frame(readings_row, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=6, pady=4)
+        ony_box = tk.Frame(readings_row, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=6, pady=6)
         ony_box.grid(row=0, column=0, sticky="nsew", padx=(0, 4))
         tk.Label(ony_box, text="ONYOMI", bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold")).pack()
-        self.dash_onyomi = tk.Label(ony_box, text="ム", bg=BG_INNER, fg=FG_LIGHT, font=(FONT_FAMILY, 10, "bold"))
-        self.dash_onyomi.pack()
+        self.dash_onyomi = tk.Label(ony_box, text="ム", bg=BG_INNER, fg=FG_LIGHT, font=(FONT_FAMILY, 11, "bold"))
+        self.dash_onyomi.pack(pady=(2, 0))
 
-        kun_box = tk.Frame(readings_row, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=6, pady=4)
+        kun_box = tk.Frame(readings_row, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=6, pady=6)
         kun_box.grid(row=0, column=1, sticky="nsew", padx=(4, 0))
         tk.Label(kun_box, text="KUNYOMI", bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 7, "bold")).pack()
-        self.dash_kunyomi = tk.Label(kun_box, text="ゆめ", bg=BG_INNER, fg=FG_LIGHT, font=(FONT_FAMILY, 10, "bold"))
-        self.dash_kunyomi.pack()
+        self.dash_kunyomi = tk.Label(kun_box, text="ゆめ", bg=BG_INNER, fg=FG_LIGHT, font=(FONT_FAMILY, 11, "bold"))
+        self.dash_kunyomi.pack(pady=(2, 0))
 
         tk.Frame(rd_frame, bg=BG_CARD, height=4).pack(fill="x")
         
-        meaning_box = tk.Frame(rd_frame, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=8, pady=6)
+        meaning_box = tk.Frame(rd_frame, bg=BG_INNER, bd=1, relief="solid", highlightbackground=BORDER_COLOR, highlightthickness=1, padx=8, pady=8)
         meaning_box.pack(fill="x", pady=4)
         self.dash_meaning = tk.Label(meaning_box, text='"Dream, vision, illusion"', bg=BG_INNER, fg=FG_SECONDARY, font=(FONT_FAMILY, 9, "italic"))
         self.dash_meaning.pack()
 
-        self.dash_examples = tk.Label(rd_frame, text="", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8), justify="left", wraplength=320)
-        self.dash_examples.pack(fill="x", pady=2)
+        # Premium Example Sentence Audio Box (Hear Sentence capability)
+        ex_container = tk.Frame(rd_frame, bg=BG_CARD, highlightbackground=BORDER_COLOR, highlightthickness=1, bd=1, relief="solid", padx=10, pady=8)
+        ex_container.pack(fill="x", pady=(4, 0))
+        
+        btn_hear = tk.Button(ex_container, text="🔊", bg=BG_CARD, fg=ACCENT_CYAN, activebackground=BG_CARD, activeforeground=FG_LIGHT, bd=0, font=(FONT_FAMILY, 10, "bold"), cursor="hand2", command=lambda: self.play_sentence_narration(slow=False))
+        btn_hear.pack(side="left", anchor="n", padx=(0, 6))
+        HoverTooltip(btn_hear, lambda: "Click to hear the example sentence pronounced!")
+        
+        self.dash_examples = tk.Label(ex_container, text="", bg=BG_CARD, fg=FG_SECONDARY, font=(FONT_FAMILY, 8), justify="left", wraplength=280, cursor="hand2")
+        self.dash_examples.pack(side="left", fill="x", expand=True, anchor="w")
+        self.dash_examples.bind("<Button-1>", lambda e: self.play_sentence_narration(slow=False))
+        HoverTooltip(self.dash_examples, lambda: "Click to hear the example sentence pronounced!")
 
         # Action Buttons row (New Card & Widget Toggles)
         options_row = tk.Frame(kanji_card_frame, bg=BG_CARD)
