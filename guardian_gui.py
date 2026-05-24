@@ -83,22 +83,24 @@ def draw_rounded_rect(canvas, x1, y1, x2, y2, radius=4, **kwargs):
     return canvas.create_polygon(points, **kwargs, smooth=True)
 
 # ==================== DESIGN CONSTANTS & THEME TOKENS ====================
-FONT_FAMILY = "Segoe UI"
-BG_DARK = "#0a1a1f"          # Deep dark teal background
-BG_CARD = "#0d2228"          # Card surfaces (dark teal)
-BG_INNER = "#112830"         # Inner containers
-BG_SIDEBAR = "#081418"       # Sidebar background
-BORDER_COLOR = "#0a3d3d"     # Teal border
-FG_LIGHT = "#e8f0f2"         # Primary text (bright white)
-FG_SECONDARY = "#6b8a94"     # Muted teal-grey label
+FONT_FAMILY = "Inter"        # Modern clean sans-serif matching Google Stitch body font
+FONT_HEADLINE = "Outfit"     # Premium display font matching Google Stitch header font
+BG_DARK = "#06151a"          # Deepest dark-teal background matching Stitch 'background'
+BG_CARD = "#122227"          # Surface card container matching Stitch 'surface-container'
+BG_INNER = "#0e1e23"         # Inner containers matching Stitch 'surface-container-low'
+BG_SIDEBAR = "#021015"       # Sidebar background matching Stitch 'surface-container-lowest'
+BORDER_COLOR = "#3b4a44"     # Sleek teal outline matching Stitch 'outline-variant'
+FG_LIGHT = "#d4e5ec"         # Primary light text matching Stitch 'on-surface'
+FG_SECONDARY = "#bacac2"     # Muted secondary text matching Stitch 'on-surface-variant'
 
-# Cyberpunk teal accent palette
-ACCENT_CYAN = "#00d4aa"      # Primary teal-green accent
-ACCENT_GREEN = "#10b981"     # Emerald green for completed
-ACCENT_ORANGE = "#ff9f0a"    # Orange for warnings / reviews
-ACCENT_PURPLE = "#8B5CF6"    # Purple for special coaching / AI
-ACCENT_RED = "#ff453a"       # Red for failures / deletes
-HOVER_COLOR = "#112830"      # Hover background
+# Cyberpunk teal accent palette matching Google Stitch color maps
+ACCENT_CYAN = "#46f1c5"      # Primary glowing cyan matching Stitch 'primary'
+ACCENT_GREEN = "#62f0b3"     # Mint green matching Stitch 'tertiary'
+ACCENT_PURPLE = "#d0bcff"    # Secondary light purple matching Stitch 'secondary'
+ACCENT_ORANGE = "#ffb4ab"    # Muted warnings/alerts matching Stitch 'error'
+ACCENT_RED = "#ffb4ab"       # Alert/delete matching Stitch 'error'
+HOVER_COLOR = "#1d2c32"      # High-contrast hover matching Stitch 'surface-container-high'
+
 
 # ==================== HOVER TOOLTIP HELPER ====================
 class HoverTooltip:

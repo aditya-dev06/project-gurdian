@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Guardian Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Outfit:wght@600;700&amp;display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <!-- Tailwind CSS Setup -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#006b55",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-primary-fixed-variant": "#00513f",
+                        "on-background": "#d4e5ec",
+                        "on-error": "#690005",
+                        "inverse-surface": "#d4e5ec",
+                        "on-secondary": "#3c0091",
+                        "surface-container-low": "#0e1e23",
+                        "surface": "#06151a",
+                        "outline": "#85948d",
+                        "on-primary": "#00382b",
+                        "tertiary-fixed": "#6ffbbe",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed": "#002118",
+                        "inverse-on-surface": "#233338",
+                        "surface-container-lowest": "#021015",
+                        "surface-bright": "#2c3c41",
+                        "surface-container": "#122227",
+                        "on-tertiary": "#003824",
+                        "secondary-fixed-dim": "#d0bcff",
+                        "error-container": "#93000a",
+                        "surface-container-highest": "#28373d",
+                        "primary-fixed": "#55fcd0",
+                        "on-surface-variant": "#bacac2",
+                        "secondary-container": "#571bc1",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "primary-container": "#00d4aa",
+                        "background": "#06151a",
+                        "tertiary": "#62f0b3",
+                        "primary-fixed-dim": "#28dfb5",
+                        "secondary-fixed": "#e9ddff",
+                        "on-secondary-container": "#c4abff",
+                        "outline-variant": "#3b4a44",
+                        "surface-dim": "#06151a",
+                        "on-surface": "#d4e5ec",
+                        "secondary": "#d0bcff",
+                        "primary": "#46f1c5",
+                        "on-secondary-fixed": "#23005c",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#5516be",
+                        "surface-tint": "#28dfb5",
+                        "tertiary-container": "#40d399",
+                        "on-primary-container": "#005643",
+                        "surface-variant": "#28373d",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-container-high": "#1d2c32",
+                        "on-tertiary-container": "#00563a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1440px",
+                        "unit": "8px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-xl": ["Outfit"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #28373d; /* surface-variant */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4a44; /* outline-variant */
+        }
+
+        /* Glassmorphism Panel Base */
+        .glass-panel {
+            background-color: rgba(18, 34, 39, 0.6); /* surface-container */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem; /* xl */
+        }
+
+        /* Neon Glow Utility */
+        .neon-glow {
+            box-shadow: 0px 0px 15px rgba(70, 241, 197, 0.15); /* primary */
+        }
+        .neon-text-glow {
+            text-shadow: 0px 0px 10px rgba(70, 241, 197, 0.5);
+        }
+        
+        /* Wave Animation for Action Buttons */
+        @keyframes waveform {
+            0% { transform: scaleY(0.2); }
+            50% { transform: scaleY(1); }
+            100% { transform: scaleY(0.2); }
+        }
+        .wave-bar {
+            animation: waveform 1s ease-in-out infinite;
+            transform-origin: bottom;
+        }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+        /* --- New Animations --- */
+
+        /* 1. Entrance Animations */
+        @media (prefers-reduced-motion: no-preference) {
+            .stagger-enter {
+                opacity: 0;
+                transform: translateY(20px);
+                animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+            .stagger-enter:nth-child(1) { animation-delay: 0.1s; }
+            .stagger-enter:nth-child(2) { animation-delay: 0.2s; }
+            .stagger-enter:nth-child(3) { animation-delay: 0.3s; }
+            .stagger-enter:nth-child(4) { animation-delay: 0.4s; }
+            .stagger-enter:nth-child(5) { animation-delay: 0.5s; }
+        }
+        
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 2. Radial Gauge Sweep handled via JS inline styles, but transition defined here */
+        .gauge-sweep {
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* 3. Contribution Matrix Hover & Pulse */
+        .matrix-cell {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .matrix-cell:hover {
+            transform: scale(1.4);
+            z-index: 10;
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px rgba(70, 241, 197, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(70, 241, 197, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(70, 241, 197, 0.3); }
+        }
+        .matrix-cell.neon-glow {
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        /* 4. Active Protocols interactions */
+        .protocol-item {
+            transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .protocol-item:hover {
+            transform: translateY(-2px);
+            background-color: rgba(255,255,255,0.08); /* slightly brighter */
+        }
+        .protocol-toggle.completed .protocol-text {
+            text-decoration: line-through;
+            opacity: 0.5;
+            transition: opacity 0.3s ease, text-decoration 0.3s ease;
+        }
+        .protocol-toggle .protocol-text {
+             transition: opacity 0.3s ease, text-decoration 0.3s ease;
+        }
+        
+        .protocol-toggle.completed .check-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .protocol-toggle .check-icon {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* 5. Knowledge Base Ambient Breathing & Shimmer */
+        @keyframes breathe {
+            0% { text-shadow: 0 0 10px rgba(70, 241, 197, 0.3); transform: scale(1); }
+            50% { text-shadow: 0 0 25px rgba(70, 241, 197, 0.7); transform: scale(1.02); }
+            100% { text-shadow: 0 0 10px rgba(70, 241, 197, 0.3); transform: scale(1); }
+        }
+        .kanji-breathe {
+            animation: breathe 4s ease-in-out infinite;
+        }
+
+        .btn-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shimmer::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(45deg) translateY(-100%);
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            100% { transform: rotate(45deg) translateY(100%); }
+        }
+
+        /* 6. Research Stream Scroll Reveal */
+        .reveal-item {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+        .reveal-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 7. Sidebar high-contrast hover */
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #46f1c5; /* primary */
+            text-shadow: 0 0 8px rgba(70, 241, 197, 0.5);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .nav-link:hover .material-symbols-outlined {
+            color: #46f1c5;
+            text-shadow: 0 0 8px rgba(70, 241, 197, 0.5);
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md overflow-x-hidden min-h-screen">
+
+    <!-- Component: SideNavBar -->
+    <nav class="hidden md:flex h-screen w-64 fixed left-0 top-0 flex-col bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-r border-white/10 shadow-[0px_0px_15px_rgba(0,212,170,0.15)] z-50">
+        <div class="flex flex-col h-full py-8">
+            <!-- Header Brand -->
+            <div class="px-6 mb-10 flex flex-col gap-2">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined fill text-primary text-3xl drop-shadow-[0_0_8px_rgba(70,241,197,0.5)]">shield_person</span>
+                    <h1 class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary tracking-tight">Guardian</h1>
+                </div>
+                <!-- Digital Clock & API Status -->
+                <div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm mt-2 bg-surface-container-high rounded p-2 border border-white/5">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(70,241,197,0.8)] animate-pulse"></div>
+                        <span>API: Online</span>
+                    </div>
+                    <span class="font-mono" id="nav-clock">14:22:05</span>
+                </div>
+            </div>
+            <!-- Primary Navigation Links -->
+            <ul class="flex flex-col gap-2 flex-1">
+                <!-- Active Tab: Dashboard -->
+                <li>
+                    <a class="flex items-center gap-4 bg-primary/10 text-primary border-l-4 border-primary px-4 py-3 shadow-[inset_0px_0px_10px_rgba(0,212,170,0.1)] font-label-md text-label-md scale-95 transition-transform" href="#">
+                        <span class="material-symbols-outlined fill">dashboard</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <!-- Inactive Tabs -->
+                <li>
+                    <a class="nav-link flex items-center gap-4 text-on-surface-variant px-4 py-3 opacity-70 font-label-md text-label-md" href="#">
+                        <span class="material-symbols-outlined">monitoring</span>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link flex items-center gap-4 text-on-surface-variant px-4 py-3 opacity-70 font-label-md text-label-md" href="#">
+                        <span class="material-symbols-outlined">style</span>
+                        <span>Kanji Flashcards</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link flex items-center gap-4 text-on-surface-variant px-4 py-3 opacity-70 font-label-md text-label-md" href="#">
+                        <span class="material-symbols-outlined">psychology</span>
+                        <span>Sensei</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link flex items-center gap-4 text-on-surface-variant px-4 py-3 opacity-70 font-label-md text-label-md" href="#">
+                        <span class="material-symbols-outlined">event_repeat</span>
+                        <span>Habits</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link flex items-center gap-4 text-on-surface-variant px-4 py-3 opacity-70 font-label-md text-label-md" href="#">
+                        <span class="material-symbols-outlined">sensors</span>
+                        <span>Monitor</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link flex items-center gap-4 text-on-surface-variant px-4 py-3 opacity-70 font-label-md text-label-md" href="#">
+                        <span class="material-symbols-outlined">settings</span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+            <!-- Footer Links -->
+            <div class="mt-auto flex flex-col gap-2">
+                <a class="nav-link flex items-center gap-4 text-on-surface-variant px-4 py-3 opacity-70 font-label-md text-label-md" href="#">
+                    <span class="material-symbols-outlined">help</span>
+                    <span>Help</span>
+                </a>
+                <a class="nav-link flex items-center gap-4 text-on-surface-variant px-4 py-3 opacity-70 font-label-md text-label-md" href="#">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="md:ml-64 p-margin-mobile md:p-margin-desktop min-h-screen flex flex-col xl:flex-row gap-gutter max-w-container-max mx-auto pt-24 md:pt-margin-desktop">
+        
+        <!-- Mobile Top Nav Context -->
+        <div class="md:hidden fixed top-0 left-0 w-full h-16 glass-panel border-x-0 border-t-0 rounded-none z-40 flex items-center justify-between px-6 shadow-[0px_5px_15px_rgba(0,0,0,0.3)]">
+            <h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Guardian</h1>
+            <span class="material-symbols-outlined text-primary">menu</span>
+        </div>
+
+        <!-- Center Column: Learning Dashboard -->
+        <section class="flex-1 flex flex-col gap-gutter stagger-enter">
+            <header class="mb-4">
+                <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">System Status</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant mt-1">Daily cognitive load and compliance metrics.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+                <!-- Radial Arc Gauge -->
+                <article class="glass-panel p-6 flex flex-col items-center justify-center relative overflow-hidden group stagger-enter">
+                    <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <h3 class="font-headline-md text-headline-md text-on-surface mb-6 z-10">Daily Compliance</h3>
+                    <div class="relative w-48 h-48 flex items-center justify-center z-10">
+                        <!-- SVG Gauge Background -->
+                        <svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+                            <circle cx="50" cy="50" fill="none" r="45" stroke="rgba(255,255,255,0.05)" stroke-linecap="round" stroke-width="8"></circle>
+                            <circle class="text-primary drop-shadow-[0_0_8px_rgba(70,241,197,0.5)] gauge-sweep" cx="50" cy="50" fill="none" id="compliance-gauge" r="45" stroke="currentColor" stroke-dasharray="282.7" stroke-dashoffset="282.7" stroke-linecap="round" stroke-width="8"></circle>
+                        </svg>
+                        <div class="absolute flex flex-col items-center">
+                            <span class="font-headline-xl text-headline-xl font-bold text-on-surface tracking-tighter" id="compliance-text">0<span class="text-2xl text-primary">%</span></span>
+                            <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mt-1">Index</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Habit Checklist -->
+                <article class="glass-panel p-6 flex flex-col relative z-10 stagger-enter">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-headline-md text-headline-md text-on-surface">Active Protocols</h3>
+                        <span class="material-symbols-outlined text-on-surface-variant">checklist</span>
+                    </div>
+                    <ul class="flex flex-col gap-3 flex-1">
+                        <li class="protocol-item protocol-toggle completed flex items-center gap-4 p-3 rounded-lg bg-surface/50 border border-white/5 cursor-pointer group" onclick="toggleProtocol(this)">
+                            <div class="w-6 h-6 rounded border-2 border-primary flex items-center justify-center bg-primary/10 group-hover:bg-primary/20 neon-glow relative">
+                                <span class="material-symbols-outlined text-[18px] text-primary font-bold check-icon absolute">check</span>
+                            </div>
+                            <span class="font-body-md text-body-md text-on-surface protocol-text">Review Research Paper</span>
+                        </li>
+                        <li class="protocol-item protocol-toggle flex items-center gap-4 p-3 rounded-lg bg-surface/50 border border-white/5 cursor-pointer group" onclick="toggleProtocol(this)">
+                            <div class="w-6 h-6 rounded border-2 border-surface-variant flex items-center justify-center group-hover:border-primary/50 relative">
+                                <span class="material-symbols-outlined text-[18px] text-primary font-bold check-icon absolute">check</span>
+                            </div>
+                            <span class="font-body-md text-body-md text-on-surface protocol-text">Kanji Practice (SRS)</span>
+                            <div class="ml-auto flex items-center gap-1 text-primary">
+                                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                                <span class="font-label-sm text-label-sm">DUE</span>
+                            </div>
+                        </li>
+                        <li class="protocol-item protocol-toggle flex items-center gap-4 p-3 rounded-lg bg-surface/50 border border-white/5 cursor-pointer group" onclick="toggleProtocol(this)">
+                            <div class="w-6 h-6 rounded border-2 border-surface-variant flex items-center justify-center group-hover:border-primary/50 relative">
+                                <span class="material-symbols-outlined text-[18px] text-primary font-bold check-icon absolute">check</span>
+                            </div>
+                            <span class="font-body-md text-body-md text-on-surface protocol-text">Algorithm Complexity Analysis</span>
+                        </li>
+                    </ul>
+                    <button class="mt-4 w-full py-2 border border-dashed border-white/10 rounded-lg text-on-surface-variant font-label-md text-label-md hover:bg-white/5 hover:text-on-surface transition-colors flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">add</span> Add Protocol
+                    </button>
+                </article>
+            </div>
+
+            <!-- Git-Style Habit Grid -->
+            <article class="glass-panel p-6 overflow-x-auto stagger-enter">
+                <div class="flex items-center justify-between mb-4 min-w-[600px]">
+                    <h3 class="font-headline-md text-headline-md text-on-surface">Contribution Matrix</h3>
+                    <div class="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
+                        <span>Less</span>
+                        <div class="w-3 h-3 rounded-sm bg-surface-variant/50 border border-white/5"></div>
+                        <div class="w-3 h-3 rounded-sm bg-tertiary-container/30 border border-white/5"></div>
+                        <div class="w-3 h-3 rounded-sm bg-tertiary-container/60 border border-white/5"></div>
+                        <div class="w-3 h-3 rounded-sm bg-primary border border-white/5 neon-glow"></div>
+                        <span>More</span>
+                    </div>
+                </div>
+                <div class="flex gap-1 min-w-[600px]">
+                    <!-- Days Column Labels -->
+                    <div class="flex flex-col gap-1 pr-2 text-on-surface-variant font-label-sm text-label-sm text-[10px] justify-between py-1">
+                        <span>Mon</span><span>Wed</span><span>Fri</span>
+                    </div>
+                    <!-- 14 Day Grid Columns -->
+                    <div class="flex gap-1 flex-1">
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/60 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                        <div class="flex flex-col gap-1"><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-tertiary-container/30 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-primary border border-white/5 neon-glow"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div><div class="w-4 h-4 matrix-cell rounded-sm bg-surface-variant/50 border border-white/5"></div></div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- Right Column: CS Research & SRS -->
+        <section class="flex-1 xl:w-[420px] flex-none flex flex-col gap-gutter stagger-enter">
+            <header class="mb-4 xl:block hidden">
+                <h2 class="font-headline-lg text-headline-lg text-on-surface">Knowledge Base</h2>
+                <p class="font-body-md text-body-md text-transparent select-none mt-1">Spacer</p>
+            </header>
+
+            <!-- SRS Kanji Widget -->
+            <article class="glass-panel p-6 flex flex-col items-center relative overflow-hidden stagger-enter">
+                <div class="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-[50px] pointer-events-none"></div>
+                <div class="w-full flex items-center justify-between mb-2 z-10">
+                    <span class="font-label-sm text-label-sm text-primary tracking-widest uppercase border border-primary/30 bg-primary/5 px-2 py-1 rounded">SRS Active</span>
+                    <span class="material-symbols-outlined text-on-surface-variant hover:text-on-surface cursor-pointer">more_horiz</span>
+                </div>
+                <div class="text-[120px] font-bold text-on-surface neon-text-glow leading-none my-4 z-10 select-none kanji-breathe">
+                    夢
+                </div>
+                <div class="w-full grid grid-cols-2 gap-4 mt-4 z-10">
+                    <div class="bg-surface/60 border border-white/5 rounded p-3 flex flex-col items-center">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Onyomi</span>
+                        <span class="font-headline-md text-headline-md text-on-surface mt-1">ム</span>
+                    </div>
+                    <div class="bg-surface/60 border border-white/5 rounded p-3 flex flex-col items-center">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Kunyomi</span>
+                        <span class="font-headline-md text-headline-md text-on-surface mt-1">ゆめ</span>
+                    </div>
+                </div>
+                <div class="w-full bg-surface/60 border border-white/5 rounded p-3 mt-4 text-center z-10">
+                    <span class="font-body-lg text-body-lg text-on-surface-variant italic">"Dream, vision, illusion"</span>
+                </div>
+            </article>
+
+            <!-- Action Buttons with Wave Viz -->
+            <div class="grid grid-cols-2 gap-4 stagger-enter">
+                <button class="bg-primary btn-shimmer text-on-primary font-label-md text-label-md py-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-primary-container transition-colors shadow-[0_0_20px_rgba(70,241,197,0.3)] relative group">
+                    <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform relative z-10">mic</span>
+                    <span class="relative z-10">RECORD SPEECH</span>
+                    <!-- Wave Viz overlay -->
+                    <div class="absolute bottom-0 left-0 w-full h-8 flex items-end justify-center gap-1 opacity-20 z-0">
+                        <div class="w-1 h-full bg-on-primary wave-bar"></div>
+                        <div class="w-1 h-full bg-on-primary wave-bar"></div>
+                        <div class="w-1 h-full bg-on-primary wave-bar"></div>
+                        <div class="w-1 h-full bg-on-primary wave-bar"></div>
+                        <div class="w-1 h-full bg-on-primary wave-bar"></div>
+                    </div>
+                </button>
+                <button class="bg-surface border border-white/20 text-primary font-label-md text-label-md py-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-colors">
+                    <span class="material-symbols-outlined text-2xl">analytics</span>
+                    <span>EVALUATE SENTENCE</span>
+                </button>
+            </div>
+
+            <!-- Research Stream -->
+            <article class="flex flex-col gap-4 flex-1 mt-2 stagger-enter">
+                <h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">science</span> Research Stream
+                </h3>
+                <!-- Card 1 -->
+                <div class="glass-panel p-4 flex flex-col gap-2 hover:border-primary/50 transition-colors cursor-pointer group reveal-item">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label-sm text-label-sm text-tertiary bg-tertiary/10 px-2 py-0.5 rounded border border-tertiary/20">arXiv:CS</span>
+                        <span class="font-label-sm text-label-sm text-on-surface-variant">2h ago</span>
+                    </div>
+                    <h4 class="font-body-lg text-body-lg font-semibold text-on-surface group-hover:text-primary transition-colors leading-tight">Byzantine Fault Tolerance in Asynchronous Consensus Systems</h4>
+                    <p class="font-body-md text-body-md text-on-surface-variant line-clamp-2 mt-1 text-sm">An analysis of practical limits in partial synchrony models, proposing a novel reduction algorithm for leader election.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="glass-panel p-4 flex flex-col gap-2 hover:border-primary/50 transition-colors cursor-pointer group reveal-item">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label-sm text-label-sm text-secondary bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">arXiv:AI</span>
+                        <span class="font-label-sm text-label-sm text-on-surface-variant">5h ago</span>
+                    </div>
+                    <h4 class="font-body-lg text-body-lg font-semibold text-on-surface group-hover:text-primary transition-colors leading-tight">Deep Learning for Manifold Approximations</h4>
+                    <p class="font-body-md text-body-md text-on-surface-variant line-clamp-2 mt-1 text-sm">Using continuous normalizing flows to model complex topological structures in high-dimensional datasets.</p>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        // Digital clock update
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-GB', { hour12: false });
+            const clockEl = document.getElementById('nav-clock');
+            if (clockEl) clockEl.textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Animate Radial Gauge on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!prefersReducedMotion) {
+                setTimeout(() => {
+                    const gauge = document.getElementById('compliance-gauge');
+                    const text = document.getElementById('compliance-text');
+                    if (gauge) {
+                        gauge.style.strokeDashoffset = '62.19';
+                    }
+                    if (text) {
+                        let start = 0;
+                        const end = 78;
+                        const duration = 1500;
+                        const startTime = performance.now();
+                        
+                        function animateNumber(currentTime) {
+                            const elapsed = currentTime - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            const easeOut = 1 - Math.pow(1 - progress, 3);
+                            const currentVal = Math.floor(easeOut * end);
+                            text.innerHTML = `${currentVal}<span class="text-2xl text-primary">%</span>`;
+                            
+                            if (progress < 1) {
+                                requestAnimationFrame(animateNumber);
+                            } else {
+                                text.innerHTML = `78<span class="text-2xl text-primary">%</span>`;
+                            }
+                        }
+                        requestAnimationFrame(animateNumber);
+                    }
+                }, 300);
+            } else {
+                 const gauge = document.getElementById('compliance-gauge');
+                 const text = document.getElementById('compliance-text');
+                 if (gauge) gauge.style.strokeDashoffset = '62.19';
+                 if (text) text.innerHTML = `78<span class="text-2xl text-primary">%</span>`;
+            }
+        });
+
+        // Toggle Protocol Items
+        function toggleProtocol(element) {
+            element.classList.toggle('completed');
+            const iconContainer = element.querySelector('div:first-child');
+            if (element.classList.contains('completed')) {
+                iconContainer.classList.replace('border-surface-variant', 'border-primary');
+                iconContainer.classList.add('bg-primary/10', 'neon-glow');
+                iconContainer.classList.remove('group-hover:border-primary/50');
+            } else {
+                iconContainer.classList.replace('border-primary', 'border-surface-variant');
+                iconContainer.classList.remove('bg-primary/10', 'neon-glow');
+                iconContainer.classList.add('group-hover:border-primary/50');
+            }
+        }
+
+        // Scroll Reveal for Research Stream
+        if (!prefersReducedMotion) {
+            const revealOptions = {
+                threshold: 0.1,
+                rootMargin: "0px 0px -20px 0px"
+            };
+
+            const revealObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, revealOptions);
+
+            document.querySelectorAll('.reveal-item').forEach(item => {
+                revealObserver.observe(item);
+            });
+        } else {
+             document.querySelectorAll('.reveal-item').forEach(item => {
+                item.style.opacity = '1';
+                item.style.transform = 'none';
+            });
+        }
+    </script>
+</body>
+</html>
